@@ -29,7 +29,7 @@ function ic(n,c){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentCol
 /* ---------- Navigation ---------- */
 var LATER={runde:'Shopfloor 06:45',chk:'Schichtaufgaben',fluss:'Materialfluss',s5:'5S-Board',plan:'Planungsboard',schicht:'Schichtplan',quali:'Qualifikationen',ausw:'Auswertung',imp:'Excel-Import',ber:'Berichte'};
 var GROUPS=[
- {id:'lage',t:'Steuerung',ic:'lage',p:[['mein','Mein Tag'],['heute','Heute'],['lage','Lagebild'],['runde','Shopfloor 06:45'],['frist','Fristen'],['chk','Schichtaufgaben'],['fluss','Materialfluss'],['woche','Wochenrückblick'],['tag','Tagesabschluss']]},
+ {id:'lage',t:'Steuerung',ic:'lage',p:[['mein','Mein Tag'],['heute','Heute'],['lage','Lagebild'],['halle','Hallenplan'],['runde','Shopfloor 06:45'],['frist','Fristen'],['chk','Schichtaufgaben'],['fluss','Materialfluss'],['woche','Wochenrückblick'],['tag','Tagesabschluss']]},
  {id:'lager',t:'Material und Lager',ic:'lager',p:[['fach','Fachverwaltung'],['milk','Milkrun'],['vork','Vorkommissionierung'],['wep','WEP Wareneingangsprüfung'],['we','Wareneingang'],['mw','Materialwagen'],['wv','Werksverkehr'],['tb','TB-Wagen und TB-Kiste']]},
  {id:'prod',t:'Produktion und Qualität',ic:'prod',p:[['tz','Tageszahlen'],['qs','QS und Störmeldungen'],['auf','Aufträge und Produktionsweg'],['mas','Maschinen und Wartung'],['aud','Audits'],['s5','5S-Board']]},
  {id:'pers',t:'Personal',ic:'pers',p:[['urlaub','Urlaub und Anwesenheit'],['gespr','Personalgespräche','lead'],['plan','Planungsboard'],['schicht','Schichtplan'],['quali','Qualifikationen']]},
@@ -47,6 +47,7 @@ function sparkS(vals,col){if(!vals||vals.length<2)return '';var w=200,h=34,mx=Ma
  var P=vals.map(function(v,i){return [(i/(n-1))*(w-4)+2,h-4-(v-mn)/r*(h-10)]}),d=P.map(function(p,i){return (i?'L':'M')+p[0].toFixed(1)+','+p[1].toFixed(1)}).join(''),L=P[n-1];
  return '<svg class="spark" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none" width="100%" height="34" aria-hidden="true"><path d="'+d+'L'+L[0].toFixed(1)+','+h+'L2,'+h+'Z" fill="'+(col||'var(--signal)')+'" opacity=".12"/><path d="'+d+'" fill="none" stroke="'+(col||'var(--signal)')+'" stroke-width="1.8" vector-effect="non-scaling-stroke"/><circle cx="'+L[0].toFixed(1)+'" cy="'+L[1].toFixed(1)+'" r="3" fill="'+(col||'var(--signal)')+'"/></svg>'}
 function tile(o){var tag=o.go||o.act?'button':'div',at=o.go?' data-act="go" data-go="'+o.go+'"':o.act?' data-act="'+o.act+'"':'';
+ if(o.none)return '<'+tag+' class="tile none"'+at+'><span class="stripe"></span><span class="k">'+esc(o.k)+'</span><span class="nv"><i aria-hidden="true"></i><b>'+esc(o.none)+'</b></span>'+(o.cta?'<span class="cta">'+esc(o.cta)+ic('arrow')+'</span>':'')+'</'+tag+'>';
  return '<'+tag+' class="tile '+(o.tone||'')+'"'+at+'><span class="stripe"></span><span class="k">'+esc(o.k)+'</span><span class="v"'+(o.cu!==false?' data-cu':'')+'>'+o.v+'</span>'+(o.s?'<span class="s">'+o.s+'</span>':'')+(o.m?meter(o.m[0],o.m[1]):'')+(o.sp?sparkS(o.sp,o.spc):'')+'</'+tag+'>'}
 function emptyS(t,s){return '<div class="empty"><b>'+esc(t)+'</b><span>'+esc(s||'')+'</span></div>'}
 function hhmm(min){return ('0'+Math.floor(min/60)).slice(-2)+':'+('0'+(min%60)).slice(-2)}

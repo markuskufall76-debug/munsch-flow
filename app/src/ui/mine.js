@@ -7,12 +7,14 @@ var M=window.MF,cp=M.cp,card=M.card,tile=M.tile,ic=M.ic,empty=M.empty;
 function mon(d){var x=new Date(d+'T12:00:00');return addDays(d,-((x.getDay()+6)%7))}
 function ln(){var t=todayIso();return tzLatest(isWork(t)?prevWork(t):t)}
 function o(k){var l=ln();return l?(S.tz[l]||{})[k]:null}
+function sp(k){var t=todayIso();return Object.keys(S.tz).filter(function(d){return d<t&&Object.keys(S.tz[d]).length}).sort().slice(-10).map(function(d){return S.tz[d][k]||0})}
+function saw(p){var pl=(S.tz[todayIso()]||{})[p+'_plan'],ru=+(o(p+'_rueck')||0);return [pl==null?{k:'Tagesziel',none:'Plan noch nicht erfasst',cta:'Plan eintragen',go:'tz'}:{k:'Tagesziel',v:String(pl+ru),s:pl+' geplant + '+ru+' Rückstand',cu:false,go:'tz'},{k:'Gesägt Vortag',v:String(o(p+'_ist')||0),sp:sp(p+'_ist'),go:'tz'},{k:'Rückstand',v:String(o(p+'_rueck')||0),sp:sp(p+'_rueck'),spc:'var(--warn)',go:'tz',tone:(o(p+'_rueck')||0)>3?'warn':''}]}
 /* Kennzahlen je Bereich (Bereichsnamen wie im Schichtplan) */
 var AREA={
- 'Wareneingang':function(){return [{k:'Lieferungen offen',v:String(regOpen('we')),go:'we',tone:regOpen('we')?'warn':'ok'},{k:'Pakete Vortag',v:String(o('we_pak')||0),go:'tz'},{k:'GB / Pal Vortag',v:String(o('we_gbpal')||0),go:'tz'}]},
+ 'Wareneingang':function(){return [{k:'Lieferungen offen',v:String(regOpen('we')),go:'we',tone:regOpen('we')?'warn':'ok'},{k:'Pakete Vortag',v:String(o('we_pak')||0),sp:sp('we_pak'),go:'tz'},{k:'GB / Pal Vortag',v:String(o('we_gbpal')||0),sp:sp('we_gbpal'),go:'tz'}]},
  'WEP':function(){return [{k:'Prüfungen offen',v:String(regOpen('wep')),go:'wep',tone:regOpen('wep')?'warn':'ok'},{k:'Silizium Vortag',v:String(o('wep_si')||0),go:'tz'}]},
- 'Säge Metall':function(){var pl=(S.tz[todayIso()]||{}).ms_plan,ru=(S.tz[prevWork(todayIso())]||{}).ms_rueck||0;return [{k:'Tagesziel',v:pl==null?'–':String(pl+ru),s:pl==null?'Plan noch nicht erfasst':pl+' geplant + '+ru+' Rückstand',cu:false,go:'tz'},{k:'Gesägt Vortag',v:String(o('ms_ist')||0),go:'tz'},{k:'Rückstand',v:String(o('ms_rueck')||0),go:'tz',tone:(o('ms_rueck')||0)>3?'warn':''}]},
- 'Säge Kunststoff':function(){var pl=(S.tz[todayIso()]||{}).ks_plan,ru=(S.tz[prevWork(todayIso())]||{}).ks_rueck||0;return [{k:'Tagesziel',v:pl==null?'–':String(pl+ru),s:pl==null?'Plan noch nicht erfasst':pl+' geplant + '+ru+' Rückstand',cu:false,go:'tz'},{k:'Gesägt Vortag',v:String(o('ks_ist')||0),go:'tz'},{k:'Rückstand',v:String(o('ks_rueck')||0),go:'tz',tone:(o('ks_rueck')||0)>3?'warn':''}]},
+ 'Säge Metall':function(){return saw('ms')},
+ 'Säge Kunststoff':function(){return saw('ks')},
  'Vorkommissionierung':function(){return [{k:'Aufträge offen',v:String(regOpen('vork')),go:'vork'}]},
  'Materialwagen':function(){return [{k:'Wagen offen',v:String(regOpen('mw')),go:'mw'},{k:'Rückstand Vortag',v:String(o('mw_rueck')||0),go:'tz'}]},
  'Werksverkehr':function(){return [{k:'Fahrten offen',v:String(regOpen('wv')),go:'wv'},{k:'TB-Wagen offen',v:String(regOpen('tb')),go:'tb'}]},

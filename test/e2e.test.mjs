@@ -418,6 +418,7 @@ test('Shopfloor-Bühne: Handy blättert, der große Monitor folgt über die Zent
   await phone.click('#remote [data-act="rnext"]');
   await phone.click('#remote [data-act="rnext"]');
   assert.match(await phone.textContent('#remote .rm-t'), /Sicherheit/);
+  await phone.waitForFunction(() => document.querySelectorAll('#remote .rm-k div').length >= 3, null, { timeout: 3000 });
   await mon.waitForFunction(() => S.ui.rp === 3 && /Arbeitssicherheit/.test(document.querySelector('.sf-th h2').textContent), null, { timeout: 9000 });
   assert.deepEqual(mon.errors, []); assert.deepEqual(phone.errors, []);
 });
@@ -438,4 +439,43 @@ test('Mein Tag: Bereich laut Schichtplan mit Tagesziel, eigene Maßnahme, Team s
   assert.match(txt, /Tagesziel/);
   assert.match(txt, /Shopfloor-Maßnahme: Sägeband wechseln/);
   assert.deepEqual(team.errors, []);
+});
+
+test('Hallenplan: 204 Fächer, Suche zoomt zum Fach, Störung pulsiert am Bereich', async () => {
+  const lead = await open();
+  await signIn(lead, 'M. Thiel', 'notfall-123456');
+  await lead.waitForFunction(() => window.SY && SY.ok);
+  await lead.evaluate(() => { const f = S.fach.filter((x) => x.typ === 'S')[11]; f.auf = '3501234'; f.ts = Date.now(); S.reg.qs.push({ id: 'qh1', ts: Date.now(), st: 0, bereich: 'Säge', art: 'Störung' }); save(); go('halle'); });
+  await lead.waitForSelector('#hsvg');
+  assert.equal(await lead.$$eval('#hsvg .hc', (c) => c.length), 204);
+  assert.equal(await lead.$$eval('#hsvg .hz.crit', (c) => c.length), 2, 'beide Sägen zeigen die Störung');
+  await lead.fill('[data-hq]', '3501234');
+  await lead.waitForSelector('#hpin');
+  assert.match(await lead.textContent('#hpin'), /S012 · 3501234/);
+  assert.match(await lead.textContent('.hpres'), /3501234.*liegt in.*S012/);
+  await lead.waitForFunction(() => +document.querySelector('#hsvg').getAttribute('viewBox').split(' ')[2] < 700);
+  await lead.click('[data-act="hall0"]');
+  await lead.waitForFunction(() => document.querySelector('#hsvg').getAttribute('viewBox') === '0 56 1200 628' && !document.querySelector('#hpin'));
+  await lead.click('#hsvg .hz[data-go="wep"]');
+  await lead.waitForFunction(() => S.ui.page === 'wep');
+  assert.deepEqual(lead.errors, []);
+});
+
+test('Prognose: Hochrechnung aus Tempo und 20 Arbeitstagen, Ziel mit Rückstand', async () => {
+  const lead = await open();
+  await signIn(lead, 'M. Thiel', 'notfall-123456');
+  await lead.waitForFunction(() => window.SY && SY.ok);
+  const r = await lead.evaluate(() => {
+    let d = '2026-10-05'; while (!isWork(d)) d = nextWork(d);
+    const last = tzLatest(prevWork(d)), ru = +(S.tz[last].ms_rueck || 0);
+    S.tz[d] = Object.assign(S.tz[d] || {}, { ms_plan: 6, ms_ist: 4 });
+    const at = (h, m) => { const x = new Date(d + 'T12:00:00'); x.setHours(h, m, 0, 0); return x; };
+    return { ru, vor: fcast('ms', at(5, 30)), mitte: fcast('ms', at(10, 30)), ende: fcast('ms', at(16, 0)) };
+  });
+  assert.equal(r.mitte.tg, 6 + r.ru, 'Ziel = Plan + Rückstand');
+  assert.ok(r.mitte.lo >= 4 && r.mitte.lo <= r.mitte.mid && r.mitte.mid <= r.mitte.hi, 'Bereich um die Mitte, nie unter Ist');
+  assert.equal(r.mitte.n, 20);
+  assert.equal(r.ende.mid, 4); assert.equal(r.ende.lo, r.ende.hi);
+  assert.equal(r.vor.mid, Math.max(4, Math.round(r.vor.mu)), 'vor Schichtbeginn zählt nur der Erfahrungswert');
+  assert.deepEqual(lead.errors, []);
 });

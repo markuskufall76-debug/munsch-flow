@@ -1,0 +1,128 @@
+/* ---------- Feinschliff: Raster passt sich der Kachelzahl an ---------- */
+@media (min-width:1181px){
+ .r4:has(> :nth-child(3):last-child){grid-template-columns:repeat(3,minmax(0,1fr))}
+ .r4:has(> :nth-child(2):last-child){grid-template-columns:repeat(2,minmax(0,1fr))}
+ .r4:has(> :only-child){grid-template-columns:minmax(0,1fr)}}
+@media (max-width:1180px){.r4 > :nth-child(3):last-child,.r4 > :only-child{grid-column:1/-1}}
+
+/* Leere Kachel: gestaltet statt Strich */
+.tile.none{background:repeating-linear-gradient(135deg,transparent 0 10px,color-mix(in srgb,var(--line) 55%,transparent) 10px 11px),var(--panel);border-style:dashed;border-color:var(--line2)}
+.tile.none .stripe{background:var(--line2)}
+.tile.none .nv{display:flex;align-items:center;gap:12px;margin:6px 0 2px}
+.tile.none .nv i{flex:none;width:34px;height:34px;border-radius:50%;border:1.5px dashed var(--ink3);position:relative}
+.tile.none .nv i::before,.tile.none .nv i::after{content:"";position:absolute;left:50%;top:50%;width:12px;height:1.5px;background:var(--ink3);transform:translate(-50%,-50%)}
+.tile.none .nv i::after{transform:translate(-50%,-50%) rotate(90deg)}
+.tile.none .nv b{font-size:15px;font-weight:600;color:var(--ink2)}
+.tile.none .cta{margin-top:auto;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--signal)}
+.tile.none .cta svg{width:15px;height:15px;transition:transform .3s var(--ease)}
+.tile.none:hover .cta svg{transform:translateX(4px)}
+
+/* Fernbedienung: Vorschau der Folie */
+.rm-k{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:8px;margin-top:auto;padding-top:18px}
+.rm-k div{display:flex;flex-direction:column;gap:4px;padding:12px;border-radius:14px;background:color-mix(in srgb,var(--panel2) 80%,transparent);border:1px solid var(--line);min-width:0}
+.rm-k b{font:800 34px/1 var(--display);font-variant-numeric:tabular-nums}
+.rm-k span{font-size:12px;color:var(--ink3);line-height:1.25;overflow-wrap:anywhere}
+.rm-k .hot b{color:var(--warn)}
+.rm-p{display:flex;align-items:center;gap:12px;margin-top:10px}
+.rm-k + .rm-p{margin-top:12px}
+.rm-now > .rm-p:nth-child(4){margin-top:auto;padding-top:18px}
+.rm-p i{flex:none;width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font:700 14px var(--mono);font-style:normal;background:var(--signal);color:var(--signal-ink)}
+.rm-p small{display:block;font:600 10.5px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ink3)}
+.rm-p b{font-size:17px}
+
+/* ---------- Prognose ---------- */
+.fc .fc-lead{margin:0 0 16px;font:700 clamp(20px,2vw,26px)/1.2 var(--body);text-wrap:balance}
+.fc-row{display:flex;flex-direction:column;gap:8px;padding:14px 0;border-top:1px solid var(--line)}
+.fc-row:first-of-type{border-top:0;padding-top:0}
+.fc-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.fc-h > b{font-size:15px}
+.fc-n{margin-left:auto;display:flex;align-items:baseline;gap:8px}
+.fc-n em{font:800 36px/1 var(--display);font-style:normal;font-variant-numeric:tabular-nums}
+.fc-n small{font:500 12px var(--mono);color:var(--ink3)}
+.fc-row.ok .fc-n em{color:var(--ok)}.fc-row.warn .fc-n em{color:var(--warn)}.fc-row.crit .fc-n em{color:var(--crit)}
+.fc-bar{position:relative;height:16px;border-radius:8px;background:color-mix(in srgb,var(--line) 70%,transparent);margin:6px 0 14px}
+.fc-ist{position:absolute;left:0;top:0;bottom:0;border-radius:8px;background:var(--signal);animation:hw 1s var(--ease) both .2s}
+.fc-band{position:absolute;top:-3px;bottom:-3px;border-radius:6px;background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--signal) 42%,transparent) 0 4px,color-mix(in srgb,var(--signal) 14%,transparent) 4px 8px);border:1px solid color-mix(in srgb,var(--signal) 55%,transparent);animation:fcin .8s var(--ease) both .5s}
+.fc-mid{position:absolute;top:-6px;bottom:-6px;width:2px;margin-left:-1px;background:var(--ink);border-radius:2px;animation:fcin .6s var(--ease) both .8s}
+.fc-tg{position:absolute;top:-8px;bottom:-8px;width:0;border-left:2px dashed var(--ink2)}
+.fc-tg em{position:absolute;top:100%;left:0;transform:translateX(-50%);margin-top:3px;font:600 11px var(--mono);font-style:normal;color:var(--ink2);white-space:nowrap}
+.fc-mu{position:absolute;top:50%;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:var(--panel);border:2px solid var(--ink3)}
+.fc-s{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:12.5px}
+.fc-lg{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:12px}
+.fc-lg span{display:inline-flex;align-items:center;gap:6px}
+.fc-lg i{width:16px;height:8px;border-radius:4px;display:inline-block}
+.fc-lg .l-ist{background:var(--signal)}
+.fc-lg .l-band{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--signal) 42%,transparent) 0 3px,color-mix(in srgb,var(--signal) 14%,transparent) 3px 6px);border:1px solid color-mix(in srgb,var(--signal) 55%,transparent)}
+.fc-lg .l-tg{width:0;height:12px;border-left:2px dashed var(--ink2);border-radius:0}
+.fc-lg .l-mu{width:8px;height:8px;border-radius:50%;border:2px solid var(--ink3)}
+@keyframes fcin{from{opacity:0;transform:scaleX(.6)}}
+
+/* ---------- Hallenplan ---------- */
+.hpbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.hpq{position:relative;flex:0 1 420px;min-width:240px}
+.hpq svg{position:absolute;left:14px;top:50%;width:18px;height:18px;transform:translateY(-50%);color:var(--ink3);pointer-events:none}
+.hpq .in{padding-left:42px;width:100%}
+.hpres{flex:1;min-width:200px;font-size:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.hcard{padding:12px}
+.hwrap{overflow-x:auto;border-radius:16px;-webkit-overflow-scrolling:touch}
+.hsvg{display:block;width:100%;min-width:860px;height:auto;font-family:var(--body)}
+.hbg{fill:var(--ground)}.hgl{stroke:color-mix(in srgb,var(--line) 60%,transparent);stroke-width:1}
+.hhall{fill:color-mix(in srgb,var(--panel) 70%,transparent);stroke:var(--line2);stroke-width:1.5}
+.hht{font:700 26px var(--display);letter-spacing:.06em;fill:var(--ink)}
+.hhp{font:500 13px var(--mono);fill:var(--ink3)}
+.hz{cursor:pointer;outline:none}
+.hz:not(.hfz){animation:hzin .7s var(--ease) both;animation-delay:calc(var(--i)*60ms + .1s)}
+@keyframes hzin{from{opacity:0;transform:translateY(10px)}}
+.hzr{fill:var(--panel);stroke:var(--line2);stroke-width:1.2;transition:stroke .25s,fill .25s}
+.hz:hover .hzr,.hz:focus-visible .hzr{stroke:var(--signal);fill:color-mix(in srgb,var(--signal) 7%,var(--panel))}
+.hz:focus-visible .hzr{stroke-width:2.5}
+.hfz{cursor:default}.hfz:hover .hzr{stroke:var(--line2);fill:var(--panel)}
+.hzt{font:600 12px var(--mono);letter-spacing:.14em;fill:var(--ink3)}
+.hzk{font:600 10px var(--mono);letter-spacing:.14em;fill:var(--ink3)}
+.hzv{font:800 44px var(--display);fill:var(--ink);font-variant-numeric:tabular-nums}
+.hzs{font:500 13px var(--body);fill:var(--ink2)}
+.hz.crit .hzr{stroke:var(--crit);stroke-width:2}
+.hpulse{fill:none;stroke:var(--crit);stroke-width:2;transform-box:fill-box;transform-origin:center;animation:hpul 2s ease-out infinite}
+@keyframes hpul{from{opacity:.8;transform:scale(1)}to{opacity:0;transform:scale(1.08)}}
+.hqb{fill:var(--crit)}.hqt{font:700 13px var(--mono);fill:#fff}
+.hav circle{fill:var(--signal);stroke:var(--panel);stroke-width:2.5}.hav text{font:700 10px var(--mono);fill:var(--signal-ink)}
+.hc{cursor:pointer;stroke:transparent;stroke-width:2;transition:opacity .3s,stroke .2s;animation:hcin .5s var(--ease) both;animation-delay:calc(var(--i)*3ms + .3s);transform-box:fill-box;transform-origin:center}
+@keyframes hcin{from{opacity:0;transform:scale(.3)}}
+.hc.frei{fill:color-mix(in srgb,var(--line) 85%,transparent)}
+.hc.bel{fill:var(--signal)}
+.hc.lang{fill:#B48CFF}
+.hc.alt{fill:color-mix(in srgb,var(--signal) 38%,var(--panel2))}
+.hc:hover{stroke:var(--ink)}
+.hc.dimc{opacity:.18}
+.hc.hit{stroke:var(--ink);stroke-width:2.5;fill:var(--signal);animation:hchit 1.2s ease-in-out infinite}
+@keyframes hchit{50%{transform:scale(1.35)}}
+.hmk{cursor:pointer}
+.hmkr{fill:none;stroke:color-mix(in srgb,var(--ok) 40%,transparent);stroke-width:3;stroke-dasharray:2 10;stroke-linecap:round}
+.hmkr.on{stroke:var(--ok);animation:hmkd 1.2s linear infinite}
+@keyframes hmkd{to{stroke-dashoffset:-24}}
+.hmkv circle{fill:var(--ok)}.hmkv .hmkh{fill:color-mix(in srgb,var(--ok) 25%,transparent)}
+.hchip{fill:var(--panel2);stroke:var(--line2)}.hchipt{font:600 11px var(--mono);letter-spacing:.12em;fill:var(--ok)}
+.hrd{cursor:pointer}
+.hrdr{fill:color-mix(in srgb,var(--panel2) 80%,transparent);stroke:var(--line);stroke-dasharray:6 6}
+.hrd:hover .hrdr{stroke:var(--signal)}
+.hrd.crit .hrdr{stroke:var(--crit);stroke-dasharray:none}
+.hrdl{stroke:var(--line2);stroke-width:2;stroke-dasharray:14 12}
+.hveh rect{fill:var(--info);stroke:var(--panel);stroke-width:2}.hveh.mw rect{fill:var(--signal)}
+.hlg{display:flex;gap:16px;flex-wrap:wrap;align-items:center;padding:12px 8px 4px;font-size:12.5px}
+.hlg span{display:inline-flex;align-items:center;gap:6px}
+.hlg i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.hlg .frei{background:color-mix(in srgb,var(--line) 85%,transparent)}.hlg .bel{background:var(--signal)}.hlg .lang{background:#B48CFF}.hlg .alt{background:color-mix(in srgb,var(--signal) 38%,var(--panel2))}.hlg .crit{background:transparent;border:2px solid var(--crit)}
+.hlg .dim{margin-left:auto}
+@media (prefers-reduced-motion:reduce){.hz,.hc,.hpulse,.hmkr.on,.fc-ist,.fc-band,.fc-mid{animation:none!important}}
+#hpin{pointer-events:none}#hpin .hpi{animation:hpdrop .6s var(--ease) both}
+@keyframes hpdrop{from{opacity:0;transform:translateY(-20px)}}
+#hpin .hpr{fill:none;stroke:var(--signal);stroke-width:2;transform-box:fill-box;transform-origin:center;animation:hpul 1.6s ease-out infinite}
+#hpin .hpn{fill:var(--ink)}#hpin .hpb{fill:var(--ink)}#hpin .hpt{font:700 12px var(--mono);fill:var(--ground)}
+.rm-p.none i{background:transparent;border:1.5px dashed var(--ink3);color:var(--ink3)}.rm-p.none b{color:var(--ink2);font-weight:600}
+/* Fächer in beiden Modi deutlich unterscheidbar */
+.hc.frei,.hlg .frei{fill:color-mix(in srgb,var(--ink3) 24%,transparent);background:color-mix(in srgb,var(--ink3) 24%,transparent)}
+.hc.alt{fill:color-mix(in srgb,var(--signal) 48%,var(--panel2))}.hlg .alt{background:color-mix(in srgb,var(--signal) 48%,var(--panel2))}
+/* Alarm-Banner auf dem Handy: Knöpfe nicht abschneiden */
+#albar .btn{flex:none;white-space:nowrap}
+@media (max-width:560px){#albar{left:16px;right:16px;transform:none;max-width:none;flex-wrap:wrap}#albar span{flex:1 1 calc(100% - 30px);font-size:14px}#albar .btn{flex:1}#albar .btn:last-child{flex:none;width:52px}#albar{animation-name:albm}}
+@keyframes albm{from{transform:translateY(-30px);opacity:0}}
