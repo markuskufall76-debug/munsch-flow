@@ -16,6 +16,7 @@
     "legacy:extract": "node tools/extract-legacy.mjs"
   },
   "devDependencies": {
+    "@e965/xlsx": "0.20.3",
     "esbuild": "0.25.10"
   }
 }

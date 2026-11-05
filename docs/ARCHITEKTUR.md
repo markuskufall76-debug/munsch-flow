@@ -23,6 +23,8 @@ Maßgeblich sind die Originaldaten aus dem Excel-Import (`app/src/legacy/mfdata.
 - **Logik-Kern eingefroren** (`app/src/legacy/`). Die bewährte Fachlogik aus Flow 5 bleibt wortgleich und ist durch `test/core.test.mjs` festgehalten. Änderungen daran sind bewusste Schritte mit Testanpassung.
 - **Zustand als Zeilen** `{s, k, v}` mit fortlaufender Nummer `seq`. Geräte holen nur Neues ab (`/api/sync?since=`) und senden nur Änderungen (`/api/push`). Löschen ist eine Zeile mit `v = null`. Das Format ist mit Flow 5 kompatibel.
 - **Rechte im Server, nicht nur in der Oberfläche** (`worker/src/sync.js` → `rule`).
+- **Excel-Import:** Die Parser sind wortgleich aus Flow 5 eingefroren (`app/src/legacy/excel.js`), weil sie auf die echten Dateien abgestimmt sind. Die Bibliothek SheetJS 0.20.3 liefert der Worker selbst aus (`/vendor/xlsx-0.20.3.js`) und lädt sie erst beim Import.
+- **Sync-Sicherheitsnetz** (`app/src/core/sync-ext.js`): Abschnitte, die die Zentrale kennt und ein Gerät nicht, werden weitergereicht und nie gelöscht.
 - **Offline-fest:** Ungesendete Änderungen bleiben im Browser und werden nach Rückkehr der Verbindung gesendet (aus dem Kern übernommen).
 
 ## API
@@ -44,8 +46,8 @@ Maßgeblich sind die Originaldaten aus dem Excel-Import (`app/src/legacy/mfdata.
 
 | Befehl | Prüft |
 |---|---|
-| `npm test` | Logik-Kern inkl. Originaldaten (10 Tests) und API inkl. Sicherheit (11 Tests) gegen SQLite |
-| `npm run test:e2e` | echter Worker lokal + Seite in zwei Browsern: Erstbefüllung, PIN, Live-Abgleich, Rechte, Umzug, falsche PIN, Shopfloor-Runde, Station mit Rückgängig |
+| `npm test` | Logik-Kern inkl. Originaldaten und Sync-Sicherheitsnetz (11 Tests) und API inkl. Sicherheit (12 Tests) gegen SQLite |
+| `npm run test:e2e` | echter Worker lokal + Seite in zwei Browsern: Erstbefüllung, PIN, Live-Abgleich, Rechte, Umzug, falsche PIN, Shopfloor-Runde, Station mit Rückgängig, Excel-Import mit echter .xlsx, Schichtaufgaben/5S/Schichtplan |
 | `npm run dev` | lokaler Server unter http://localhost:8787 |
 
 CI (`.github/workflows/ci.yml`) führt alles bei jedem Push aus und stellt die Worker-Datei als Download bereit.

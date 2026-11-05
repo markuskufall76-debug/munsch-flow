@@ -32,7 +32,17 @@ const sync = between('/* ===== ZENTRALE SYNCHRONISIERUNG', 'ACT.syout=function')
 for (const fn of ['function syFlat', 'function syApply', 'function syPush', 'function syStart', 'function syPull'])
   if (!sync.includes(fn)) throw new Error(`Sync ohne ${fn}`);
 
+// Excel-Parser (auf die echten Dateien abgestimmt: Tageszahlen „Erfassung“ und Monatsblätter, Fachbelegung, Urlaubsplanung)
+function def(start) {
+  const i = src.indexOf(start);
+  if (i < 0 || src.indexOf(start, i + 1) >= 0) throw new Error(`Definition ${start} nicht eindeutig`);
+  let j = src.indexOf('\n', i);
+  while (src[j + 1] === ' ') j = src.indexOf('\n', j + 1); // Fortsetzungszeilen beginnen mit Leerzeichen
+  return src.slice(i, j).trim();
+}
+const excel = ['function capR(', 'var XMAP=', 'var TZOLD=', 'var WEPK=', 'function tzOld(', 'function fxParse(', 'function vxParse('].map(def).join('\n');
+writeFileSync(new URL('../app/src/legacy/excel.js', import.meta.url), head('Excel-Parser.') + 'window._tzun=window._tzun||[];\n' + excel + '\n');
 writeFileSync(new URL('../app/src/legacy/mfdata.js', import.meta.url), head('Stammdaten.') + mfdata + '\n');
 writeFileSync(new URL('../app/src/legacy/core.js', import.meta.url), head('Logik-Kern.') + core);
 writeFileSync(new URL('../app/src/legacy/sync.js', import.meta.url), head('Synchronisierung.') + sync);
-console.log('legacy: mfdata', mfdata.length, 'core', core.length, 'sync', sync.length, 'Zeichen');
+console.log('legacy: excel', excel.length, 'mfdata', mfdata.length, 'core', core.length, 'sync', sync.length, 'Zeichen');

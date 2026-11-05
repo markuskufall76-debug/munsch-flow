@@ -29,7 +29,7 @@ test('Seite: ausgeliefert mit strikter CSP und Sicherheits-Headern', async () =>
   assert.equal(r.status, 200);
   assert.match(r.body, /window\.MF_SERVER=1/);
   const csp = r.headers.get('content-security-policy');
-  assert.match(csp, /script-src 'sha256-/); assert.doesNotMatch(csp, /unsafe-inline'[^;]*script|script-src[^;]*unsafe/);
+  assert.match(csp, /script-src 'self' 'sha256-/); // nur eigene Herkunft (Excel-Bibliothek) und per Hash bekannte Inline-Skripte assert.doesNotMatch(csp, /unsafe-inline'[^;]*script|script-src[^;]*unsafe/);
   assert.match(csp, /frame-ancestors 'none'/);
   assert.equal(r.headers.get('x-content-type-options'), 'nosniff');
 });
@@ -118,6 +118,12 @@ test('Schutz: fremde Herkunft, ungültige Daten und Übergrößen werden abgewie
   assert.equal((await call('/api/push', { token: t, body: { ops: Array.from({ length: 201 }, (_, i) => ({ s: 'tz', k: 'k' + i, v: '1' })) } })).status, 413);
   const r = await call('/api/push', { token: t, body: { ops: [{ s: 'tz', k: 'a', v: 'kein json' }, { s: '../x', k: 'a', v: '1' }] } });
   assert.equal(r.body.rej.length, 2);
+});
+
+test('Excel-Bibliothek: vom Worker selbst ausgeliefert, aktuelle Version', async () => {
+  const r = await call('/vendor/xlsx-0.20.3.js');
+  assert.equal(r.status, 200); assert.match(r.headers.get('content-type'), /javascript/);
+  assert.match(r.body.slice(0, 200), /SheetJS/); assert.match(r.body, /version:"0\.20\.3"|"0\.20\.3"/);
 });
 
 test('Perplexity: ohne Schlüssel sauber abgeschaltet', async () => {

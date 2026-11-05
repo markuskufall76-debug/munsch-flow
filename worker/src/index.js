@@ -1,7 +1,7 @@
 // MUNSCH Zentrale · Cloudflare Worker
 // Liefert die Seite aus und stellt die API bereit. Bindungen: DB (D1). Secrets: PIN_LEAD, PPLX_KEY (optional),
 // PIN_TEAM + ALLOW_SHARED=1 (optional, Gruppen-PIN). Details: docs/BETRIEB.md
-import { HTML, CSP, BUILD, MFDATA } from './generated/page.js';
+import { HTML, CSP, BUILD, MFDATA, XLSX_JS } from './generated/page.js';
 import { login, session, logout, setPin, usersWithPin, audit } from './auth.js';
 import { pull, push } from './sync.js';
 import { handleAsk } from './ask.js';
@@ -48,6 +48,8 @@ export default {
         return new Response(m === 'HEAD' ? null : HTML, { headers: { ...SEC, 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-cache', 'content-security-policy': CSP, 'x-build': BUILD } });
       }
       if (p === '/healthz') return json({ ok: 1, build: BUILD });
+      // Excel-Bibliothek (SheetJS 0.20.3, fest gepinnt) aus dem Worker selbst, nur beim Import geladen
+      if (p === '/vendor/xlsx-0.20.3.js') return new Response(XLSX_JS, { headers: { ...SEC, 'content-type': 'application/javascript; charset=utf-8', 'cache-control': 'public, max-age=31536000, immutable' } });
       if (!p.startsWith('/api/')) return json({ error: 'Nicht gefunden' }, 404);
       if (!env.DB) return json({ error: 'Datenbank nicht gebunden (D1-Bindung DB fehlt)' }, 500);
 

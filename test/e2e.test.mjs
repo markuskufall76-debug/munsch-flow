@@ -166,3 +166,54 @@ test('Station: Tablet-Bedienung mit Personenwahl, Einlagern und Rückgängig', a
   assert.ok(JSON.parse(rows.find((r) => r.s === 'milk' && r.k === today).v)['0'].s, 'Milkrun-Start ist in der Zentrale');
   assert.deepEqual(st.errors, []);
 });
+
+test('Excel-Import: echte Erfassungsdatei mit Vorschau, Übernahme und Ankunft in der Zentrale', async () => {
+  const XLSX = require('@e965/xlsx');
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet([
+    [null, 'Wareneingang', null, 'Metallsäge', 'Störungen/Abw.'],
+    ['Datum', 'geb. Pakete', 'geb. GB/Pal', 'heute gesägt', 'Säge'],
+    [new Date(Date.UTC(2026, 10, 4, 0, 0)), 33, 12, 7, 1],
+  ], { cellDates: true });
+  XLSX.utils.book_append_sheet(wb, ws, 'Erfassung');
+  const file = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+  const lead = await open();
+  await signIn(lead, 'M. Thiel', 'notfall-123456');
+  await lead.waitForFunction(() => window.SY && SY.ok);
+  await lead.evaluate(() => go('imp'));
+  await lead.setInputFiles('input[data-k="tz"]', { name: 'Tageszahlen_2026_Neu.xlsx', mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', buffer: file });
+  await lead.waitForSelector('[data-act="impok"][data-k="tz"]', { timeout: 15000 });
+  assert.match(await lead.textContent('#imr_tz'), /1 Tage, 4 Werte/);
+  await lead.click('[data-act="impok"][data-k="tz"]');
+  await lead.waitForTimeout(1200);
+  const rows = (await api('/api/sync?since=0', await lead.evaluate(() => SY.tok))).rows;
+  const d = JSON.parse(rows.find((r) => r.s === 'tz' && r.k === '2026-11-04').v);
+  assert.deepEqual([d.we_pak, d.we_gbpal, d.ms_ist, d.st_saege], [33, 12, 7, 1]);
+  assert.deepEqual(lead.errors, []);
+});
+
+test('Schichtaufgaben, 5S und Schichtplan: Änderungen kommen in der Zentrale an, nichts wird gelöscht', async () => {
+  const lead = await open();
+  await signIn(lead, 'M. Thiel', 'notfall-123456');
+  await lead.waitForFunction(() => window.SY && SY.ok);
+  const tok = await lead.evaluate(() => SY.tok);
+  await api('/api/push', tok, { ops: [{ s: 'chkdef', k: 'cfremd', v: JSON.stringify({ t: 'Von anderem Gerät', o: 120 }) }] });
+  await lead.evaluate(() => new Promise((ok) => syPull(ok)));
+  await lead.evaluate(() => go('chk'));
+  assert.match(await lead.textContent('#stage'), /Von anderem Gerät/);
+  await lead.click('[data-act="chkt"][data-id="d1"]');
+  await lead.evaluate(() => go('s5'));
+  await lead.click('[data-act="s5c"][data-i="0"]');
+  await lead.evaluate(() => go('schicht'));
+  const sel = 'select[data-in="splan"]:not([disabled])';
+  await lead.selectOption(sel, 'Säge Metall');
+  await lead.waitForTimeout(1500);
+  const rows = (await api('/api/sync?since=0', tok)).rows;
+  assert.ok(rows.some((r) => r.s === 'chk' && r.k === today + '|d1' && r.v), 'Schichtaufgabe erledigt');
+  assert.ok(rows.some((r) => r.s === 'chkdef' && r.k === 'cfremd' && r.v), 'fremde Aufgabe nicht gelöscht');
+  assert.equal(JSON.parse(rows.find((r) => r.s === 's5.items' && r.k === 'M01').v).st, 'STABIL');
+  assert.ok(rows.some((r) => r.s === 'plan' && JSON.stringify(r.v).includes('Säge Metall')));
+  for (const p of ['fluss', 'plan', 'quali', 'ausw', 'ber']) { await lead.evaluate((x) => go(x), p); await lead.waitForTimeout(250); }
+  await lead.evaluate(() => go('lfm')); await lead.waitForSelector('#lfm .lk');
+  assert.deepEqual(lead.errors, []);
+});

@@ -69,7 +69,7 @@ window.toast=function(m){var o=$('.toast');if(o)o.remove();var t=document.create
 /* ---------- Gerüst ---------- */
 window.buildShell=function(){
  var rail='<div class="mark">'+logoCore(40)+'</div>'+GROUPS.map(function(g){return '<button class="rb" data-act="grp" data-g="'+g.id+'" aria-label="'+esc(g.t)+'">'+ic(g.ic)+'<span class="tip">'+esc(g.t)+'</span><span class="bd" hidden></span></button>'}).join('')
-  +'<button class="rb" data-act="go" data-go="mon" aria-label="Werkstattmonitor">'+ic('mon')+'<span class="tip">Werkstattmonitor</span></button><span class="sp"></span><button class="av" data-act="go" data-go="adm" aria-label="Einstellungen">'+esc(initials(S.user))+'</button>';
+  +'<button class="rb" data-act="go" data-go="mon" aria-label="Werkstattmonitor">'+ic('mon')+'<span class="tip">Werkstattmonitor</span></button><button class="rb" data-act="go" data-go="lfm" aria-label="Lagerfachmonitor">'+ic('lager')+'<span class="tip">Lagerfachmonitor</span></button><span class="sp"></span><button class="av" data-act="go" data-go="adm" aria-label="Einstellungen">'+esc(initials(S.user))+'</button>';
  $('#app').innerHTML='<nav class="rail" aria-label="Bereiche">'+rail+'</nav>'
   +'<header class="top"><div class="ttl"><div class="eb" id="teb"></div><h1 id="tt"></h1></div>'
   +'<button class="srch" data-act="pal">'+ic('search')+'<span>Suchen oder fragen</span><kbd>Strg K</kbd></button>'
@@ -83,7 +83,7 @@ window.buildShell=function(){
  clock();ticker()};
 function flyout(gid,all){var fo=$('#flyout'),gs=all?GROUPS:GROUPS.filter(function(g){return g.id===gid}),b=badges(new Date());
  fo.innerHTML=gs.map(function(g){return '<h3>'+esc(g.t)+'</h3><div class="sub">'+g.p.filter(function(p){return pageOk(p[0])}).length+' Bereiche</div>'+g.p.filter(function(p){return pageOk(p[0])}).map(function(p){var n=b[p[0]];return '<button class="'+(S.ui.page===p[0]?'on':'')+'" data-act="go" data-go="'+p[0]+'"><span class="dot"></span>'+esc(p[1])+(LATER[p[0]]?'<span class="later">folgt</span>':n?'<span class="n">'+n[0]+'</span>':'')+'</button>'}).join('')}).join('<div style="height:22px"></div>')
-  +(all?'<div style="height:22px"></div><button data-act="go" data-go="mon"><span class="dot"></span>Werkstattmonitor</button>':'');
+  +(all?'<div style="height:22px"></div><h3>Ansichten</h3><button data-act="go" data-go="mon"><span class="dot"></span>Werkstattmonitor</button><button data-act="go" data-go="lfm"><span class="dot"></span>Lagerfachmonitor</button>':'');
  fo.dataset.g=all?'all':gid;fo.classList.add('on')}
 function flyClose(){var f=$('#flyout');if(f)f.classList.remove('on')}
 ACT.grp=function(d){var f=$('#flyout');if(f.classList.contains('on')&&f.dataset.g===d.g)return flyClose();flyout(d.g)};
@@ -107,7 +107,7 @@ function ticker(){var a=[],now=new Date();S.brett.filter(function(x){return x.pi
 
 /* ---------- Router und Render ---------- */
 var lastPg=null,pgAt=0;
-window.go=function(p){if(p==='mon')return openMon();if(!PAGE[p])p='lage';if(!pageOk(p))return toast('Nur für die Teamleitung');flyClose();closeDrawer();
+window.go=function(p){if(p==='mon')return openMon();if(p==='lfm'&&window.openLfm)return openLfm();if(!PAGE[p])p='lage';if(!pageOk(p))return toast('Nur für die Teamleitung');flyClose();closeDrawer();
  var changed=p!==S.ui.page||lastPg===null;S.ui.page=p;save();try{history.replaceState(null,'','#'+p)}catch(e){}
  if(changed&&document.startViewTransition&&!RM&&lastPg!==null){try{document.startViewTransition(function(){render()})}catch(e){render()}}else render()};
 window.render=function(){if(window.stnRender&&$('#stn'))stnRender();var st=$('#stage');if(!st)return;var p=S.ui.page,isNew=p!==lastPg,before=isNew?null:tileVals();
@@ -411,11 +411,11 @@ document.addEventListener('input',function(e){var el=e.target,k=el.dataset&&el.d
  else if(k==='vq'){S.ui.vq=el.value;clearTimeout(window._vq);window._vq=setTimeout(render,250)}});
 document.addEventListener('focusout',function(e){if(e.target&&e.target.dataset&&e.target.dataset.in==='tz')tzSoft()});
 
-var GO=[['l','lage','Lagebild'],['f','fach','Fachverwaltung'],['m','milk','Milkrun'],['t','tz','Tageszahlen'],['q','qs','QS und Störmeldungen'],['u','urlaub','Urlaub und Anwesenheit'],['b','brett','Schwarzes Brett'],['k','funk','Abteilungsfunk'],['v','verl','Verlauf'],['e','adm','Einstellungen'],['w','mon','Werkstattmonitor']],gT=0,gEl=null;
+var GO=[['l','lage','Lagebild'],['f','fach','Fachverwaltung'],['m','milk','Milkrun'],['t','tz','Tageszahlen'],['q','qs','QS und Störmeldungen'],['u','urlaub','Urlaub und Anwesenheit'],['b','brett','Schwarzes Brett'],['k','funk','Abteilungsfunk'],['v','verl','Verlauf'],['e','adm','Einstellungen'],['w','mon','Werkstattmonitor'],['r','runde','Shopfloor 06:45'],['a','ausw','Auswertung'],['s','schicht','Schichtplan'],['p','plan','Planungsboard'],['c','chk','Schichtaufgaben']],gT=0,gEl=null;
 function gOff(){gT=0;if(gEl){gEl.remove();gEl=null}}
 ACT.keys=function(){modal('<h3>Tastenkürzel</h3><div class="keys"><span><kbd>Strg</kbd><kbd>K</kbd></span><span>Suche und Perplexity</span><span><kbd>/</kbd></span><span>Suche öffnen</span>'+GO.map(function(g){return '<span><kbd>G</kbd><kbd>'+g[0].toUpperCase()+'</kbd></span><span>'+g[2]+'</span>'}).join('')+'<span><kbd>Esc</kbd></span><span>Schließen</span><span><kbd>?</kbd></span><span>Diese Übersicht</span></div><div class="acts"><button class="btn ghost" data-act="mclose">Schließen</button></div>')};
 document.addEventListener('keydown',function(e){
- if(e.key==='Escape'){if($('#pal'))return closePal();if($('#modal'))return closeModal();if($('#drawer'))return closeDrawer();if($('#flyout.on'))return flyClose();if($('#mon'))return ACT.monx()}
+ if(e.key==='Escape'){if($('#pal'))return closePal();if($('#modal'))return closeModal();if($('#drawer'))return closeDrawer();if($('#flyout.on'))return flyClose();if($('#mon'))return ACT.monx();if($('#lfm'))return ACT.lfmx()}
  if(!$('#stage')||$('#login')||$('#intro'))return;
  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();return openPal()}
  if(e.ctrlKey||e.metaKey||e.altKey)return;var a=document.activeElement,tg=(a&&a.tagName)||'';if(/INPUT|TEXTAREA|SELECT/.test(tg))return;if($('#mon')||$('#pal')||$('#modal'))return;

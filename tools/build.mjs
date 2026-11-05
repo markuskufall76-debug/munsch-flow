@@ -14,8 +14,8 @@ const quiet = process.argv.includes('--quiet');
 const parts = {
   mfdata: read('app/src/legacy/mfdata.js'),
   core: read('app/src/legacy/core.js'),
-  sync: read('app/src/legacy/sync.js') + '\n' + read('app/src/core/sync-ext.js'),
-  app: ['app.js', 'shopfloor.js', 'station.js'].map((f) => read('app/src/ui/' + f)).join('\n;\n'),
+  sync: read('app/src/legacy/sync.js') + '\n' + read('app/src/core/sync-ext.js') + '\n' + read('app/src/legacy/excel.js'),
+  app: ['app.js', 'shopfloor.js', 'station.js', 'pages.js'].map((f) => read('app/src/ui/' + f)).join('\n;\n'),
   css: ['app.css', 'modules.css'].map((f) => read('app/src/ui/' + f)).join('\n'),
 };
 const BUILD = '7-' + createHash('sha256').update(Object.values(parts).join('\0')).digest('hex').slice(0, 10);
@@ -62,7 +62,7 @@ ${scripts.map((s) => `<script>${s}</script>`).join('\n')}
 const standalone = page(false), server = page(true);
 const CSP = [
   "default-src 'none'",
-  `script-src ${server.hashes.join(' ')}`,
+  `script-src 'self' ${server.hashes.join(' ')}`,
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   'font-src https://fonts.gstatic.com',
   "connect-src 'self'",
@@ -89,7 +89,8 @@ writeFileSync(R('worker/src/generated/page.js'),
   `export const CSP = ${JSON.stringify(CSP)};\n` +
   `export const TEAM = ${JSON.stringify(TEAM)};\n` +
   `export const MFDATA = ${JSON.stringify(ctx.MFDATA)};\n` +
-  `export const HTML = ${JSON.stringify(server.html)};\n`);
+  `export const HTML = ${JSON.stringify(server.html)};\n` +
+  `export const XLSX_JS = ${JSON.stringify(readFileSync(R('node_modules/@e965/xlsx/dist/xlsx.full.min.js'), 'utf8'))};\n`);
 
 await esbuild.build({
   entryPoints: [R('worker/src/index.js').pathname],
