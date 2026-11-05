@@ -31,7 +31,7 @@ async function signIn(page, name, pin) {
   await page.focus('#lpi');
   await page.keyboard.type(pin);
   await page.keyboard.press('Enter');
-  await page.waitForSelector('#stage', { timeout: 15000 });
+  await page.waitForSelector('#stage, #stn', { timeout: 15000 });
 }
 const api = async (path, token, body) => (await fetch(srv.url + path, { method: body ? 'POST' : 'GET', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + token }, body: body && JSON.stringify(body) })).json();
 
@@ -112,4 +112,57 @@ test('Umzug: Flow-5-Sicherung wird eingespielt und landet in der Zentrale', asyn
   assert.equal(JSON.parse(rows.find((r) => r.s === 'fach' && r.k === 'S10').v).auf, '4999999');
   assert.ok(rows.some((r) => r.s === 'reg.qs' && r.k === 'alt1'));
   assert.deepEqual(lead.errors, []);
+});
+
+test('Shopfloor 06:45: Runde eröffnen, Ampel, Maßnahme, Abschluss – landet in der Zentrale', async () => {
+  const lead = await open();
+  await signIn(lead, 'M. Thiel', 'notfall-123456');
+  await lead.waitForFunction(() => window.SY && SY.ok);
+  await lead.evaluate(() => go('runde'));
+  await lead.click('[data-act="rstart"]');
+  await lead.waitForSelector('.sf-big'); // Anwesenheit
+  for (let i = 0; i < 3; i++) await lead.click('[data-act="rnext"]'); // Anwesenheit, Termine, Sicherheit → Wareneingang
+  assert.match(await lead.textContent('.sf-th h2'), /Wareneingang/);
+  await lead.click('.sf-a.warn');
+  await lead.fill('#mt', 'Palette am Tor 4 abholen');
+  await lead.click('[data-act="addm"]');
+  await lead.fill('#rn', 'Tor 4 blockiert');
+  await lead.click('[data-act="rnext"]'); // Wareneingang besprochen
+  await lead.evaluate(() => { S.ui.rp = 11; render(); });
+  await lead.click('[data-act="rfin"]');
+  await lead.waitForSelector('#modal textarea');
+  const prot = await lead.inputValue('#modal textarea');
+  assert.match(prot, /SHOPFLOOR 06:45/); assert.match(prot, /Wareneingang \[Achtung\] \[besprochen\]/); assert.match(prot, /Palette am Tor 4 abholen/); assert.match(prot, /Tor 4 blockiert/);
+  await lead.waitForTimeout(1200);
+  const rows = (await api('/api/sync?since=0', await lead.evaluate(() => SY.tok))).rows;
+  const rd = JSON.parse(rows.find((r) => r.s === 'runde' && r.k === today).v);
+  assert.ok(rd.t0 && rd.fin); assert.equal(rd.we.amp, 'y'); assert.equal(rd.we.note, 'Tor 4 blockiert');
+  assert.ok(rows.some((r) => r.s === 'mass' && JSON.parse(r.v).txt === 'Palette am Tor 4 abholen'));
+  assert.deepEqual(lead.errors, []);
+});
+
+test('Station: Tablet-Bedienung mit Personenwahl, Einlagern und Rückgängig', async () => {
+  const lead = await open();
+  await signIn(lead, 'M. Thiel', 'notfall-123456');
+  await lead.waitForFunction(() => window.SY && SY.ok);
+  await api('/api/pin', await lead.evaluate(() => SY.tok), { name: 'Station', pin: 'station-123456' });
+  const st = await open();
+  await signIn(st, 'Station', 'station-123456');
+  await st.waitForSelector('#stn .st-grid', { timeout: 15000 });
+  await st.click('[data-act="stgo"][data-s="fein"]');
+  await st.click('[data-act="stpick"][data-u="J. Ehret"]');
+  await st.fill('#stin', '47110001999');
+  await st.keyboard.press('Enter');
+  await st.waitForSelector('.st-done');
+  assert.match(await st.textContent('.st-done h2'), /4711000 in S\d{3} eingelagert/);
+  assert.ok(await st.evaluate(() => S.fach.some((f) => f.auf === '4711000') && S.fachlog[0].u === 'J. Ehret'), 'im Namen der gewählten Person');
+  await st.click('[data-act="stundo"]');
+  assert.ok(await st.evaluate(() => !S.fach.some((f) => f.auf === '4711000')), 'Rückgängig entfernt die Einlagerung');
+  await st.click('[data-act="stgo"][data-s="milk"]');
+  await st.click('.st-run[data-i="0"]');
+  await st.waitForSelector('.st-done');
+  await st.waitForTimeout(1200);
+  const rows = (await api('/api/sync?since=0', await lead.evaluate(() => SY.tok))).rows;
+  assert.ok(JSON.parse(rows.find((r) => r.s === 'milk' && r.k === today).v)['0'].s, 'Milkrun-Start ist in der Zentrale');
+  assert.deepEqual(st.errors, []);
 });

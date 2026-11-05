@@ -11,7 +11,7 @@ npm run build    # dist/munsch-flow.html und dist/munsch-zentrale-worker.js
 
 | Ordner | Inhalt |
 |---|---|
-| `app/src/ui` | Oberfläche (Gestaltung, Szenen, Interaktion) |
+| `app/src/ui` | Oberfläche: `app.js` Gerüst und Seiten, `shopfloor.js` Shopfloor 06:45, `station.js` Tablet in der Halle |
 | `app/src/legacy` | eingefrorener Logik-Kern und Sync aus Flow 5 |
 | `worker/src` | Cloudflare Worker: Anmeldung, Abgleich, Rechte, Perplexity |
 | `test` | Kern-, API- und Ende-zu-Ende-Tests |

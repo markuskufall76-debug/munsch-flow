@@ -52,7 +52,7 @@ function emptyS(t,s){return '<div class="empty"><b>'+esc(t)+'</b><span>'+esc(s||
 function hhmm(min){return ('0'+Math.floor(min/60)).slice(-2)+':'+('0'+(min%60)).slice(-2)}
 function minsNow(){var n=new Date();return n.getHours()*60+n.getMinutes()}
 function initials(n){var p=String(n).replace('.','').split(' ');return ((p[0]||'')[0]||'')+((p[1]||'')[0]||'')}
-function demoTag(){return S.demo?cp('info','Beispieldaten'):''}
+function demoTag(){return ''}
 
 /* ---------- Ebenen ---------- */
 window.modal=function(html){closeModal();var v=document.createElement('div');v.className='veil';v.id='modal';v.innerHTML='<div class="dlg" role="dialog" aria-modal="true">'+html+'</div>';v.addEventListener('pointerdown',function(e){if(e.target===v)closeModal()});document.body.appendChild(v);var f=v.querySelector('input,select,textarea');if(f)setTimeout(function(){try{f.focus()}catch(e){}},60)};
@@ -90,7 +90,7 @@ ACT.grp=function(d){var f=$('#flyout');if(f.classList.contains('on')&&f.dataset.
 ACT.more=function(){var f=$('#flyout');if(f.classList.contains('on'))return flyClose();flyout(null,true)};
 document.addEventListener('pointerdown',function(e){var f=$('#flyout');if(f&&f.classList.contains('on')&&!f.contains(e.target)&&!e.target.closest('.rb,.tabs'))flyClose()});
 
-window.shellUpdate=function(){var now=new Date(),b=badges(now),p=S.ui.page,al=alerts(now);
+window.shellUpdate=function(){if(!$('#teb'))return;var now=new Date(),b=badges(now),p=S.ui.page,al=alerts(now);
  var g=grpOf(p);$('#teb').textContent=PAGE[p]?g.t:'';$('#tt').textContent=PAGE[p]?PAGE[p].t:'';
  $$('.rb[data-g]').forEach(function(r){var G=GROUPS.filter(function(x){return x.id===r.dataset.g})[0],n=0;G.p.forEach(function(x){if(b[x[0]])n+=b[x[0]][0]});r.classList.toggle('on',G===g);var bd=r.querySelector('.bd');bd.hidden=!n;bd.textContent=n});
  $$('.tabs button').forEach(function(t){var on=t.dataset.go===p||(t.dataset.go==='more'&&['lage','fach','milk','tz'].indexOf(p)<0);t.classList.toggle('on',on)});
@@ -110,7 +110,7 @@ var lastPg=null,pgAt=0;
 window.go=function(p){if(p==='mon')return openMon();if(!PAGE[p])p='lage';if(!pageOk(p))return toast('Nur für die Teamleitung');flyClose();closeDrawer();
  var changed=p!==S.ui.page||lastPg===null;S.ui.page=p;save();try{history.replaceState(null,'','#'+p)}catch(e){}
  if(changed&&document.startViewTransition&&!RM&&lastPg!==null){try{document.startViewTransition(function(){render()})}catch(e){render()}}else render()};
-window.render=function(){var st=$('#stage');if(!st)return;var p=S.ui.page,isNew=p!==lastPg,before=isNew?null:tileVals();
+window.render=function(){if(window.stnRender&&$('#stn'))stnRender();var st=$('#stage');if(!st)return;var p=S.ui.page,isNew=p!==lastPg,before=isNew?null:tileVals();
  var a=document.activeElement,id=a&&a.id,sel=a&&a.selectionStart,sc=st.scrollTop;
  try{st.innerHTML='<div class="scene">'+(VIEW[p]||VIEW.lage)()+'</div>'}catch(e){console.error(e);st.innerHTML='<div class="scene">'+card('Fehler in dieser Ansicht','<p>'+esc(e.message)+'</p><button class="btn" data-act="go" data-go="lage">Zum Lagebild</button>')+'</div>'}
  if(isNew){lastPg=p;pgAt=Date.now();st.scrollTop=0;$$('.scene > *',st).forEach(function(c,i){c.style.setProperty('--n',i)});if(!RM){st.classList.remove('enter');void st.offsetWidth;st.classList.add('enter');clearTimeout(render.t);render.t=setTimeout(function(){st.classList.remove('enter')},1900);countUp(st)}}
@@ -285,7 +285,7 @@ VIEW.adm=function(){var th=S.ui.theme||'dark',srv=window.SY&&SY.on;
  if(pins)setTimeout(syUsers,60);
  var rest=srv&&isLead()?card('Umzug aus Flow 5','<p class="lead" style="margin-bottom:14px">In MUNSCH Flow 5 unter Einstellungen „Sicherung als Text kopieren“ wählen und den Text hier einfügen. Der Zustand der Zentrale wird dann durch die Sicherung ersetzt und an alle Geräte verteilt.</p><label class="fl">Sicherung (JSON)<textarea class="in mono" id="rsj" spellcheck="false" style="min-height:120px;font-size:12px" placeholder="{&quot;v&quot;:2,…}"></textarea></label><div style="display:flex;justify-content:flex-end;margin-top:12px"><button class="btn pri" data-act="rsk">Prüfen und einspielen</button></div>'):'';
  return '<div class="row r2">'+card('Darstellung','<div style="display:flex;flex-direction:column;gap:16px"><div><div class="fl" style="margin-bottom:8px">Farbschema</div><div class="seg">'+[['system','Wie das Gerät'],['dark','Dunkel'],['light','Hell']].map(function(x){return '<button class="'+(th===x[0]?'on':'')+'" data-act="theme" data-t="'+x[0]+'">'+x[1]+'</button>'}).join('')+'</div></div><div><div class="fl" style="margin-bottom:8px">Auftakt</div><div class="seg">'+[['day','Einmal am Tag'],['always','Bei jedem Start'],['off','Aus']].map(function(x){return '<button class="'+((S.ui.intro||'day')===x[0]?'on':'')+'" data-act="intro" data-t="'+x[0]+'">'+x[1]+'</button>'}).join('')+'</div></div><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" data-act="replay">Auftakt jetzt zeigen</button><button class="btn" data-act="keys">Tastenkürzel</button></div></div>')
-  +card('Konto','<dl class="kv"><dt>Angemeldet</dt><dd><b>'+esc(S.user)+'</b> · '+esc(me().role)+'</dd><dt>Verbindung</dt><dd>'+(srv?(SY.ok?'Zentrale verbunden':'Zentrale nicht erreichbar'):'ohne Zentrale (Daten nur auf diesem Gerät)')+'</dd><dt>Version</dt><dd class="mono">'+esc(window.MF_BUILD||'')+'</dd></dl><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px">'+(srv?'<button class="btn" data-act="syout">Abmelden</button>':'<button class="btn" data-act="relog">Person wechseln</button>')+(S.demo?'<button class="btn" data-act="demox">Beispieldaten entfernen</button>':'')+'<button class="btn ghost" data-act="bk">Sicherung als Text kopieren</button></div>')+'</div>'+pins+rest};
+  +card('Konto','<dl class="kv"><dt>Angemeldet</dt><dd><b>'+esc(S.user)+'</b> · '+esc(me().role)+'</dd><dt>Verbindung</dt><dd>'+(srv?(SY.ok?'Zentrale verbunden':'Zentrale nicht erreichbar'):'ohne Zentrale (Daten nur auf diesem Gerät)')+'</dd><dt>Version</dt><dd class="mono">'+esc(window.MF_BUILD||'')+'</dd></dl><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px">'+(srv?'<button class="btn" data-act="syout">Abmelden</button>':'<button class="btn" data-act="relog">Person wechseln</button>')+'<button class="btn ghost" data-act="bk">Sicherung als Text kopieren</button></div>')+'</div>'+pins+rest};
 ACT.rsk=function(){var t=($('#rsj')||{}).value||'',b;try{b=JSON.parse(t)}catch(e){return toast('Kein gültiges JSON')}if(!b||b.v!==2||!Array.isArray(b.fach)||!b.reg)return toast('Das ist keine Sicherung aus MUNSCH Flow 5');
  var n={f:b.fach.filter(function(f){return f.auf}).length,v:(b.vacs||[]).length,r:Object.keys(b.reg).reduce(function(a,k){return a+(b.reg[k]||[]).length},0),z:Object.keys(b.tz||{}).length};
  confirmM('Sicherung einspielen? Enthalten: '+n.f+' belegte Fächer, '+n.v+' Abwesenheiten, '+n.r+' Registereinträge, '+n.z+' Tage Tageszahlen. Der aktuelle Stand der Zentrale wird ersetzt.',function(){var ui=S.ui,u=S.user,ns=newState();S=Object.assign(ns,b);S.reg=Object.assign(ns.reg,b.reg);S.ui=ui;S.user=u;logA('Sicherung aus Flow 5 eingespielt');syPush();render();toast('Sicherung wird an die Zentrale gesendet')},'Einspielen')};
@@ -293,7 +293,6 @@ ACT.theme=function(d){S.ui.theme=d.t;save();applyTheme();render()};
 ACT.intro=function(d){S.ui.intro=d.t;save();render()};
 ACT.replay=function(){intro(function(){})};
 ACT.relog=function(){ls('mflow.name',null);location.reload()};
-ACT.demox=function(){confirmM('Alle Beispieldaten (Urlaub, Register, Meldungen) entfernen?',function(){clearDemo();S.demo=0;save();render();toast('Beispieldaten entfernt')},'Entfernen','no')};
 ACT.bk=function(){copyText(JSON.stringify(S),'Sicherung kopiert')};
 ACT.syout=function(){syApi('/api/logout',{}).then(function(){ls('mflow.tok',null);location.reload()})};
 ACT.sypin=function(d){if(!isLead())return toast('Nur Teamleitung');modal('<h3>PIN für '+esc(d.n)+'</h3><label class="fl" style="margin-top:16px">Neue PIN (mindestens 6 Zeichen)<input class="in" id="npin" type="password" autocomplete="new-password" data-ent="sypin2" data-n="'+esc(d.n)+'"></label><div class="acts"><button class="btn ghost" data-act="mclose">Abbrechen</button><button class="btn pri" data-act="sypin2" data-n="'+esc(d.n)+'">Speichern</button></div>')};
@@ -396,7 +395,7 @@ function lfail(t){var p=$('.pin');LOG.pin='';ldots();var e=$('#ldots');if(e)e.cl
 function lcheck(){if(LOG.busy)return;if(LOG.pin.length<6)return lfail('Mindestens 6 Zeichen');LOG.busy=1;S.user=LOG.cur;
  syApi('/api/login',{name:LOG.cur,pin:LOG.pin}).then(function(r){if(!r.token)return lfail(r.error||'PIN stimmt nicht');SY.tok=r.token;SY.name=LOG.cur;ls('mflow.tok',r.token);ls('mflow.name',LOG.cur);syStart(r,function(){enter(true)})}).catch(function(){lfail('Zentrale nicht erreichbar')})}
 ACT.lgo=function(){S.user=LOG.cur;ls('mflow.name',LOG.cur);save();enter(true)};
-function enter(greet){var lg=$('#login');var start=function(){buildShell();applyTheme();lastPg=null;go(S.ui.page&&PAGE[S.ui.page]&&pageOk(S.ui.page)?S.ui.page:'lage')};
+function enter(greet){var lg=$('#login');var start=function(){if(me().station&&window.openStation){if(lg)lg.remove();applyTheme();return openStation()}buildShell();applyTheme();lastPg=null;go(S.ui.page&&PAGE[S.ui.page]&&pageOk(S.ui.page)?S.ui.page:'lage')};
  if(!greet||RM){if(lg)lg.remove();start();return}
  var w=document.createElement('div');w.className='welcome';var h=new Date().getHours();w.innerHTML='<h2><span><i>'+(h<11?'Guten Morgen':h<17?'Guten Tag':'Guten Abend')+'</i></span><span><i>'+esc(firstName(S.user))+'</i></span></h2>';document.body.appendChild(w);
  setTimeout(function(){if(lg)lg.remove();start();w.classList.add('out');setTimeout(function(){w.remove()},800)},1300)}
@@ -439,12 +438,15 @@ setInterval(function(){clock();var mc=$('#mck');if(mc)mc.textContent=new Date().
  $$('[data-bar]').forEach(function(e){e.style.width=Math.min(100,(Date.now()- +e.dataset.bar)/12e3)+'%'});
  var m=new Date().getMinutes();if(m!==lastMin&&lastMin!==-1&&$('#stage')){var a=document.activeElement,typing=a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName);if(!typing&&!$('#modal')&&!$('#drawer')&&['lage','milk'].indexOf(S.ui.page)>=0)render();else if($('#stage'))shellUpdate()}lastMin=m},1000);
 
+/* Bausteine für Fachmodule (app/src/ui/*.js) */
+window.MF={cp:cp,card:card,tile:tile,meter:meter,spark:sparkS,empty:emptyS,ic:ic,hhmm:hhmm,initials:initials,drawer:drawer,closeDrawer:closeDrawer,LATER:LATER,PAGE:PAGE,RM:RM,FINE:FINE,ls:ls,applyTheme:applyTheme,enter:null,boot:null};
+
 /* =====================================================================
    START
    ===================================================================== */
 function boot(){
  if(window.MF_SERVER){S=newState();try{var u=JSON.parse(ls(KEY)||'null');if(u&&u.ui)S.ui=Object.assign(S.ui,u.ui)}catch(e){}}
- else{loadState();if(!S.qdemo&&!S.demo&&!S.vacs.some(function(v){return v.demo})){seedDemo(S);S.demo=1;save()}}
+ else{loadState();/* nur Originaldaten: frühere Beispieleinträge entfernen */if(S.demo||S.qdemo||S.vacs.some(function(v){return v.demo})||Object.keys(S.reg).some(function(k){return S.reg[k].some(function(e){return e.demo})})||S.brett.some(function(b){return b.demo})){clearDemo();S.demo=0;S.qdemo=0;save()}}
  applyTheme();
  var next=function(){if(window.MF_SERVER&&window.syResume){if(!syTok())return showLogin();syResume(function(ok){if(!ok)return showLogin();syStart(null,function(){enter(false)})})}
   else{var nm=ls('mflow.name');if(nm&&TEAM.some(function(t){return t.n===nm})){S.user=nm;enter(false)}else showLogin()}};

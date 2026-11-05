@@ -13,6 +13,10 @@ Browser (Halle, Büro, Handy)                     Cloudflare
                                                    sessions, attempts, audit
 ```
 
+## Daten
+
+Maßgeblich sind die Originaldaten aus dem Excel-Import (`app/src/legacy/mfdata.js`, Stand 01.11.2026): 213 Tage Tageszahlen (05.01. bis 30.10.), 149 Abwesenheiten, 107 Fächer Altbestand, Urlaubsüberträge. Es gibt keine Beispieldaten. Laufende Daten kommen aus der Zentrale oder per Umzug aus einer Flow-5-Sicherung.
+
 ## Entscheidungen
 
 - **Eine Datei je Seite und Worker.** Hallenmonitor und Tablets laden genau eine Datei, ohne Abhängigkeiten zur Laufzeit. `npm run build` erzeugt beides.
@@ -40,8 +44,8 @@ Browser (Halle, Büro, Handy)                     Cloudflare
 
 | Befehl | Prüft |
 |---|---|
-| `npm test` | Logik-Kern (9 Tests) und API inkl. Sicherheit (11 Tests) gegen SQLite |
-| `npm run test:e2e` | echter Worker lokal + Seite in zwei Browsern: Erstbefüllung, PIN, Live-Abgleich, Rechte, Umzug, falsche PIN |
+| `npm test` | Logik-Kern inkl. Originaldaten (10 Tests) und API inkl. Sicherheit (11 Tests) gegen SQLite |
+| `npm run test:e2e` | echter Worker lokal + Seite in zwei Browsern: Erstbefüllung, PIN, Live-Abgleich, Rechte, Umzug, falsche PIN, Shopfloor-Runde, Station mit Rückgängig |
 | `npm run dev` | lokaler Server unter http://localhost:8787 |
 
 CI (`.github/workflows/ci.yml`) führt alles bei jedem Push aus und stellt die Worker-Datei als Download bereit.

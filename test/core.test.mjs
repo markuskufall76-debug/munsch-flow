@@ -93,3 +93,14 @@ test('Sync: Änderungen und Löschungen werden als Operationen erkannt', () => {
   ops = run(c, 'syOps(syFlat())');
   assert.deepEqual(JSON.parse(JSON.stringify(ops.filter((o) => o.s === 'reg.qs').map((o) => [o.k, o.v]))), [['q1', null]]);
 });
+
+test('Originaldaten: frischer Zustand enthält nur echte Stammdaten, keine Beispiele', () => {
+  const c = loadCore({ now: THU });
+  assert.equal(run(c, 'S.vacs.filter(v=>v.demo||v.id==="v0").length'), 0, 'kein Platzhalter-Urlaub');
+  assert.equal(run(c, 'S.vacs.length'), run(c, 'MFDATA.vac.length'), 'alle 149 Abwesenheiten aus der Excel');
+  assert.equal(run(c, 'Object.keys(S.tz).length'), run(c, 'Object.keys(MFDATA.tz).length'));
+  assert.equal(run(c, "S.carry['M. Thiel']"), run(c, "MFDATA.carry['M. Thiel']"), 'Urlaubsübertrag aus der Excel');
+  assert.equal(run(c, 'S.fach.filter(f=>f.legacy).length'), run(c, 'MFDATA.fach.filter(f=>f[1]).length'));
+  assert.equal(run(c, 'S.brett.length + Object.keys(S.reg).reduce((a,k)=>a+S.reg[k].length,0)'), 0, 'keine erfundenen Meldungen oder Register');
+  assert.equal(run(c, "S.tz['2026-10-30'].we_pak"), 18);
+});
