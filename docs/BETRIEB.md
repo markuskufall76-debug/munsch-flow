@@ -38,3 +38,11 @@ Danach Schritt 5 wiederholen. Die Daten bleiben erhalten. Die Version steht in d
 - Rechte prüft der Server: Personalgespräche, Urlaubskonten und Qualifikationen schreibt nur die Teamleitung. Das Team darf nur eigene Urlaubsanträge stellen und ändern, Protokolle kann es nicht löschen. Abgelehnte Änderungen werden zurückgesetzt und protokolliert.
 - Die Seite läuft mit einer Content-Security-Policy, die nur die eigenen, per Hash bekannten Skripte erlaubt.
 - Anmeldungen, Notfallzugänge, PIN-Änderungen und abgelehnte Schreibversuche stehen in der Tabelle `audit`.
+
+## Anmeldekarten (Handscanner)
+
+- Einstellungen → „Bereiche und Anmeldekarten“: Stammbereich je Person, „Karte“ stellt eine Karte aus und druckt sie im Scheckkartenformat (85,6 × 54 mm, Code 128). Der Code erscheint nur einmal.
+- Handscanner als Tastatur (HID) mit Enter als Abschluss einstellen – das ist bei fast allen Geräten die Werkseinstellung.
+- Verlorene Karte: „Sperren“ (meldet die Person überall ab) oder einfach neue Karte ausstellen.
+- Tablets im Bereich: Einstellungen → „Dieses Gerät“ → Bereich wählen und „Gemeinsames Gerät: ja“ (Abmeldung nach 10 Minuten ohne Bedienung).
+- Die Tabelle `badges` legt der Worker beim ersten Aufruf selbst an.

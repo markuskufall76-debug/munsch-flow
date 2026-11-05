@@ -160,3 +160,50 @@ test('Perplexity: ohne Schlüssel sauber abgeschaltet', async () => {
   const r = await call('/api/ask', { token: t, body: { messages: [{ role: 'user', content: 'Test' }] } });
   assert.equal(r.status, 501);
 });
+
+test('Anmeldekarte: nur Teamleitung stellt aus, Code nur als Hash, Scan meldet an, neue Karte macht alte ungültig', async () => {
+  const { lead, team } = await withPins();
+  assert.equal((await call('/api/badge', { token: team, body: { name: TEAMER } })).status, 403);
+  assert.equal((await call('/api/badge', { token: lead, body: { name: LEAD } })).status, 400, 'Teamleitung bekommt keine Karte');
+  const r = await call('/api/badge', { token: lead, body: { name: TEAMER } });
+  assert.equal(r.status, 200); assert.match(r.body.code, /^MF-[A-Z2-7]{16}$/);
+  const rows = (await env.DB.prepare('SELECT th FROM badges').all()).results;
+  assert.equal(rows.length, 1); assert.notEqual(rows[0].th, r.body.code); assert.equal(rows[0].th.length, 64);
+  const s = await call('/api/login', { body: { badge: r.body.code.toLowerCase() } });
+  assert.equal(s.status, 200); assert.equal(s.body.name, TEAMER); assert.equal(s.body.role, 'team');
+  assert.equal((await call('/api/me', { token: s.body.token })).body.name, TEAMER);
+  const r2 = await call('/api/badge', { token: lead, body: { name: TEAMER } });
+  assert.equal((await call('/api/login', { body: { badge: r.body.code } })).status, 401, 'alte Karte ungültig');
+  assert.equal((await call('/api/login', { body: { badge: r2.body.code } })).status, 200);
+  const list = await call('/api/badges', { token: lead });
+  assert.equal(list.body.cards.length, 1); assert.equal(list.body.cards[0].name, TEAMER); assert.ok(list.body.cards[0].last > 0);
+  assert.equal((await call('/api/badges', { token: team })).status, 403);
+});
+
+test('Anmeldekarte: Sperren meldet überall ab, unbekannte Karten werden je IP gesperrt', async () => {
+  const { lead } = await withPins();
+  const c = (await call('/api/badge', { token: lead, body: { name: TEAMER } })).body.code;
+  const t = (await call('/api/login', { body: { badge: c } })).body.token;
+  assert.equal((await call('/api/badge/revoke', { token: lead, body: { name: TEAMER } })).status, 200);
+  assert.equal((await call('/api/me', { token: t })).status, 401, 'Sitzung beendet');
+  assert.equal((await call('/api/login', { body: { badge: c } })).status, 401);
+  const ip = { 'cf-connecting-ip': '10.9.9.9' };
+  for (let i = 0; i < 20; i++) await call('/api/login', { body: { badge: 'MF-AAAAAAAAAAAAAAA' + (i % 2 ? 'A' : 'B') }, headers: ip });
+  const c2 = (await call('/api/badge', { token: lead, body: { name: OTHER } })).body.code;
+  assert.equal((await call('/api/login', { body: { badge: c2 }, headers: ip })).status, 429, 'nach 20 Fehlversuchen gesperrt, auch für gültige Karte');
+  assert.equal((await call('/api/login', { body: { badge: c2 } })).status, 200, 'andere IP nicht betroffen');
+});
+
+test('Station: Scan nennt die Person nur dem Stations-Konto; Stammbereich setzt nur die Teamleitung', async () => {
+  const { lead, team } = await withPins();
+  const STATION = TEAM.find((m) => m.station).n;
+  assert.equal((await call('/api/pin', { token: lead, body: { name: STATION, pin: 'station-01' } })).status, 200);
+  const st = await loginAs(STATION, 'station-01');
+  const c = (await call('/api/badge', { token: lead, body: { name: OTHER } })).body.code;
+  const w = await call('/api/badge/who', { token: st, body: { code: c } });
+  assert.equal(w.status, 200); assert.equal(w.body.name, OTHER);
+  assert.equal((await call('/api/badge/who', { token: team, body: { code: c } })).status, 403);
+  const op = { s: 'home', k: TEAMER, v: JSON.stringify('Säge Metall') };
+  assert.equal((await call('/api/push', { token: team, body: { ops: [op] } })).body.rej.length, 1);
+  assert.equal((await call('/api/push', { token: lead, body: { ops: [op] } })).body.n, 1);
+});

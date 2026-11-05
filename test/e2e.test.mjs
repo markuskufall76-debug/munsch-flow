@@ -548,3 +548,50 @@ test('Bewegung: Materialfluss mit Stau, Kamerafahrt, Bauchbinde, Monatsrückblic
   assert.equal(px.w, 1920); assert.equal(px.h, 1080); assert.ok(px.n > 500, 'große Zahl ist gezeichnet');
   assert.deepEqual(lead.errors, []);
 });
+
+test('Bereichsansicht und Anmeldekarte: Teamleitung stellt aus, Handscanner meldet an, Station erkennt die Person', async () => {
+  const lead = await open();
+  await signIn(lead, 'M. Thiel', 'notfall-123456');
+  await lead.waitForFunction(() => window.SY && SY.ok);
+  await lead.evaluate(() => go('adm'));
+  await lead.selectOption('select[data-home="D. Isola"]', 'Säge Kunststoff');
+  await lead.click('[data-act="bdgnew"][data-n="D. Isola"]');
+  await lead.waitForSelector('#mfcard #mcbc rect');
+  const code = await lead.evaluate(() => window._mfcode);
+  assert.match(code, /^MF-[A-Z2-7]{16}$/);
+  assert.match(await lead.textContent('#mfcard'), /D\. Isola.*Säge Kunststoff/);
+  await lead.click('[data-act="closem"]');
+  await lead.waitForFunction(() => /aktiv seit/.test(document.querySelector('.bdst[data-n="D. Isola"]').textContent));
+  await lead.evaluate(() => syPush()); await lead.waitForTimeout(1200);
+  // Vorschau der Teamleitung
+  await lead.selectOption('#fvsel', 'Werksverkehr');
+  await lead.click('[data-act="fview"]');
+  await lead.waitForFunction(() => focusArea() === 'Werksverkehr' && [...document.querySelectorAll('.tabs button')].some((b) => b.dataset.go === 'wv'));
+  await lead.evaluate(() => ACT.fvx());
+
+  // Handscanner am Anmeldebildschirm: tippt schnell und schließt mit Enter
+  const team = await open();
+  await team.waitForSelector('#login .lscan');
+  await team.keyboard.type(code, { delay: 4 }); await team.keyboard.press('Enter');
+  await team.waitForFunction(() => window.SY && SY.ok && S.user === 'D. Isola' && S.ui.page === 'mein', null, { timeout: 10000 });
+  const want = await team.evaluate(() => (S.plan[todayIso()] || {})['D. Isola'] || S.home['D. Isola']);
+  assert.equal(await team.evaluate(() => focusArea()), want);
+  assert.ok(await team.$('.fquick [data-go="tz"]'), 'Mein Tag zeigt die Seiten des Bereichs');
+  await team.click('.tabs [data-act="more"]').catch(() => team.evaluate(() => ACT.more()));
+  await team.waitForSelector('#flyout.on');
+  assert.equal(await team.$('#flyout [data-go="we"]'), null, 'Wareneingang ist für die Säge ausgeblendet');
+  assert.ok(await team.$('#flyout [data-go="tz"]'));
+  await team.click('#flyout [data-act="fall"]');
+  await team.evaluate(() => ACT.more());
+  await team.waitForSelector('#flyout.on [data-go="we"]');
+
+  // Station: Scan wählt die Person statt Antippen
+  const tok = await lead.evaluate(() => SY.tok);
+  await api('/api/pin', tok, { name: 'Station', pin: 'station-123456' });
+  const st = await open();
+  await signIn(st, 'Station', 'station-123456');
+  await st.waitForSelector('#stn');
+  await st.keyboard.type(code, { delay: 4 }); await st.keyboard.press('Enter');
+  await st.waitForFunction(() => /Isola/.test(document.querySelector('#stn').textContent), null, { timeout: 8000 });
+  assert.deepEqual(lead.errors, []); assert.deepEqual(team.errors, []); assert.deepEqual(st.errors, []);
+});

@@ -3,7 +3,7 @@ import { audit } from './auth.js';
 
 const PAGE = 1000, MAX_OPS = 200, MAX_VALUE = 64 * 1024;
 const SECTION = /^[a-zA-Z0-9]{1,24}(\.@?[\wÄÖÜäöüß \-]{1,40})?$/; // z. B. reg.qs, funk.Säge Metall, funk.@MBode
-const LEAD_ONLY = new Set(['reg.gespr', 'carry', 'carryY', 'quali']);
+const LEAD_ONLY = new Set(['reg.gespr', 'carry', 'carryY', 'quali', 'home']); // home: Stammbereich je Person
 const APPEND_ONLY = new Set(['log', 'fachlog']);
 
 /** Persönlicher Kanal einer Person, wie in Flow 5: '@' + Name ohne Sonderzeichen */

@@ -37,6 +37,8 @@ var GROUPS=[
  {id:'sys',t:'System',ic:'sys',p:[['adm','Einstellungen'],['verl','Verlauf'],['ausw','Auswertung'],['imp','Excel-Import','lead'],['ber','Berichte'],['train','Probelauf','lead']]}];
 var PAGE={},GOF={};GROUPS.forEach(function(g){g.p.forEach(function(p){PAGE[p[0]]={t:p[1],g:g,lead:p[2]==='lead'}})});
 function pageOk(p){var x=PAGE[p];return x&&(!x.lead||isLead())}
+/* Navigation: zeigt nur, was die Bereichsansicht freigibt (focus.js); go() und Suche erreichen weiter alles Erlaubte */
+function navOk(p){return pageOk(p)&&(!window.navFilter||navFilter(p))}
 function grpOf(p){return (PAGE[p]||PAGE.lage).g}
 
 /* ---------- Bausteine ---------- */
@@ -69,7 +71,7 @@ window.toast=function(m){var o=$('.toast');if(o)o.remove();var t=document.create
 
 /* ---------- Gerüst ---------- */
 window.buildShell=function(){
- var rail='<div class="mark">'+logoCore(40)+'</div>'+GROUPS.map(function(g){return '<button class="rb" data-act="grp" data-g="'+g.id+'" aria-label="'+esc(g.t)+'">'+ic(g.ic)+'<span class="tip">'+esc(g.t)+'</span><span class="bd" hidden></span></button>'}).join('')
+ var rail='<div class="mark">'+logoCore(40)+'</div>'+GROUPS.filter(function(g){return g.p.some(function(p){return navOk(p[0])})}).map(function(g){return '<button class="rb" data-act="grp" data-g="'+g.id+'" aria-label="'+esc(g.t)+'">'+ic(g.ic)+'<span class="tip">'+esc(g.t)+'</span><span class="bd" hidden></span></button>'}).join('')
   +'<button class="rb" data-act="go" data-go="mon" aria-label="Werkstattmonitor">'+ic('mon')+'<span class="tip">Werkstattmonitor</span></button><button class="rb" data-act="go" data-go="lfm" aria-label="Lagerfachmonitor">'+ic('lager')+'<span class="tip">Lagerfachmonitor</span></button><span class="sp"></span><button class="av" data-act="go" data-go="adm" aria-label="Einstellungen">'+esc(initials(S.user))+'</button>';
  $('#app').innerHTML='<nav class="rail" aria-label="Bereiche">'+rail+'</nav>'
   +'<header class="top"><div class="ttl"><div class="eb" id="teb"></div><h1 id="tt"></h1></div>'
@@ -79,11 +81,11 @@ window.buildShell=function(){
   +'<div class="clock"><b id="ck"></b><span id="cd"></span></div></header>'
   +'<div class="tick"><span class="lb"><i></i>Newsflash</span><div class="tr"><div class="tm" id="tm"></div></div></div>'
   +'<main id="stage" tabindex="-1"></main>'
-  +'<nav class="tabs" aria-label="Schnellwahl">'+[['lage','lage','Lage'],['fach','lager','Fächer'],['milk','milk','Milkrun'],['tz','tz','Zahlen'],['more','more','Mehr']].map(function(t){return '<button data-act="'+(t[0]==='more'?'more':'go')+'" data-go="'+t[0]+'">'+ic(t[1])+t[2]+'<span class="bd" hidden></span></button>'}).join('')+'</nav>';
+  +'<nav class="tabs" aria-label="Schnellwahl">'+(window.navTabs&&navTabs()||[['lage','lage','Lage'],['fach','lager','Fächer'],['milk','milk','Milkrun'],['tz','tz','Zahlen'],['more','more','Mehr']]).map(function(t){return '<button data-act="'+(t[0]==='more'?'more':'go')+'" data-go="'+t[0]+'">'+ic(t[1])+t[2]+'<span class="bd" hidden></span></button>'}).join('')+'</nav>';
  var fo=document.createElement('div');fo.id='flyout';document.body.appendChild(fo);
  clock();ticker()};
 function flyout(gid,all){var fo=$('#flyout'),gs=all?GROUPS:GROUPS.filter(function(g){return g.id===gid}),b=badges(new Date());
- fo.innerHTML=gs.map(function(g){return '<h3>'+esc(g.t)+'</h3><div class="sub">'+g.p.filter(function(p){return pageOk(p[0])}).length+' Bereiche</div>'+g.p.filter(function(p){return pageOk(p[0])}).map(function(p){var n=b[p[0]];return '<button class="'+(S.ui.page===p[0]?'on':'')+'" data-act="go" data-go="'+p[0]+'"><span class="dot"></span>'+esc(p[1])+(LATER[p[0]]?'<span class="later">folgt</span>':n?'<span class="n">'+n[0]+'</span>':'')+'</button>'}).join('')}).join('<div style="height:22px"></div>')
+ gs=gs.filter(function(g){return g.p.some(function(p){return navOk(p[0])})});fo.innerHTML=(window.navNote?navNote():'')+gs.map(function(g){return '<h3>'+esc(g.t)+'</h3><div class="sub">'+g.p.filter(function(p){return navOk(p[0])}).length+' Seiten</div>'+g.p.filter(function(p){return navOk(p[0])}).map(function(p){var n=b[p[0]];return '<button class="'+(S.ui.page===p[0]?'on':'')+'" data-act="go" data-go="'+p[0]+'"><span class="dot"></span>'+esc(p[1])+(LATER[p[0]]?'<span class="later">folgt</span>':n?'<span class="n">'+n[0]+'</span>':'')+'</button>'}).join('')}).join('<div style="height:22px"></div>')
   +(all?'<div style="height:22px"></div><h3>Ansichten</h3><button data-act="go" data-go="mon"><span class="dot"></span>Werkstattmonitor</button><button data-act="go" data-go="lfm"><span class="dot"></span>Lagerfachmonitor</button>':'');
  fo.dataset.g=all?'all':gid;fo.classList.add('on')}
 function flyClose(){var f=$('#flyout');if(f)f.classList.remove('on')}
@@ -94,7 +96,7 @@ document.addEventListener('pointerdown',function(e){var f=$('#flyout');if(f&&f.c
 window.shellUpdate=function(){if(!$('#teb'))return;var now=new Date(),b=badges(now),p=S.ui.page,al=alerts(now);
  var g=grpOf(p);$('#teb').textContent=PAGE[p]?g.t:'';$('#tt').textContent=PAGE[p]?PAGE[p].t:'';
  $$('.rb[data-g]').forEach(function(r){var G=GROUPS.filter(function(x){return x.id===r.dataset.g})[0],n=0;G.p.forEach(function(x){if(b[x[0]])n+=b[x[0]][0]});r.classList.toggle('on',G===g);var bd=r.querySelector('.bd');bd.hidden=!n;bd.textContent=n});
- $$('.tabs button').forEach(function(t){var on=t.dataset.go===p||(t.dataset.go==='more'&&['lage','fach','milk','tz'].indexOf(p)<0);t.classList.toggle('on',on)});
+ var tl=$$('.tabs button').map(function(t){return t.dataset.go});$$('.tabs button').forEach(function(t){var on=t.dataset.go===p||(t.dataset.go==='more'&&tl.indexOf(p)<0);t.classList.toggle('on',on)});
  var bn=$('#bn');bn.hidden=!al.length;bn.textContent=al.length;
  var lv=$('#live');if(lv){var st=!window.SY||!SY.on?'demo':SY.ok?'':'off';lv.className='live '+st;lv.querySelector('span').textContent=st==='demo'?'Demo':st==='off'?'Offline':'Live';lv.title=st==='demo'?'Ohne Zentrale, Daten nur auf diesem Gerät':st==='off'?'Zentrale nicht erreichbar, Änderungen werden gepuffert':'Mit der Zentrale verbunden'}
  root.classList.toggle('crit',al.some(function(a){return a.tone==='crit'}));
@@ -395,6 +397,8 @@ ACT.lk=function(d){if(LOG.busy)return;var i=$('#lpi');if(d.k==='⌫')LOG.pin=LOG
 function lfail(t){var p=$('.pin');LOG.pin='';ldots();var e=$('#ldots');if(e)e.classList.add('bad');if(p){p.classList.remove('shake');void p.offsetWidth;p.classList.add('shake')}toast(t);var i=$('#lpi');if(i){i.value='';i.focus()}LOG.busy=0}
 function lcheck(){if(LOG.busy)return;if(LOG.pin.length<6)return lfail('Mindestens 6 Zeichen');LOG.busy=1;S.user=LOG.cur;
  syApi('/api/login',{name:LOG.cur,pin:LOG.pin}).then(function(r){if(!r.token)return lfail(r.error||'PIN stimmt nicht');SY.tok=r.token;SY.name=LOG.cur;ls('mflow.tok',r.token);ls('mflow.name',LOG.cur);syStart(r,function(){enter(true)})}).catch(function(){lfail('Zentrale nicht erreichbar')})}
+/* Anmeldung mit Karte (focus.js) landet hier wie eine PIN-Anmeldung */
+window.loginWith=function(r){SY.tok=r.token;SY.name=r.name;S.user=r.name;LOG.cur=r.name;ls('mflow.tok',r.token);ls('mflow.name',r.name);syStart(r,function(){enter(true)})};
 ACT.lgo=function(){S.user=LOG.cur;ls('mflow.name',LOG.cur);save();enter(true)};
 function enter(greet){var lg=$('#login');var start=function(){if(me().station&&window.openStation){if(lg)lg.remove();applyTheme();return openStation()}buildShell();applyTheme();lastPg=null;go(S.ui.page&&PAGE[S.ui.page]&&pageOk(S.ui.page)?S.ui.page:'lage')};
  if(!greet||RM){if(lg)lg.remove();start();return}
@@ -440,7 +444,7 @@ setInterval(function(){clock();var mc=$('#mck');if(mc)mc.textContent=new Date().
  var m=new Date().getMinutes();if(m!==lastMin&&lastMin!==-1&&$('#stage')){var a=document.activeElement,typing=a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName);if(!typing&&!$('#modal')&&!$('#drawer')&&['lage','milk'].indexOf(S.ui.page)>=0)render();else if($('#stage'))shellUpdate()}lastMin=m},1000);
 
 /* Bausteine für Fachmodule (app/src/ui/*.js) */
-window.MF={cp:cp,card:card,tile:tile,meter:meter,spark:sparkS,empty:emptyS,ic:ic,hhmm:hhmm,initials:initials,drawer:drawer,closeDrawer:closeDrawer,LATER:LATER,PAGE:PAGE,RM:RM,FINE:FINE,ls:ls,applyTheme:applyTheme,enter:null,boot:null};
+window.MF={GROUPS:GROUPS,navOk:navOk,pageOk:pageOk,cp:cp,card:card,tile:tile,meter:meter,spark:sparkS,empty:emptyS,ic:ic,hhmm:hhmm,initials:initials,drawer:drawer,closeDrawer:closeDrawer,LATER:LATER,PAGE:PAGE,RM:RM,FINE:FINE,ls:ls,applyTheme:applyTheme,enter:null,boot:null};
 
 /* =====================================================================
    START

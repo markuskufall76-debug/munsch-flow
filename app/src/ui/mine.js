@@ -21,12 +21,12 @@ var AREA={
  'Werk 1':function(){return [{k:'Vor Lack (HP+VP)',v:String((o('lack_hp')||0)+(o('lack_vp')||0)),go:'tz'},{k:'Vor Montage',v:String((o('mont_hp')||0)+(o('mont_vp')||0)),go:'tz'}]},
  'Werk 2':function(){return [{k:'Störungen Werk 2',v:String(o('st_w2')||0),go:'tz'}]},
  'Teamleitung':function(){var a=alerts(new Date());return [{k:'Warnungen',v:String(a.length),act:'bell',tone:a.length?'warn':'ok'}]}};
-VIEW.mein=function(){var t=todayIso(),me_=S.user,w=isWork(t),plan=(S.plan[t]||{})[me_],ab=absentOn(t).filter(function(v){return v.emp===me_})[0],h=new Date().getHours();
+VIEW.mein=function(){var t=todayIso(),me_=S.user,w=isWork(t),plan0=(S.plan[t]||{})[me_],plan=plan0||(window.myArea?myArea():null),ab=absentOn(t).filter(function(v){return v.emp===me_})[0],h=new Date().getHours();
  var vt=(window._presToday?_presToday(t):[]).filter(function(x){return x.n===me_});
  var ms=(S.mass||[]).filter(function(m){return !m.done&&m.wer===me_}).map(function(m){return ['Shopfloor',m.txt,m.bis]}).concat((S.s5.mass||[]).filter(function(m){return !m.done&&m.wer===me_}).map(function(m){return ['5S',m.txt,m.bis]}));
  var pm=window.pmKey?(S.funk[pmKey(me_)]||[]).filter(function(m){return m.by!==me_&&m.ts>(+(S.ui.pmr||0))}):[];
  var chk=window.chkOpen?chkOpen():[];
- var hero='<section class="hero"><div class="hl"><div><h2 class="gr">'+(h<11?'Guten Morgen':h<17?'Hallo':'Guten Abend')+',<br><em>'+esc(firstName(me_))+'</em></h2><p class="lead" style="margin-top:14px">'+(ab?'Heute: <b>'+esc(ab.type)+'</b> bis '+fmtD(ab.d1,{day:'2-digit',month:'2-digit'})+'. Gute Erholung.':!w?'Heute kein regulärer Betrieb.':plan?'Heute eingeteilt: <b style="color:var(--signal)">'+esc(plan)+'</b>':'Heute noch keinem Bereich zugeteilt.')+'</p></div>'
+ var hero='<section class="hero"><div class="hl"><div><h2 class="gr">'+(h<11?'Guten Morgen':h<17?'Hallo':'Guten Abend')+',<br><em>'+esc(firstName(me_))+'</em></h2><p class="lead" style="margin-top:14px">'+(ab?'Heute: <b>'+esc(ab.type)+'</b> bis '+fmtD(ab.d1,{day:'2-digit',month:'2-digit'})+'. Gute Erholung.':!w?'Heute kein regulärer Betrieb.':plan0?'Heute eingeteilt: <b style="color:var(--signal)">'+esc(plan0)+'</b>':plan?'Dein Bereich: <b style="color:var(--signal)">'+esc(plan)+'</b> <span class="dim">· Stammbereich, heute nicht im Schichtplan</span>':'Heute noch keinem Bereich zugeteilt.')+'</p></div>'
   +'<div class="st"><b>'+esc(shiftInfo(new Date()).txt.split(' · ')[0])+'</b><span>'+fmtD(t,{weekday:'long',day:'2-digit',month:'long'})+'</span></div></div></section>';
  var area=plan&&AREA[plan]?'<div class="row r4">'+AREA[plan]().map(function(x){return tile(x)}).join('')+'</div>':'';
  var todo=[];

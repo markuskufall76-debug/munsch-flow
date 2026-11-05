@@ -7,6 +7,7 @@ const SW = serviceWorker(BUILD);
 import { login, session, logout, setPin, usersWithPin, audit } from './auth.js';
 import { pull, push } from './sync.js';
 import { handleAsk } from './ask.js';
+import { badgeLogin, badgeWho, badgeIssue, badgeRevoke, badgeList } from './badge.js';
 
 const SCHEMA = [
   'CREATE TABLE IF NOT EXISTS rows (s TEXT NOT NULL, k TEXT NOT NULL, v TEXT, seq INTEGER NOT NULL, ts INTEGER NOT NULL, by TEXT, PRIMARY KEY (s, k))',
@@ -18,6 +19,8 @@ const SCHEMA = [
   'CREATE INDEX IF NOT EXISTS sessions_name ON sessions (name)',
   'CREATE TABLE IF NOT EXISTS attempts (key TEXT PRIMARY KEY, n INTEGER NOT NULL, first INTEGER NOT NULL, until INTEGER NOT NULL)',
   'CREATE TABLE IF NOT EXISTS audit (id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER NOT NULL, name TEXT, ev TEXT NOT NULL, detail TEXT)',
+  // Anmeldekarten: nur der Hash des Codes, je Person höchstens eine gültige Karte
+  'CREATE TABLE IF NOT EXISTS badges (th TEXT PRIMARY KEY, name TEXT NOT NULL UNIQUE, created INTEGER NOT NULL, by TEXT, last INTEGER NOT NULL DEFAULT 0)',
 ];
 const ready = new WeakMap(); // Schema einmal je Datenbank und Isolate anlegen
 const ensure = (db) => {
@@ -66,7 +69,7 @@ export default {
       await ensure(db);
       const ip = request.headers.get('cf-connecting-ip') || 'lokal';
 
-      if (p === '/api/login' && m === 'POST') return out(await login(db, env, await body(request), ip));
+      if (p === '/api/login' && m === 'POST') { const b = await body(request); return out(b && b.badge != null ? await badgeLogin(db, b.badge, ip) : await login(db, env, b, ip)); }
 
       const who = await session(db, request);
       if (!who) return json({ error: 'Nicht angemeldet' }, 401);
@@ -83,6 +86,10 @@ export default {
         case '/api/pin': if (m !== 'POST') break; return out(await setPin(db, who, await body(request)));
         case '/api/users': return out(await usersWithPin(db, who));
         case '/api/ask': return handleAsk(request, env, who.name);
+        case '/api/badge': if (m !== 'POST') break; return out(await badgeIssue(db, who, await body(request)));
+        case '/api/badge/revoke': if (m !== 'POST') break; return out(await badgeRevoke(db, who, await body(request)));
+        case '/api/badge/who': if (m !== 'POST') break; return out(await badgeWho(db, who, (await body(request)).code, ip));
+        case '/api/badges': return out(await badgeList(db, who));
       }
       return json({ error: 'Nicht gefunden' }, 404);
     } catch (e) {
