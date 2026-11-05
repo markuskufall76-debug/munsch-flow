@@ -1,0 +1,31 @@
+/* ---------- Zeitreise im Schichtpuls ---------- */
+.tl{cursor:crosshair;touch-action:pan-y}
+.scrub{position:absolute;top:0;bottom:-6px;width:0;z-index:4;pointer-events:none}
+.scrub > i{position:absolute;top:14px;bottom:18px;left:-1px;width:2px;background:linear-gradient(180deg,transparent,var(--ink2),transparent)}
+.sc-card{position:absolute;left:12px;top:-118px;min-width:220px;max-width:320px;padding:10px 12px;border-radius:12px;background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line2);box-shadow:var(--shadow);display:flex;flex-direction:column;gap:3px;font-size:12.5px;animation:fade .2s}
+.scrub.r .sc-card{left:auto;right:12px}
+.sc-card b{font:700 22px var(--display);color:var(--signal)}
+.sc-card span{display:block;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sc-card em{font:600 11px var(--mono);font-style:normal;color:var(--ink3);margin-right:8px}
+.sc-card small{color:var(--ink3)}
+.sc-card .pl{margin-top:4px;color:var(--ink3);font:500 11px var(--mono)}
+
+/* ---------- Kachel-Zoom ---------- */
+.zoom{position:fixed;z-index:120;border-radius:22px;border:1px solid var(--signal);background:linear-gradient(180deg,var(--signal-soft),transparent);box-shadow:0 0 60px -10px var(--signal);pointer-events:none;transition:all .55s cubic-bezier(.7,0,.2,1)}
+
+/* ---------- Tiefe im Lagebild ---------- */
+.hero{--px:0;--py:0}
+.hero .gr{transform:translate(calc(var(--px) * 14px),calc(var(--py) * 8px));transition:transform .5s var(--ease)}
+.hero .tl{transform:translate(calc(var(--px) * -6px),0);transition:transform .5s var(--ease)}
+.hero::before{content:"";position:absolute;inset:-20%;z-index:-1;pointer-events:none;background:radial-gradient(40% 50% at calc(50% + var(--px) * 60%) calc(40% + var(--py) * 60%),color-mix(in srgb,var(--signal) 12%,transparent),transparent 70%);transition:background .6s}
+
+/* ---------- Shopfloor: Folienwechsel mit Richtung ---------- */
+html[data-sfdir="f"] .sf-stage.sf-in{animation:sfin .55s var(--ease) both}
+html[data-sfdir="b"] .sf-stage.sf-in{animation:sfinb .55s var(--ease) both}
+@keyframes sfin{from{opacity:0;transform:translateX(40px);filter:blur(6px)}}
+@keyframes sfinb{from{opacity:0;transform:translateX(-40px);filter:blur(6px)}}
+.sf-n.cur b{animation:sfpulse 2.4s ease-in-out infinite}
+@keyframes sfpulse{50%{box-shadow:0 0 0 9px var(--signal-soft)}}
+.sf-sug small{display:block;margin-bottom:2px}
+
+@media (prefers-reduced-motion:reduce){.zoom{display:none}.hero .gr,.hero .tl{transform:none!important}}

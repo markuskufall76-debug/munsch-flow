@@ -129,7 +129,7 @@ test('Shopfloor 06:45: Runde eröffnen, Ampel, Maßnahme, Abschluss – landet i
   await lead.click('[data-act="addm"]');
   await lead.fill('#rn', 'Tor 4 blockiert');
   await lead.click('[data-act="rnext"]'); // Wareneingang besprochen
-  await lead.evaluate(() => { S.ui.rp = 11; render(); });
+  await lead.evaluate(() => { S.ui.rp = 99; render(); }); // letzte Folie (Abschluss)
   await lead.click('[data-act="rfin"]');
   await lead.waitForSelector('#modal textarea');
   const prot = await lead.inputValue('#modal textarea');
@@ -354,4 +354,31 @@ test('Offline-Start: nach dem ersten Laden startet die App ohne Netz; Alarm-Bann
   await ctx.setOffline(false);
   assert.deepEqual(page.errors.filter((e) => !/Failed to fetch|NetworkError|net::/.test(e)), []);
   await ctx.close();
+});
+
+
+test('Shopfloor: Metall- und Kunststoffsäge mit eigenen Zuständigen, Vorschlag aus dem Schichtplan', async () => {
+  const lead = await open();
+  await signIn(lead, 'M. Thiel', 'notfall-123456');
+  await lead.waitForFunction(() => window.SY && SY.ok);
+  const tok = await lead.evaluate(() => SY.tok);
+  await lead.evaluate(() => { const t = todayIso(); S.plan[t] = S.plan[t] || {}; S.plan[t]['M. Bode'] = 'Säge Kunststoff'; S.zust = {}; go('runde'); });
+  const slide = async (title) => { await lead.evaluate((x) => { const i = [...document.querySelectorAll('.sf-n span')].findIndex((e) => e.textContent === x); S.ui.rp = i; render(); }, title); await lead.waitForTimeout(150); };
+  await slide('Kunststoffsäge');
+  assert.match(await lead.textContent('.sf-th h2'), /Säge Kunststoff/);
+  assert.match(await lead.textContent('.sf-pb'), /laut Schichtplan heute in Säge Kunststoff/);
+  await lead.waitForTimeout(700);
+  assert.ok(await lead.evaluate(() => { const st = document.querySelector('.sf-stage'); return st.scrollHeight <= st.clientHeight + 2; }), 'Inhalt passt in die Folie (keine Klassen-Kollision mit .in)');
+  await lead.click('.sf-sug [data-n="M. Bode"]');
+  await slide('Metallsäge');
+  assert.match(await lead.textContent('.sf-th h2'), /Säge Metall/);
+  await lead.click('.sf-zd summary');
+  await lead.selectOption('select[data-in="rzm"]', 'K. Braun');
+  await lead.waitForTimeout(1300);
+  const rows = (await api('/api/sync?since=0', tok)).rows;
+  const z = (k) => JSON.parse(rows.find((r) => r.s === 'zust' && r.k === k).v);
+  assert.equal(z('saw').m, 'K. Braun', 'Metallsäge: feste Vortragende');
+  assert.equal(z('sawk').s.n, 'M. Bode', 'Kunststoffsäge: heute M. Bode');
+  assert.equal(await lead.evaluate(() => document.querySelectorAll('.sf-n').length), 13);
+  assert.deepEqual(lead.errors, []);
 });

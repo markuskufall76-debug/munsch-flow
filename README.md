@@ -11,7 +11,7 @@ npm run build    # dist/munsch-flow.html und dist/munsch-zentrale-worker.js
 
 | Ordner | Inhalt |
 |---|---|
-| `app/src/ui` | Oberfläche: `app.js` Gerüst und Seiten, `shopfloor.js` Shopfloor 06:45, `station.js` Tablet in der Halle, `pages.js` Materialfluss, Schichtaufgaben, 5S, Planung, Schichtplan, Qualifikationen, Auswertung, Excel-Import, Berichte, Lagerfachmonitor, `today.js` Heute, Fristen, Wochenrückblick, Tagesabschluss, Probelauf, `extras.js` persönliche Nachrichten, Fach-Etikett, Geräteübersicht, `cinema.js` Ton und Vibration, Erfolgsszene, Alarm, Seitenwechsel, Rundgang |
+| `app/src/ui` | Oberfläche: `app.js` Gerüst und Seiten, `shopfloor.js` Shopfloor 06:45, `station.js` Tablet in der Halle, `pages.js` Materialfluss, Schichtaufgaben, 5S, Planung, Schichtplan, Qualifikationen, Auswertung, Excel-Import, Berichte, Lagerfachmonitor, `today.js` Heute, Fristen, Wochenrückblick, Tagesabschluss, Probelauf, `extras.js` persönliche Nachrichten, Fach-Etikett, Geräteübersicht, `cinema.js` Ton und Vibration, Erfolgsszene, Alarm, Seitenwechsel, Rundgang, `cinema2.js` Zeitreise im Schichtpuls, Kachel-Zoom, Tageslicht, Tiefe |
 | `app/src/legacy` | eingefrorener Logik-Kern, Sync und Excel-Parser aus Flow 5 |
 | `app/src/core` | Ergänzungen zum Kern: Fachregeln (Sonderbetrieb, Fristen) und Sync-Sicherheitsnetz |
 | `worker/src` | Cloudflare Worker: Anmeldung, Abgleich, Rechte, Perplexity |
