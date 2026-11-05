@@ -49,7 +49,7 @@ Maßgeblich sind die Originaldaten aus dem Excel-Import (`app/src/legacy/mfdata.
 | Befehl | Prüft |
 |---|---|
 | `npm test` | Logik-Kern inkl. Originaldaten und Sync-Sicherheitsnetz (14 Tests) und API inkl. Sicherheit (14 Tests) gegen SQLite |
-| `npm run test:e2e` | echter Worker lokal + Seite in zwei Browsern: Erstbefüllung, PIN, Live-Abgleich, Rechte, Umzug, falsche PIN, Shopfloor-Runde, Station mit Rückgängig, Excel-Import mit echter .xlsx, Schichtaufgaben/5S/Schichtplan, Danke/Sonderbetrieb, Probelauf ohne Schreibzugriff, persönliche Nachricht bei Ablehnung, Etikett, Geräte, Etikettengröße, Offline-Start, Alarm-Banner und Monitor-Alarm im Vollbild, Monatsrückblick als Film, Handy-Fernbedienung mit folgendem Monitor, Mein Tag, Hallenplan mit Suche und Zoom, Prognose (17 Tests) |
+| `npm run test:e2e` | echter Worker lokal + Seite in zwei Browsern: Erstbefüllung, PIN, Live-Abgleich, Rechte, Umzug, falsche PIN, Shopfloor-Runde, Station mit Rückgängig, Excel-Import mit echter .xlsx, Schichtaufgaben/5S/Schichtplan, Danke/Sonderbetrieb, Probelauf ohne Schreibzugriff, persönliche Nachricht bei Ablehnung, Etikett, Geräte, Etikettengröße, Offline-Start, Alarm-Banner und Monitor-Alarm im Vollbild, Monatsrückblick als Film, Handy-Fernbedienung mit folgendem Monitor, Mein Tag, Hallenplan mit Suche und Zoom, Prognose, Morgenauftakt und Ruhemodus, Rekord auf zwei Geräten (19 Tests) |
 | `npm run dev` | lokaler Server unter http://localhost:8787 |
 
 CI (`.github/workflows/ci.yml`) führt alles bei jedem Push aus und stellt die Worker-Datei als Download bereit.
@@ -65,3 +65,10 @@ Ohne Buchung heute zählt nur der Erfahrungswert. Ziel der Sägen = Plan heute +
 
 `halle.js` zeichnet Werk 2 und Werk 1 als Schema (nicht maßstäblich). Die Lage der Bereiche steht in der Liste `Z`
 am Dateianfang und lässt sich dort anpassen. Störmeldungen erscheinen am Bereich ihres QS-Felds „Bereich“.
+
+## Momente
+
+`moments.js`:
+- **Rekord:** Liegt ein heutiger Wert (Pakete, GB/Pal, Metallsäge, Kunststoffsäge, beide Sägen) über dem Höchstwert aller früheren Tage, zeigt jedes Gerät die Szene einmal (gemerkt in `localStorage` je Tag und Feld). Prüfung nach jeder Eingabe und alle 5 s, so erreicht ein Rekord von der Station auch den Monitor.
+- **Ruhemodus:** nach einstellbarer Zeit ohne Bedienung (Einstellungen, je Gerät; Standard 5 Min. an Geräten mit Maus, sonst aus; an der Station nie). Uhr, Schicht als Lichtband, wechselnde Kennzahlen, Warnungen sofort. Jede Taste oder Berührung beendet ihn.
+- **Morgenauftakt:** beim Eröffnen der Shopfloor-Runde 5 s „Gestern in Zahlen“; der Monitor im Bühnenmodus spielt ihn auch, wenn am Handy eröffnet wurde. In automatisierten Tests nur mit `window.__sfi`.

@@ -479,3 +479,47 @@ test('Prognose: Hochrechnung aus Tempo und 20 Arbeitstagen, Ziel mit Rückstand'
   assert.equal(r.vor.mid, Math.max(4, Math.round(r.vor.mu)), 'vor Schichtbeginn zählt nur der Erfahrungswert');
   assert.deepEqual(lead.errors, []);
 });
+
+test('Morgenauftakt und Ruhemodus: Gestern in Zahlen beim Eröffnen, Ruhemodus endet mit jeder Taste', async () => {
+  const lead = await open();
+  await signIn(lead, 'M. Thiel', 'notfall-123456');
+  await lead.waitForFunction(() => window.SY && SY.ok);
+  await lead.evaluate(() => { window.__sfi = true; const t = todayIso(); S.extra = S.extra || {}; if (!isWork(t)) S.extra[t] = { by: 'Test', ts: 1 }; if (S.runde[t]) delete S.runde[t]; S.ui.rp = 0; S.ui.rpm = false; go('runde'); });
+  await lead.click('.sf-stage [data-act="rstart"]');
+  await lead.waitForSelector('#sfi .si-n');
+  assert.match(await lead.textContent('#sfi h2'), /in Zahlen/);
+  assert.equal(await lead.$$eval('#sfi .si-n > div', (d) => d.length), 5);
+  await lead.click('#sfi [data-act="sfix"]');
+  await lead.waitForFunction(() => !document.querySelector('#sfi'));
+  await lead.evaluate(() => ambientOn());
+  await lead.waitForSelector('#amb .am-f');
+  assert.match(await lead.textContent('#amb .am-clk'), /^\d\d:\d\d$/);
+  await lead.keyboard.press('Shift');
+  await lead.waitForFunction(() => !document.querySelector('#amb'));
+  await lead.evaluate(() => go('adm'));
+  await lead.click('[data-act="idleset"][data-v="10"]');
+  assert.equal(await lead.evaluate(() => S.ui.idle), 10);
+  assert.deepEqual(lead.errors, []);
+});
+
+test('Rekord-Moment: neuer Höchstwert erscheint einmal, auch auf einem zweiten Gerät', async () => {
+  const lead = await open();
+  await signIn(lead, 'M. Thiel', 'notfall-123456');
+  await lead.waitForFunction(() => window.SY && SY.ok);
+  const mx = await lead.evaluate(() => Math.max(...Object.keys(S.tz).filter((d) => d < todayIso()).map((d) => +(S.tz[d].we_pak || 0))));
+  const mon = await open();
+  await signIn(mon, 'M. Thiel', 'notfall-123456');
+  await mon.waitForFunction(() => window.SY && SY.ok);
+  await lead.evaluate((m) => tzSet(todayIso(), 'we_pak', m + 2), mx);
+  await lead.waitForSelector('#rec');
+  assert.match(await lead.textContent('#rec .rc-t'), /Pakete im Wareneingang/);
+  assert.match(await lead.textContent('#rec .rc-s'), new RegExp('bisher ' + mx));
+  await lead.evaluate(() => syPush()); await lead.waitForTimeout(1200); await mon.evaluate(() => syPull());
+  await mon.waitForSelector('#rec', { timeout: 12000 });
+  await lead.click('#rec');
+  await lead.waitForTimeout(5600);
+  assert.equal(await lead.$('#rec'), null, 'erscheint je Gerät nur einmal');
+  await lead.evaluate(() => { tzSet(todayIso(), 'we_pak', ''); syPush(); });
+  await lead.waitForTimeout(1500);
+  assert.deepEqual(lead.errors, []); assert.deepEqual(mon.errors, []);
+});
