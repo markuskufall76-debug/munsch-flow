@@ -49,7 +49,7 @@ Maßgeblich sind die Originaldaten aus dem Excel-Import (`app/src/legacy/mfdata.
 | Befehl | Prüft |
 |---|---|
 | `npm test` | Logik-Kern inkl. Originaldaten und Sync-Sicherheitsnetz (14 Tests) und API inkl. Sicherheit (14 Tests) gegen SQLite |
-| `npm run test:e2e` | echter Worker lokal + Seite in zwei Browsern: Erstbefüllung, PIN, Live-Abgleich, Rechte, Umzug, falsche PIN, Shopfloor-Runde, Station mit Rückgängig, Excel-Import mit echter .xlsx, Schichtaufgaben/5S/Schichtplan, Danke/Sonderbetrieb, Probelauf ohne Schreibzugriff, persönliche Nachricht bei Ablehnung, Etikett, Geräte, Etikettengröße, Offline-Start, Alarm-Banner und Monitor-Alarm im Vollbild |
+| `npm run test:e2e` | echter Worker lokal + Seite in zwei Browsern: Erstbefüllung, PIN, Live-Abgleich, Rechte, Umzug, falsche PIN, Shopfloor-Runde, Station mit Rückgängig, Excel-Import mit echter .xlsx, Schichtaufgaben/5S/Schichtplan, Danke/Sonderbetrieb, Probelauf ohne Schreibzugriff, persönliche Nachricht bei Ablehnung, Etikett, Geräte, Etikettengröße, Offline-Start, Alarm-Banner und Monitor-Alarm im Vollbild, Monatsrückblick als Film, Handy-Fernbedienung mit folgendem Monitor, Mein Tag (15 Tests) |
 | `npm run dev` | lokaler Server unter http://localhost:8787 |
 
 CI (`.github/workflows/ci.yml`) führt alles bei jedem Push aus und stellt die Worker-Datei als Download bereit.

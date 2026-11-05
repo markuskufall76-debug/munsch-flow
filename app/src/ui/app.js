@@ -29,7 +29,7 @@ function ic(n,c){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentCol
 /* ---------- Navigation ---------- */
 var LATER={runde:'Shopfloor 06:45',chk:'Schichtaufgaben',fluss:'Materialfluss',s5:'5S-Board',plan:'Planungsboard',schicht:'Schichtplan',quali:'Qualifikationen',ausw:'Auswertung',imp:'Excel-Import',ber:'Berichte'};
 var GROUPS=[
- {id:'lage',t:'Steuerung',ic:'lage',p:[['heute','Heute'],['lage','Lagebild'],['runde','Shopfloor 06:45'],['frist','Fristen'],['chk','Schichtaufgaben'],['fluss','Materialfluss'],['woche','Wochenrückblick'],['tag','Tagesabschluss']]},
+ {id:'lage',t:'Steuerung',ic:'lage',p:[['mein','Mein Tag'],['heute','Heute'],['lage','Lagebild'],['runde','Shopfloor 06:45'],['frist','Fristen'],['chk','Schichtaufgaben'],['fluss','Materialfluss'],['woche','Wochenrückblick'],['tag','Tagesabschluss']]},
  {id:'lager',t:'Material und Lager',ic:'lager',p:[['fach','Fachverwaltung'],['milk','Milkrun'],['vork','Vorkommissionierung'],['wep','WEP Wareneingangsprüfung'],['we','Wareneingang'],['mw','Materialwagen'],['wv','Werksverkehr'],['tb','TB-Wagen und TB-Kiste']]},
  {id:'prod',t:'Produktion und Qualität',ic:'prod',p:[['tz','Tageszahlen'],['qs','QS und Störmeldungen'],['auf','Aufträge und Produktionsweg'],['mas','Maschinen und Wartung'],['aud','Audits'],['s5','5S-Board']]},
  {id:'pers',t:'Personal',ic:'pers',p:[['urlaub','Urlaub und Anwesenheit'],['gespr','Personalgespräche','lead'],['plan','Planungsboard'],['schicht','Schichtplan'],['quali','Qualifikationen']]},

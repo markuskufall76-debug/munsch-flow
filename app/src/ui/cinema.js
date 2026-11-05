@@ -30,7 +30,7 @@ var ar=window.afterRender;window.afterRender=function(p){if(ar)ar(p);alarmCheck(
 setInterval(alarmCheck,20000);
 
 /* ---------- 3. Seitenwechsel mit Richtung ---------- */
-function idx(p){var all=['heute','lage','runde','frist','chk','fluss','woche','tag','fach','milk','vork','wep','we','mw','wv','tb','tz','qs','auf','mas','aud','s5','urlaub','gespr','plan','schicht','quali','funk','brett','adm','verl','ausw','imp','ber','train'];var i=all.indexOf(p);return i<0?99:i}
+function idx(p){var all=['mein','heute','lage','runde','frist','chk','fluss','woche','tag','fach','milk','vork','wep','we','mw','wv','tb','tz','qs','auf','mas','aud','s5','urlaub','gespr','plan','schicht','quali','funk','brett','adm','verl','ausw','imp','ber','train'];var i=all.indexOf(p);return i<0?99:i}
 var go0=window.go;window.go=function(p){var from=S.ui.page;if(!RM&&from&&p!==from&&idx(p)!==99){document.documentElement.dataset.dir=idx(p)>=idx(from)?'f':'b';if(document.startViewTransition){var l=document.createElement('div');l.className='sweep';document.body.appendChild(l);setTimeout(function(){l.remove()},700)}}return go0.apply(this,arguments)};
 
 /* ---------- 4. Rundgang ---------- */

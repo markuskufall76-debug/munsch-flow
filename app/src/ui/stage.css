@@ -1,0 +1,73 @@
+/* ---------- Monatsrückblick als Film (bewusst nur dunkel: eigene Bildwelt) ---------- */
+#film{position:fixed;inset:0;z-index:185;background:#050506;color:#F3EFEA;overflow:hidden;--signal:#FF761B;--warn:#F5B14A;--ok:#4FD1A1;--crit:#FF5A64}
+#film .lb{position:absolute;left:0;right:0;height:11vh;background:#000;z-index:3}
+#film .lb.t{top:0}#film .lb.b{bottom:0}
+#film .fsc{position:absolute;inset:11vh 0}
+#film .fsn{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;gap:18px;padding:0 max(7vw,24px);opacity:0;pointer-events:none;transition:opacity .9s ease}
+#film .fsn.on{opacity:1;pointer-events:auto}
+#film .fsn.go > *{animation:fup 1s var(--ease) both}
+#film .fsn.go > *:nth-child(2){animation-delay:.15s}#film .fsn.go > *:nth-child(3){animation-delay:.3s}#film .fsn.go > *:nth-child(4){animation-delay:.45s}
+@keyframes fup{from{opacity:0;transform:translateY(24px);filter:blur(8px)}}
+#film .fsn.on{animation:kb 9s linear both}
+@keyframes kb{from{transform:scale(1.04)}to{transform:scale(1)}}
+#film .fk{font:600 15px var(--mono);letter-spacing:.32em;text-transform:uppercase;color:var(--signal)}
+#film .fs-title{text-align:center;align-self:center}
+#film .fs-title h1{margin:14px 0;font:800 clamp(80px,13vw,220px)/.85 var(--display);text-transform:uppercase}
+#film .fs-title p{font:500 20px var(--mono);color:#B8B1A9;margin:0;display:flex;justify-content:center}
+#film .fs-title p svg{height:42px;width:auto}
+#film .fh{display:flex;align-items:baseline;gap:22px;flex-wrap:wrap}
+#film .fh b{font:800 clamp(110px,16vw,260px)/.8 var(--display);font-variant-numeric:tabular-nums}
+#film .fh span{font-size:clamp(20px,2.2vw,34px);color:#B8B1A9}
+#film .fd{font:600 16px var(--mono);padding:6px 12px;border-radius:999px;border:1px solid rgba(255,236,220,.2);color:#B8B1A9}
+#film .fd.up{color:var(--ok);border-color:rgba(79,209,161,.4)}#film .fd.dn{color:var(--warn);border-color:rgba(245,177,74,.4)}
+#film .fsub{font-size:clamp(18px,1.8vw,26px);color:#B8B1A9;margin:0}
+#film .fchart{width:100%;max-height:30vh}
+#film .fb{fill:var(--signal);transform-box:fill-box;transform-origin:bottom;animation:barg .8s var(--ease) both;animation-delay:calc(var(--i)*30ms + .3s)}
+#film .fb:hover{fill:#FFA25E}
+#film .fx{font:500 12px var(--mono);fill:#7B756E}
+#film .fduo{display:flex;flex-direction:column;gap:20px;max-width:1100px}
+#film .frow{display:grid;grid-template-columns:minmax(140px,220px) 1fr 120px auto;align-items:center;gap:20px}
+#film .fl{font:600 clamp(18px,1.8vw,26px) var(--body)}
+#film .ftrack{height:22px;border-radius:22px;background:rgba(255,236,220,.08);overflow:hidden}
+#film .ftrack i{display:block;height:100%;border-radius:22px;animation:hw 1.2s var(--ease) both .4s}
+#film .frow b{font:800 clamp(40px,4vw,64px)/1 var(--display);text-align:right;font-variant-numeric:tabular-nums}
+#film .fring{position:relative;width:min(44vh,380px);aspect-ratio:1;max-width:100%}
+#film .fring svg{width:100%;height:100%;transform:rotate(-90deg)}
+#film .fring .rb{fill:none;stroke:rgba(255,236,220,.1);stroke-width:14}
+#film .fring .rf{fill:none;stroke:var(--signal);stroke-width:14;stroke-linecap:round;stroke-dasharray:var(--c);stroke-dashoffset:var(--c);animation:ringf 1.6s var(--ease) .3s forwards}
+@keyframes ringf{to{stroke-dashoffset:var(--o)}}
+#film .fring b{position:absolute;inset:0;display:grid;place-items:center;font:800 clamp(90px,12vw,170px)/1 var(--display)}
+#film .fring b small{font-size:.35em;color:#7B756E}
+#film .fctl{position:absolute;left:0;right:0;bottom:0;height:11vh;z-index:4;display:flex;align-items:center;gap:10px;padding:0 max(7vw,24px)}
+#film .fprog{flex:1;display:flex;gap:6px}
+#film .fprog i{flex:1;height:3px;border-radius:3px;background:rgba(255,236,220,.15);overflow:hidden}
+#film .fprog i b{display:block;height:100%;width:0;background:var(--signal)}
+#film .fprog i.on b{animation:mbar var(--d) linear forwards}
+#film .fprog i.done b,#film .fprog i.hold b{width:100%}
+#film .btn{color:#F3EFEA;border-color:rgba(255,236,220,.2);background:rgba(255,236,220,.04)}
+@media (max-width:700px){#film .frow{grid-template-columns:1fr 80px;}#film .frow .ftrack{grid-column:1/-1;grid-row:2}#film .frow .fd{display:none}}
+
+/* ---------- Fernbedienung (Handy) ---------- */
+#remote{position:fixed;inset:0;z-index:160;background:var(--ground);display:flex;flex-direction:column;gap:18px;padding:calc(16px + env(safe-area-inset-top,0px)) max(18px,env(safe-area-inset-right,0px)) calc(22px + env(safe-area-inset-bottom,0px)) max(18px,env(safe-area-inset-left,0px));overflow:auto}
+.rm-h{display:flex;align-items:center;gap:12px}.rm-h svg{width:34px;height:34px}.rm-h b{flex:1;font:700 24px var(--display);text-transform:uppercase}
+.rm-now{flex:1;display:flex;flex-direction:column;justify-content:center;gap:8px;padding:20px;border-radius:24px;background:radial-gradient(120% 120% at 0 0,var(--signal-soft),var(--panel) 60%);border:1px solid var(--line2);min-height:220px}
+.rm-no{font:600 12px var(--mono);letter-spacing:.2em;color:var(--signal);text-transform:uppercase}
+.rm-t{font:800 clamp(44px,12vw,80px)/.9 var(--display);text-transform:uppercase;text-wrap:balance;animation:fup .5s var(--ease)}
+.rm-amp{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.rm-amp button{height:58px;border-radius:16px;border:1px solid var(--line2);font-weight:700;font-size:16px}
+.rm-amp .ok{color:var(--ok)}.rm-amp .warn{color:var(--warn)}.rm-amp .crit{color:var(--crit)}
+.rm-amp .ok.on{background:var(--ok);color:var(--signal-ink)}.rm-amp .warn.on{background:var(--warn);color:var(--signal-ink)}.rm-amp .crit.on{background:var(--crit);color:#fff}
+.rm-nav{display:grid;grid-template-columns:90px 1fr;gap:10px}
+.rm-nav .btn{height:84px;font-size:22px;border-radius:20px}
+.rm-dots{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.rm-dots button{width:14px;height:14px;border-radius:50%;background:var(--line2)}
+.rm-dots button.ok{background:var(--signal)}.rm-dots button.cur{outline:2px solid var(--ink);outline-offset:2px}
+
+/* ---------- Mein Tag ---------- */
+.mwk{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.mw{display:flex;flex-direction:column;gap:4px;padding:12px;border-radius:14px;background:var(--panel2);border:1px solid var(--line);min-width:0}
+.mw small{font:500 10.5px var(--mono);color:var(--ink3);text-transform:uppercase;letter-spacing:.06em}
+.mw b{font-size:13.5px;overflow-wrap:anywhere}
+.mw.today{border-color:var(--signal);box-shadow:0 0 0 1px var(--signal)}
+.mw.off b{color:var(--info)}
+@media (max-width:560px){.mwk{grid-template-columns:repeat(3,minmax(0,1fr))}}

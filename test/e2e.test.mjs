@@ -382,3 +382,60 @@ test('Shopfloor: Metall- und Kunststoffsäge mit eigenen Zuständigen, Vorschlag
   assert.equal(await lead.evaluate(() => document.querySelectorAll('.sf-n').length), 13);
   assert.deepEqual(lead.errors, []);
 });
+
+test('Monatsrückblick als Film: echte Oktoberzahlen, Szenen, Steuerung', async () => {
+  const lead = await open();
+  await signIn(lead, 'M. Thiel', 'notfall-123456');
+  await lead.waitForFunction(() => window.SY && SY.ok);
+  const sum = await lead.evaluate(() => Object.keys(S.tz).filter((k) => k.startsWith('2026-10')).reduce((a, k) => a + (S.tz[k].we_pak || 0), 0));
+  assert.ok(sum > 0, 'Oktober hat echte Pakete');
+  assert.equal(await lead.evaluate(() => filmData('2026-10').pak), sum);
+  await lead.evaluate(() => { S.ui.aw = 'm'; S.ui.awo = null; go('ausw'); });
+  await lead.click('[data-act="film"]');
+  await lead.waitForSelector('#film .fsn.on');
+  assert.equal(await lead.$$eval('#film .fsn', (s) => s.length), 8);
+  await lead.keyboard.press('ArrowRight');
+  await lead.waitForFunction(() => document.querySelector('#film .fsn.on').dataset.i === '1');
+  assert.match(await lead.textContent('#film .fsn.on'), /Pakete gebucht/);
+  await lead.keyboard.press('Escape');
+  assert.equal(await lead.$('#film'), null);
+  assert.deepEqual(lead.errors, []);
+});
+
+test('Shopfloor-Bühne: Handy blättert, der große Monitor folgt über die Zentrale', async () => {
+  const mon = await open();
+  await signIn(mon, 'M. Thiel', 'notfall-123456');
+  await mon.waitForFunction(() => window.SY && SY.ok);
+  await mon.evaluate(() => { S.ui.rpm = true; S.ui.rp = 0; go('runde'); });
+  const phone = await open();
+  await signIn(phone, 'M. Thiel', 'notfall-123456');
+  await phone.waitForFunction(() => window.SY && SY.ok);
+  await phone.evaluate(() => { S.ui.rpm = false; go('runde'); });
+  await phone.click('[data-act="rfern"]');
+  await phone.waitForSelector('#remote .rm-t');
+  if (await phone.$('#remote [data-act="rstart"]')) await phone.click('#remote [data-act="rstart"]'); // Runde evtl. schon eröffnet
+  await phone.click('#remote .rm-dots button:nth-child(2)'); // Anwesenheit
+  await phone.click('#remote [data-act="rnext"]');
+  await phone.click('#remote [data-act="rnext"]');
+  assert.match(await phone.textContent('#remote .rm-t'), /Sicherheit/);
+  await mon.waitForFunction(() => S.ui.rp === 3 && /Arbeitssicherheit/.test(document.querySelector('.sf-th h2').textContent), null, { timeout: 9000 });
+  assert.deepEqual(mon.errors, []); assert.deepEqual(phone.errors, []);
+});
+
+test('Mein Tag: Bereich laut Schichtplan mit Tagesziel, eigene Maßnahme, Team startet dort', async () => {
+  const lead = await open();
+  await signIn(lead, 'M. Thiel', 'notfall-123456');
+  await lead.waitForFunction(() => window.SY && SY.ok);
+  const tok = await lead.evaluate(() => SY.tok);
+  await api('/api/pin', tok, { name: 'D. Isola', pin: 'isola-123456' });
+  await lead.evaluate(() => { const t = todayIso(); S.extra = S.extra || {}; if (!isWork(t)) S.extra[t] = { by: 'Test', ts: 1 }; S.plan[t] = S.plan[t] || {}; S.plan[t]['D. Isola'] = 'Säge Metall'; S.tz[t] = Object.assign(S.tz[t] || {}, { ms_plan: 6 }); S.mass.push({ id: 'mm1', src: 'saw', txt: 'Sägeband wechseln', wer: 'D. Isola', bis: todayIso(), done: 0 }); save(); });
+  await lead.waitForTimeout(1300);
+  const team = await open();
+  await signIn(team, 'D. Isola', 'isola-123456');
+  await team.waitForFunction(() => window.SY && SY.ok && S.ui.page === 'mein', null, { timeout: 8000 });
+  const txt = await team.textContent('#stage');
+  assert.match(txt, /Heute eingeteilt: Säge Metall/);
+  assert.match(txt, /Tagesziel/);
+  assert.match(txt, /Shopfloor-Maßnahme: Sägeband wechseln/);
+  assert.deepEqual(team.errors, []);
+});
