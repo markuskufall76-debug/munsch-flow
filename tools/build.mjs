@@ -13,9 +13,9 @@ const quiet = process.argv.includes('--quiet');
 
 const parts = {
   mfdata: read('app/src/legacy/mfdata.js'),
-  core: read('app/src/legacy/core.js'),
+  core: read('app/src/legacy/core.js') + '\n' + read('app/src/core/rules-ext.js'),
   sync: read('app/src/legacy/sync.js') + '\n' + read('app/src/core/sync-ext.js') + '\n' + read('app/src/legacy/excel.js'),
-  app: ['app.js', 'shopfloor.js', 'station.js', 'pages.js'].map((f) => read('app/src/ui/' + f)).join('\n;\n'),
+  app: ['app.js', 'shopfloor.js', 'station.js', 'pages.js', 'today.js'].map((f) => read('app/src/ui/' + f)).join('\n;\n'),
   css: ['app.css', 'modules.css'].map((f) => read('app/src/ui/' + f)).join('\n'),
 };
 const BUILD = '7-' + createHash('sha256').update(Object.values(parts).join('\0')).digest('hex').slice(0, 10);

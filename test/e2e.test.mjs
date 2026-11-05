@@ -217,3 +217,37 @@ test('Schichtaufgaben, 5S und Schichtplan: Änderungen kommen in der Zentrale an
   await lead.evaluate(() => go('lfm')); await lead.waitForSelector('#lfm .lk');
   assert.deepEqual(lead.errors, []);
 });
+
+test('Heute: Danke und Sonderbetrieb kommen an; Probelauf sendet nichts an die Zentrale', async () => {
+  const lead = await open();
+  await signIn(lead, 'M. Thiel', 'notfall-123456');
+  await lead.waitForFunction(() => window.SY && SY.ok);
+  const tok = await lead.evaluate(() => SY.tok);
+  await lead.evaluate(() => go('heute'));
+  await lead.click('[data-act="dkn"]');
+  await lead.fill('#dk_x', 'hat die Rampe frei gemacht');
+  await lead.click('[data-act="dks"]');
+  await lead.click('[data-act="sbm"]');
+  await lead.fill('#sb_d', '2026-11-14');
+  await lead.click('[data-act="sbs"]');
+  await lead.waitForTimeout(1300);
+  let rows = (await api('/api/sync?since=0', tok)).rows;
+  assert.ok(rows.some((r) => r.s === 'dank' && JSON.parse(r.v).txt === 'hat die Rampe frei gemacht'));
+  assert.ok(rows.some((r) => r.s === 'extra' && r.k === '2026-11-14' && r.v));
+  assert.equal(await lead.evaluate(() => isWork('2026-11-14')), true, 'Samstag mit Sonderbetrieb ist Arbeitstag');
+  for (const p of ['frist', 'woche', 'tag']) { await lead.evaluate((x) => go(x), p); await lead.waitForTimeout(250); }
+  // Probelauf: Einlagern darf die Zentrale nicht erreichen
+  const before = (await api('/api/sync?since=0', tok)).seq;
+  await lead.evaluate(() => go('train'));
+  await lead.click('[data-act="trs"]');
+  await lead.waitForSelector('#trb');
+  await lead.evaluate(() => go('fach'));
+  await lead.fill('#fscan', '4999111');
+  await lead.keyboard.press('Enter');
+  await lead.waitForTimeout(1500);
+  assert.ok(await lead.evaluate(() => S.fach.some((f) => f.auf === '4999111')), 'lokal sichtbar');
+  const after = await api('/api/sync?since=0', tok);
+  assert.equal(after.seq, before, 'kein einziger Schreibvorgang in der Zentrale');
+  assert.ok(!after.rows.some((r) => r.s === 'fach' && r.v && JSON.parse(r.v).auf === '4999111'));
+  assert.deepEqual(lead.errors, []);
+});

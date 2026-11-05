@@ -29,12 +29,12 @@ function ic(n,c){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentCol
 /* ---------- Navigation ---------- */
 var LATER={runde:'Shopfloor 06:45',chk:'Schichtaufgaben',fluss:'Materialfluss',s5:'5S-Board',plan:'Planungsboard',schicht:'Schichtplan',quali:'Qualifikationen',ausw:'Auswertung',imp:'Excel-Import',ber:'Berichte'};
 var GROUPS=[
- {id:'lage',t:'Steuerung',ic:'lage',p:[['lage','Lagebild'],['runde','Shopfloor 06:45'],['chk','Schichtaufgaben'],['fluss','Materialfluss']]},
+ {id:'lage',t:'Steuerung',ic:'lage',p:[['heute','Heute'],['lage','Lagebild'],['runde','Shopfloor 06:45'],['frist','Fristen'],['chk','Schichtaufgaben'],['fluss','Materialfluss'],['woche','Wochenrückblick'],['tag','Tagesabschluss']]},
  {id:'lager',t:'Material und Lager',ic:'lager',p:[['fach','Fachverwaltung'],['milk','Milkrun'],['vork','Vorkommissionierung'],['wep','WEP Wareneingangsprüfung'],['we','Wareneingang'],['mw','Materialwagen'],['wv','Werksverkehr'],['tb','TB-Wagen und TB-Kiste']]},
  {id:'prod',t:'Produktion und Qualität',ic:'prod',p:[['tz','Tageszahlen'],['qs','QS und Störmeldungen'],['auf','Aufträge und Produktionsweg'],['mas','Maschinen und Wartung'],['aud','Audits'],['s5','5S-Board']]},
  {id:'pers',t:'Personal',ic:'pers',p:[['urlaub','Urlaub und Anwesenheit'],['gespr','Personalgespräche','lead'],['plan','Planungsboard'],['schicht','Schichtplan'],['quali','Qualifikationen']]},
  {id:'komm',t:'Kommunikation',ic:'komm',p:[['funk','Abteilungsfunk'],['brett','Schwarzes Brett']]},
- {id:'sys',t:'System',ic:'sys',p:[['adm','Einstellungen'],['verl','Verlauf'],['ausw','Auswertung'],['imp','Excel-Import','lead'],['ber','Berichte']]}];
+ {id:'sys',t:'System',ic:'sys',p:[['adm','Einstellungen'],['verl','Verlauf'],['ausw','Auswertung'],['imp','Excel-Import','lead'],['ber','Berichte'],['train','Probelauf','lead']]}];
 var PAGE={},GOF={};GROUPS.forEach(function(g){g.p.forEach(function(p){PAGE[p[0]]={t:p[1],g:g,lead:p[2]==='lead'}})});
 function pageOk(p){var x=PAGE[p];return x&&(!x.lead||isLead())}
 function grpOf(p){return (PAGE[p]||PAGE.lage).g}
@@ -107,7 +107,7 @@ function ticker(){var a=[],now=new Date();S.brett.filter(function(x){return x.pi
 
 /* ---------- Router und Render ---------- */
 var lastPg=null,pgAt=0;
-window.go=function(p){if(p==='mon')return openMon();if(p==='lfm'&&window.openLfm)return openLfm();if(!PAGE[p])p='lage';if(!pageOk(p))return toast('Nur für die Teamleitung');flyClose();closeDrawer();
+window.go=function(p){if(p==='mon')return openMon();if(p==='lfm'&&window.openLfm)return openLfm();if(!PAGE[p])p='lage';if(!pageOk(p))return toast('Nur für die Teamleitung');flyClose();closeDrawer();closeModal();closePal();
  var changed=p!==S.ui.page||lastPg===null;S.ui.page=p;save();try{history.replaceState(null,'','#'+p)}catch(e){}
  if(changed&&document.startViewTransition&&!RM&&lastPg!==null){try{document.startViewTransition(function(){render()})}catch(e){render()}}else render()};
 window.render=function(){if(window.stnRender&&$('#stn'))stnRender();var st=$('#stage');if(!st)return;var p=S.ui.page,isNew=p!==lastPg,before=isNew?null:tileVals();
@@ -411,7 +411,7 @@ document.addEventListener('input',function(e){var el=e.target,k=el.dataset&&el.d
  else if(k==='vq'){S.ui.vq=el.value;clearTimeout(window._vq);window._vq=setTimeout(render,250)}});
 document.addEventListener('focusout',function(e){if(e.target&&e.target.dataset&&e.target.dataset.in==='tz')tzSoft()});
 
-var GO=[['l','lage','Lagebild'],['f','fach','Fachverwaltung'],['m','milk','Milkrun'],['t','tz','Tageszahlen'],['q','qs','QS und Störmeldungen'],['u','urlaub','Urlaub und Anwesenheit'],['b','brett','Schwarzes Brett'],['k','funk','Abteilungsfunk'],['v','verl','Verlauf'],['e','adm','Einstellungen'],['w','mon','Werkstattmonitor'],['r','runde','Shopfloor 06:45'],['a','ausw','Auswertung'],['s','schicht','Schichtplan'],['p','plan','Planungsboard'],['c','chk','Schichtaufgaben']],gT=0,gEl=null;
+var GO=[['l','lage','Lagebild'],['f','fach','Fachverwaltung'],['m','milk','Milkrun'],['t','tz','Tageszahlen'],['q','qs','QS und Störmeldungen'],['u','urlaub','Urlaub und Anwesenheit'],['b','brett','Schwarzes Brett'],['k','funk','Abteilungsfunk'],['v','verl','Verlauf'],['e','adm','Einstellungen'],['w','mon','Werkstattmonitor'],['r','runde','Shopfloor 06:45'],['a','ausw','Auswertung'],['s','schicht','Schichtplan'],['p','plan','Planungsboard'],['c','chk','Schichtaufgaben'],['h','heute','Heute'],['d','frist','Fristen']],gT=0,gEl=null;
 function gOff(){gT=0;if(gEl){gEl.remove();gEl=null}}
 ACT.keys=function(){modal('<h3>Tastenkürzel</h3><div class="keys"><span><kbd>Strg</kbd><kbd>K</kbd></span><span>Suche und Perplexity</span><span><kbd>/</kbd></span><span>Suche öffnen</span>'+GO.map(function(g){return '<span><kbd>G</kbd><kbd>'+g[0].toUpperCase()+'</kbd></span><span>'+g[2]+'</span>'}).join('')+'<span><kbd>Esc</kbd></span><span>Schließen</span><span><kbd>?</kbd></span><span>Diese Übersicht</span></div><div class="acts"><button class="btn ghost" data-act="mclose">Schließen</button></div>')};
 document.addEventListener('keydown',function(e){

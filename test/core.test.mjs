@@ -121,3 +121,24 @@ test('Sync: Schichtaufgaben und unbekannte Abschnitte der Zentrale werden nie ge
   const ops2 = JSON.parse(JSON.stringify(run(c, 'syOps(syFlat())')));
   assert.deepEqual(ops2.map((o) => o.s + '/' + o.k), ['chk/2026-11-05|d2']);
 });
+
+test('Sonderbetrieb: eingerichteter Samstag ist Arbeitstag, ohne Betrieb ruhen Milkrun-Hinweise', () => {
+  const c = loadCore({ now: '2026-11-07T09:30:00' }); // Samstag
+  assert.equal(run(c, 'isWork(todayIso())'), false);
+  assert.equal(run(c, 'mkOverdue(new Date())'), 0);
+  run(c, "S.extra={'2026-11-07':{by:'M. Thiel',ts:1}}");
+  assert.equal(run(c, 'isWork(todayIso())'), true);
+  assert.ok(run(c, 'mkOverdue(new Date())') > 0, 'am Sonderbetrieb gilt der Milkrun-Takt');
+  assert.ok(run(c, 'presentOn(todayIso()).length') > 0);
+  assert.equal(run(c, "_dayKind('2026-12-25')"), 'Feiertag');
+  assert.equal(run(c, "_ferien('2026-10-12').n"), 'Herbstferien');
+});
+
+test('Fristen: überfällige und baldige Fristen erscheinen in der Warnlage', () => {
+  const c = loadCore({ now: THU });
+  run(c, "S.reg.mas.push({id:'m1',ref:'Stapler',art:'UVV',faellig:'2026-11-01',st:0,ts:1});S.reg.aud.push({id:'a1',ref:'Audit 5S',bereich:'W1',datum:'2026-11-06',st:0,ts:1});S.reg.aud.push({id:'a2',ref:'Audit alt',datum:'2026-10-01',st:0,ts:1})");
+  const F = run(c, 'frDue()');
+  assert.deepEqual(JSON.parse(JSON.stringify(F.map((x) => [x.id, x.dd]))), [['a2', -35], ['m1', -4], ['a1', 1]]);
+  assert.ok(run(c, "alerts(new Date()).some(a=>a.go==='frist'&&/überfällig/.test(a.t))"));
+  assert.ok(run(c, "alerts(new Date()).some(a=>a.go==='frist'&&/nächsten 3 Tagen/.test(a.t))"));
+});
