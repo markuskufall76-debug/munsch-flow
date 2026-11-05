@@ -104,3 +104,20 @@ test('Originaldaten: frischer Zustand enthält nur echte Stammdaten, keine Beisp
   assert.equal(run(c, 'S.brett.length + Object.keys(S.reg).reduce((a,k)=>a+S.reg[k].length,0)'), 0, 'keine erfundenen Meldungen oder Register');
   assert.equal(run(c, "S.tz['2026-10-30'].we_pak"), 18);
 });
+
+test('Sync: Schichtaufgaben und unbekannte Abschnitte der Zentrale werden nie gelöscht', () => {
+  const c = loadCore({ now: THU, server: true });
+  run(c, 'SY.last=syFlat()');
+  c.__rows = [
+    { s: 'chk', k: '2026-11-05|d1', v: '{"u":"M. Bode","ts":1}' },
+    { s: 'chkdef', k: 'c1', v: '{"t":"Regale prüfen","o":101}' },
+    { s: 'kuenftig', k: 'x', v: '{"a":1}' },
+    { s: 'dev', k: 'abc', v: '{"n":"Station"}' },
+  ];
+  run(c, 'syApply(__rows)');
+  const ops = JSON.parse(JSON.stringify(run(c, 'syOps(syFlat())')));
+  assert.deepEqual(ops, [], 'nach dem Abgleich nichts zu senden, insbesondere keine Löschungen');
+  run(c, "S.chk['2026-11-05|d2']={u:'M. Thiel',ts:2}");
+  const ops2 = JSON.parse(JSON.stringify(run(c, 'syOps(syFlat())')));
+  assert.deepEqual(ops2.map((o) => o.s + '/' + o.k), ['chk/2026-11-05|d2']);
+});

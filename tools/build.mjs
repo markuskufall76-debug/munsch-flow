@@ -14,7 +14,7 @@ const quiet = process.argv.includes('--quiet');
 const parts = {
   mfdata: read('app/src/legacy/mfdata.js'),
   core: read('app/src/legacy/core.js'),
-  sync: read('app/src/legacy/sync.js'),
+  sync: read('app/src/legacy/sync.js') + '\n' + read('app/src/core/sync-ext.js'),
   app: ['app.js', 'shopfloor.js', 'station.js'].map((f) => read('app/src/ui/' + f)).join('\n;\n'),
   css: ['app.css', 'modules.css'].map((f) => read('app/src/ui/' + f)).join('\n'),
 };

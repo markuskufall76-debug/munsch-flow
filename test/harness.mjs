@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 
 const read = (p) => readFileSync(new URL('../app/src/legacy/' + p, import.meta.url), 'utf8');
-const SRC = { mfdata: read('mfdata.js'), core: read('core.js'), sync: read('sync.js') };
+const SRC = { mfdata: read('mfdata.js'), core: read('core.js'), sync: read('sync.js') + '\n' + readFileSync(new URL('../app/src/core/sync-ext.js', import.meta.url), 'utf8') };
 
 /** @param {{now?: string, server?: boolean}} [o] now = lokale Zeit "JJJJ-MM-TTTHH:MM" */
 export function loadCore(o = {}) {
