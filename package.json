@@ -1,0 +1,21 @@
+{
+  "name": "munsch-flow",
+  "private": true,
+  "version": "7.0.0",
+  "description": "MUNSCH Flow – Logistik-Leitstand für Munsch Chemiepumpen",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "node tools/build.mjs",
+    "dev": "node tools/build.mjs && node tools/dev.mjs",
+    "test": "node tools/build.mjs --quiet && node --test --test-reporter=spec test/core.test.mjs test/worker.test.mjs",
+    "test:e2e": "node tools/build.mjs --quiet && node --test --test-reporter=spec test/e2e.test.mjs",
+    "check": "npm test && npm run test:e2e",
+    "legacy:extract": "node tools/extract-legacy.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.10"
+  }
+}

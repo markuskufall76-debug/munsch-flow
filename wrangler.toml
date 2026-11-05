@@ -1,0 +1,15 @@
+# Deploy per CLI: npm run build && npx wrangler deploy
+# Alternativ dist/munsch-zentrale-worker.js im Cloudflare-Dashboard einfügen (siehe docs/BETRIEB.md).
+name = "munsch-zentrale"
+main = "dist/munsch-zentrale-worker.js"
+compatibility_date = "2025-09-01"
+workers_dev = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "munsch-zentrale"
+database_id = "HIER-DIE-D1-ID-EINTRAGEN"
+
+# Secrets (nie in diese Datei):
+#   npx wrangler secret put PIN_LEAD   # Notfall-PIN der Teamleitung, mindestens 12 Zeichen
+#   npx wrangler secret put PPLX_KEY   # optional, Perplexity

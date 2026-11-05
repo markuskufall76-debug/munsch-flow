@@ -1,2 +1,4 @@
-publish_v5.html
-index.html
+node_modules/
+dist/
+worker/src/generated/
+.data/

@@ -1,0 +1,115 @@
+// Ende-zu-Ende: echter Worker (lokal, SQLite) + echte Seite in zwei Browsern.
+// Voraussetzung: npm run build und Playwright mit Chromium (in CI: npx playwright install chromium).
+import { test, before, after } from 'node:test';
+import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
+import { start } from '../tools/dev.mjs';
+
+const require = createRequire(import.meta.url);
+let chromium;
+try { ({ chromium } = require('playwright')); } catch { ({ chromium } = await import('playwright')); }
+
+let srv, browser;
+const today = new Date().toISOString().slice(0, 10);
+before(async () => { srv = await start({ port: 0 }); browser = await chromium.launch(); });
+after(async () => { await browser?.close(); await srv?.close(); });
+
+async function open(name) {
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 820 }, reducedMotion: 'reduce' });
+  await ctx.addInitScript((d) => { try { localStorage.setItem('mf6.intro', d); } catch {} }, today);
+  const page = await ctx.newPage();
+  page.errors = [];
+  page.on('pageerror', (e) => page.errors.push(e.message));
+  page.on('console', (m) => { if (m.type() === 'error') page.errors.push(m.text()); });
+  await page.addInitScript(() => document.addEventListener('securitypolicyviolation', (e) => console.error('CSP verletzt: ' + e.violatedDirective + ' ' + e.blockedURI)));
+  await page.goto(srv.url + '/');
+  return page;
+}
+async function signIn(page, name, pin) {
+  await page.click(`.pc[data-u="${name}"]`);
+  await page.waitForSelector('#lpi', { state: 'attached' });
+  await page.focus('#lpi');
+  await page.keyboard.type(pin);
+  await page.keyboard.press('Enter');
+  await page.waitForSelector('#stage', { timeout: 15000 });
+}
+const api = async (path, token, body) => (await fetch(srv.url + path, { method: body ? 'POST' : 'GET', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + token }, body: body && JSON.stringify(body) })).json();
+
+test('Teamleitung startet die leere Zentrale, Team sieht Einlagerung live', async () => {
+  const lead = await open();
+  await signIn(lead, 'M. Thiel', 'notfall-123456');
+  await lead.waitForFunction(() => window.SY && SY.ok && S.fach.length === 204, null, { timeout: 15000 });
+  assert.match(await lead.textContent('#live'), /Live/);
+
+  // Erstbefüllung ist in der Zentrale angekommen
+  const tok = await lead.evaluate(() => SY.tok);
+  const s = await api('/api/sync?since=0', tok);
+  assert.equal(s.empty, false);
+  assert.ok(s.rows.filter((r) => r.s === 'fach').length === 204);
+
+  // PIN für eine Person aus dem Team über die Oberfläche setzen
+  await lead.evaluate(() => go('adm'));
+  await lead.click('[data-act="sypin"][data-n="M. Bode"]');
+  await lead.fill('#npin', 'bode-123456');
+  await lead.click('[data-act="sypin2"]');
+  await lead.waitForFunction(() => /PIN für M\. Bode gesetzt/.test(document.querySelector('.toast')?.textContent || ''));
+
+  // Team meldet sich in einem zweiten Browser an
+  const team = await open();
+  await signIn(team, 'M. Bode', 'bode-123456');
+  await team.waitForFunction(() => SY.ok);
+  assert.equal(await team.evaluate(() => isLead()), false);
+
+  // Einlagern bei der Teamleitung
+  await lead.evaluate(() => go('fach'));
+  await lead.fill('#fscan', '48219071234');
+  await lead.keyboard.press('Enter');
+  await lead.waitForFunction(() => S.fach.some((f) => f.auf === '4821907'));
+  await lead.waitForTimeout(1200); // Push nach 500 ms
+
+  // ... erscheint beim Team nach dem nächsten Abgleich
+  await team.evaluate(() => new Promise((ok) => syPull(ok)));
+  assert.ok(await team.evaluate(() => S.fach.some((f) => f.auf === '4821907')));
+
+  // Team stellt eigenen Urlaubsantrag, die Zentrale nimmt ihn an
+  await team.evaluate(() => go('urlaub'));
+  await team.click('[data-act="vq"][data-e="M. Bode"]');
+  await team.click('[data-act="vadd"]');
+  await team.waitForTimeout(1200);
+  await lead.evaluate(() => new Promise((ok) => syPull(ok)));
+  assert.ok(await lead.evaluate(() => S.vacs.some((v) => v.emp === 'M. Bode' && v.st === 'beantragt')));
+
+  // Versuch, am Server vorbei einen fremden Urlaub zu genehmigen, wird abgewiesen und zurückgesetzt
+  const ttok = await team.evaluate(() => SY.tok);
+  const r = await api('/api/push', ttok, { ops: [{ s: 'vacs', k: 'fremd', v: JSON.stringify({ id: 'fremd', emp: 'K. Braun', type: 'Urlaub', d0: today, d1: today, st: 'genehmigt' }) }] });
+  assert.equal(r.n, 0); assert.equal(r.rej.length, 1);
+
+  assert.deepEqual(lead.errors, []); assert.deepEqual(team.errors, []);
+});
+
+test('Falsche PIN: Fehlermeldung, kein Zugang', async () => {
+  const p = await open();
+  await p.click('.pc[data-u="K. Braun"]');
+  await p.focus('#lpi'); await p.keyboard.type('falsch-123'); await p.keyboard.press('Enter');
+  await p.waitForFunction(() => document.querySelector('.toast'));
+  assert.match(await p.textContent('.toast'), /keine PIN|PIN stimmt nicht/);
+  assert.equal(await p.$('#stage'), null);
+});
+
+test('Umzug: Flow-5-Sicherung wird eingespielt und landet in der Zentrale', async () => {
+  const lead = await open();
+  await signIn(lead, 'M. Thiel', 'notfall-123456');
+  await lead.waitForFunction(() => window.SY && SY.ok);
+  // Sicherung wie aus Flow 5: kompletter Zustand als JSON
+  const backup = await lead.evaluate(() => { const b = JSON.parse(JSON.stringify(newState())); b.fach[9].auf = '4999999'; b.fach[9].ts = Date.now(); b.reg.qs.push({ id: 'alt1', bereich: 'Säge', art: 'Störung', txt: 'aus Flow 5', min: 5, st: 0, ts: 1 }); return JSON.stringify(b); });
+  await lead.evaluate(() => go('adm'));
+  await lead.fill('#rsj', backup);
+  await lead.click('[data-act="rsk"]');
+  await lead.click('[data-act="mconf"]');
+  await lead.waitForTimeout(2500);
+  const tok = await lead.evaluate(() => SY.tok);
+  const rows = (await api('/api/sync?since=0', tok)).rows;
+  assert.equal(JSON.parse(rows.find((r) => r.s === 'fach' && r.k === 'S10').v).auf, '4999999');
+  assert.ok(rows.some((r) => r.s === 'reg.qs' && r.k === 'alt1'));
+  assert.deepEqual(lead.errors, []);
+});

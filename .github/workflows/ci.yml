@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Unit- und API-Tests
+        run: npm test
+      - name: Browser für Ende-zu-Ende-Tests
+        run: npm install --no-save playwright@1.55.0 && npx playwright install --with-deps chromium
+      - name: Ende-zu-Ende-Tests
+        run: npm run test:e2e
+      - name: Worker-Datei bereitstellen
+        uses: actions/upload-artifact@v4
+        with:
+          name: munsch-zentrale
+          path: |
+            dist/munsch-zentrale-worker.js
+            dist/munsch-flow.html

@@ -1,0 +1,40 @@
+# Betrieb: MUNSCH Zentrale auf Cloudflare
+
+## Einmalig einrichten (Dashboard, ohne Kommandozeile)
+
+1. **Datenbank anlegen:** Cloudflare-Dashboard → Storage & Databases → D1 → *Create* → Name `munsch-zentrale`.
+2. **Worker anlegen:** Workers & Pages → *Create* → *Hello World* → Name `munsch-zentrale` → *Deploy*.
+3. **Datenbank binden:** Worker → Settings → Bindings → *Add* → D1 database → Variablenname **`DB`** → Datenbank `munsch-zentrale`.
+4. **Secrets setzen:** Worker → Settings → Variables and Secrets:
+
+   | Name | Art | Zweck |
+   |---|---|---|
+   | `PIN_LEAD` | Secret | Notfall-PIN für die Teamleitung, mindestens 12 Zeichen. Damit meldet sich die Teamleitung beim ersten Start an und setzt danach die persönlichen PINs. |
+   | `PPLX_KEY` | Secret, optional | Perplexity in der Suche |
+   | `ALLOW_SHARED` + `PIN_TEAM` | optional | Gruppen-PIN für das Team. Nur setzen, wenn bewusst gewollt (`ALLOW_SHARED` = `1`). |
+
+5. **Code einspielen:** Worker → *Edit code* → Inhalt komplett durch `dist/munsch-zentrale-worker.js` ersetzen → *Deploy*.
+
+Das Datenbankschema legt der Worker beim ersten Aufruf selbst an.
+
+## Erster Start
+
+1. Seite öffnen, als Teamleitung mit der Notfall-PIN anmelden. Die leere Zentrale wird mit den Stammdaten befüllt.
+2. **Umzug aus Flow 5** (falls bisherige Daten übernommen werden sollen): in Flow 5 unter Einstellungen „Sicherung als Text kopieren“, in Flow 7 unter Einstellungen → *Umzug aus Flow 5* einfügen und einspielen.
+3. Unter Einstellungen → *Zugang und PINs* für jede Person eine PIN setzen (mindestens 6 Zeichen).
+
+## Jede neue Version
+
+```
+npm run check        # bauen und alle Tests
+```
+Danach Schritt 5 wiederholen. Die Daten bleiben erhalten. Die Version steht in den Einstellungen und unter `/healthz`.
+
+## Sicherheit im Überblick
+
+- PINs werden mit PBKDF2-SHA256 (100 000 Runden, eigenes Salz) gespeichert, Sitzungstoken nur als SHA-256.
+- Nach 5 Fehlversuchen ist der Name 15 Minuten gesperrt, je IP-Adresse nach 30.
+- Eine neue PIN meldet die Person auf allen anderen Geräten ab.
+- Rechte prüft der Server: Personalgespräche, Urlaubskonten und Qualifikationen schreibt nur die Teamleitung. Das Team darf nur eigene Urlaubsanträge stellen und ändern, Protokolle kann es nicht löschen. Abgelehnte Änderungen werden zurückgesetzt und protokolliert.
+- Die Seite läuft mit einer Content-Security-Policy, die nur die eigenen, per Hash bekannten Skripte erlaubt.
+- Anmeldungen, Notfallzugänge, PIN-Änderungen und abgelehnte Schreibversuche stehen in der Tabelle `audit`.
