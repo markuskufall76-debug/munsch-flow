@@ -49,7 +49,7 @@ Maßgeblich sind die Originaldaten aus dem Excel-Import (`app/src/legacy/mfdata.
 | Befehl | Prüft |
 |---|---|
 | `npm test` | Logik-Kern inkl. Originaldaten und Sync-Sicherheitsnetz (14 Tests) und API inkl. Sicherheit (14 Tests) gegen SQLite |
-| `npm run test:e2e` | echter Worker lokal + Seite in zwei Browsern: Erstbefüllung, PIN, Live-Abgleich, Rechte, Umzug, falsche PIN, Shopfloor-Runde, Station mit Rückgängig, Excel-Import mit echter .xlsx, Schichtaufgaben/5S/Schichtplan, Danke/Sonderbetrieb, Probelauf ohne Schreibzugriff, persönliche Nachricht bei Ablehnung, Etikett, Geräte, Etikettengröße, Offline-Start, Alarm-Banner und Monitor-Alarm im Vollbild, Monatsrückblick als Film, Handy-Fernbedienung mit folgendem Monitor, Mein Tag, Hallenplan mit Suche und Zoom, Prognose, Morgenauftakt und Ruhemodus, Rekord auf zwei Geräten (19 Tests) |
+| `npm run test:e2e` | echter Worker lokal + Seite in zwei Browsern: Erstbefüllung, PIN, Live-Abgleich, Rechte, Umzug, falsche PIN, Shopfloor-Runde, Station mit Rückgängig, Excel-Import mit echter .xlsx, Schichtaufgaben/5S/Schichtplan, Danke/Sonderbetrieb, Probelauf ohne Schreibzugriff, persönliche Nachricht bei Ablehnung, Etikett, Geräte, Etikettengröße, Offline-Start, Alarm-Banner und Monitor-Alarm im Vollbild, Monatsrückblick als Film, Handy-Fernbedienung mit folgendem Monitor, Mein Tag, Hallenplan mit Suche und Zoom, Prognose, Morgenauftakt und Ruhemodus, Rekord auf zwei Geräten, Materialfluss mit Stau, Kamerafahrt, Bauchbinde, Videobild (20 Tests) |
 | `npm run dev` | lokaler Server unter http://localhost:8787 |
 
 CI (`.github/workflows/ci.yml`) führt alles bei jedem Push aus und stellt die Worker-Datei als Download bereit.
@@ -72,3 +72,13 @@ am Dateianfang und lässt sich dort anpassen. Störmeldungen erscheinen am Berei
 - **Rekord:** Liegt ein heutiger Wert (Pakete, GB/Pal, Metallsäge, Kunststoffsäge, beide Sägen) über dem Höchstwert aller früheren Tage, zeigt jedes Gerät die Szene einmal (gemerkt in `localStorage` je Tag und Feld). Prüfung nach jeder Eingabe und alle 5 s, so erreicht ein Rekord von der Station auch den Monitor.
 - **Ruhemodus:** nach einstellbarer Zeit ohne Bedienung (Einstellungen, je Gerät; Standard 5 Min. an Geräten mit Maus, sonst aus; an der Station nie). Uhr, Schicht als Lichtband, wechselnde Kennzahlen, Warnungen sofort. Jede Taste oder Berührung beendet ihn.
 - **Morgenauftakt:** beim Eröffnen der Shopfloor-Runde 5 s „Gestern in Zahlen“; der Monitor im Bühnenmodus spielt ihn auch, wenn am Handy eröffnet wurde. In automatisierten Tests nur mit `window.__sfi`.
+
+## Bewegung
+
+`flow.js`:
+- **Materialfluss:** Lichtpunkte auf den Wegen im Hallenplan (Strecken in `routes()`). Dichte aus den Tageszahlen des letzten Tages; vor einem Bereich mit offener Störmeldung staut sich der Strom.
+- **Kamerafahrt:** Knopf im Hallenplan. Ganze Halle, dann jeder Bereich mit Handlungsbedarf (Störung, Prognose, Langlieger, offene Vorgänge) mit Bauchbinde. Vollbild über die ganze Seite, damit der Live-Abgleich die Fahrt nicht unterbricht. Esc beendet.
+- **Lebender Hintergrund** in Ruhemodus, Werkstattmonitor und Shopfloor-Bühne: ruhig in Orange, bei Warnungen schneller und wärmer, bei kritischen Warnungen rötlich.
+- **Bauchbinde** im Bühnenmodus, sobald eine Folie eine vortragende Person hat.
+
+`filmrec.js`: zeichnet den Monatsrückblick in 1920 × 1080 auf eine Leinwand und nimmt ihn mit `MediaRecorder` auf (MP4/H.264 in Chrome, Edge, Safari; sonst WebM). Dauer etwa 39 s, in Echtzeit.

@@ -523,3 +523,28 @@ test('Rekord-Moment: neuer Höchstwert erscheint einmal, auch auf einem zweiten 
   await lead.waitForTimeout(1500);
   assert.deepEqual(lead.errors, []); assert.deepEqual(mon.errors, []);
 });
+
+test('Bewegung: Materialfluss mit Stau, Kamerafahrt, Bauchbinde, Monatsrückblick als Video', async () => {
+  const lead = await open();
+  await signIn(lead, 'M. Thiel', 'notfall-123456');
+  await lead.waitForFunction(() => window.SY && SY.ok);
+  await lead.evaluate(() => { S.reg.qs.push({ id: 'qb1', ts: Date.now(), st: 0, bereich: 'Säge', art: 'Störung' }); save(); go('halle'); });
+  await lead.waitForSelector('#hflow');
+  assert.ok(await lead.$$eval('#hflow circle', (c) => c.length) > 0, 'Lichtpunkte auf den Wegen');
+  assert.equal(await lead.$$eval('#hflow .hfl.jam', (c) => c.length) >= 2, true, 'Stau vor beiden Sägen');
+  await lead.click('.hpbar [data-act="htour"]');
+  await lead.waitForSelector('#hcap.on', { timeout: 4000 });
+  assert.match(await lead.textContent('#hcap'), /Störmeldung/);
+  assert.ok(await lead.evaluate(() => document.documentElement.classList.contains('htour')));
+  await lead.keyboard.press('Escape');
+  await lead.waitForFunction(() => !window.hallTour() && !document.documentElement.classList.contains('htour'));
+  await lead.evaluate(() => { S.zust = S.zust || {}; S.zust.saw = { m: 'D. Isola' }; S.ui.rpm = true; S.ui.rp = 5; save(); go('runde'); });
+  await lead.waitForSelector('#l3');
+  assert.match(await lead.textContent('#l3'), /D\. Isola/);
+  await lead.evaluate(() => { S.ui.rpm = false; S.ui.aw = 'm'; S.ui.awo = -1; go('ausw'); });
+  assert.ok(await lead.evaluate(() => !!filmVideoMime()), 'Browser kann aufnehmen');
+  await lead.waitForSelector('[data-act="filmvid"]');
+  const px = await lead.evaluate(() => { const c = filmVideoPaint('2026-10', 8); const d = c.getContext('2d').getImageData(170, 300, 400, 300).data; let n = 0; for (let i = 0; i < d.length; i += 4) if (d[i] > 200 && d[i + 1] > 200) n++; return { w: c.width, h: c.height, n }; });
+  assert.equal(px.w, 1920); assert.equal(px.h, 1080); assert.ok(px.n > 500, 'große Zahl ist gezeichnet');
+  assert.deepEqual(lead.errors, []);
+});

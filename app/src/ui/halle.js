@@ -31,7 +31,7 @@ function info(z){var id=z[0],t=todayIso(),o=S.tz[t]||{};
  if(id==='aus')return [regOpen('auf'),'Aufträge im Produktionsweg',''];return [0,'','']}
 function av(n,x,y,i){return '<g class="hav" transform="translate('+(x-i*22)+','+y+')"><circle r="12"/><text y="4" text-anchor="middle">'+esc(M.initials(n))+'</text><title>'+esc(n)+' · heute eingeteilt</title></g>'}
 function zone(z,i){var x=z[2],y=z[3],w=z[4],h=z[5],q=qsAt(z[8]),I=info(z),cr=crew(z[7]),small=h<100;
- return '<g class="hz'+(q?' crit':'')+'" style="--i:'+i+'" data-act="go" data-go="'+z[6]+'" role="button" tabindex="0" aria-label="'+esc(z[1]+': '+I[0]+' '+I[1]+(q?', '+q+' Störmeldung offen':''))+'">'
+ return '<g class="hz'+(q?' crit':'')+'" data-z="'+z[0]+'" style="--i:'+i+'" data-act="go" data-go="'+z[6]+'" role="button" tabindex="0" aria-label="'+esc(z[1]+': '+I[0]+' '+I[1]+(q?', '+q+' Störmeldung offen':''))+'">'
   +(q&&!RM?'<rect class="hpulse" x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="16"/>':'')
   +'<rect class="hzr" x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="16"/>'
   +'<text class="hzt" x="'+(x+18)+'" y="'+(y+26)+'">'+esc(z[1].toUpperCase())+'</text>'
@@ -50,7 +50,7 @@ function milk(){var t=todayIso(),mk=mkDay(t),done=0,run=-1;for(var i=0;i<10;i++)
   +'<g class="hmkv">'+(moving?'<animateMotion dur="14s" repeatCount="indefinite" rotate="0"><mpath href="#hmkp"/></animateMotion>':'')+'<circle r="9" '+(moving?'':'cx="495" cy="446"')+'/><circle class="hmkh" r="16" '+(moving?'':'cx="495" cy="446"')+'/></g>'
   +'<g transform="translate(760,446)"><rect class="hchip" x="-74" y="-13" width="148" height="26" rx="13"/><text class="hchipt" y="5" text-anchor="middle">MILKRUN '+(run>=0?'· RUNDE '+(run+1):done+' / 10')+'</text></g></g>'}
 function road(){var wv=S.reg.wv.filter(function(e){return e.st===1}),mw=S.reg.mw.filter(function(e){return e.st===1}),veh=wv.map(function(e){return ['wv',e.ref||'Fahrt',e.route&&/^Werk 1/.test(e.route)?-1:1]}).concat(mw.map(function(e){return ['mw',e.ref||'Pappamobil',1]})),q=qsAt('Werksverkehr');
- var g='<g class="hrd'+(q?' crit':'')+'" data-act="go" data-go="wv" role="button" tabindex="0" aria-label="Werksverkehr: '+veh.length+' unterwegs"><rect class="hrdr" x="392" y="70" width="72" height="600" rx="12"/><path class="hrdl" d="M428,84 V656"/>'
+ var g='<g class="hrd'+(q?' crit':'')+'" data-z="wv" data-act="go" data-go="wv" role="button" tabindex="0" aria-label="Werksverkehr: '+veh.length+' unterwegs"><rect class="hrdr" x="392" y="70" width="72" height="600" rx="12"/><path class="hrdl" d="M428,84 V656"/>'
   +'<text class="hzt" transform="translate(436,370) rotate(-90)" text-anchor="middle">WERKSVERKEHR'+(veh.length?' · '+veh.length+' UNTERWEGS':'')+'</text>';
  veh.slice(0,4).forEach(function(v,i){var x=414+(i%2)*28,d=(9+i*2.3).toFixed(1);g+='<g class="hveh '+v[0]+'"><title>'+esc(v[1])+'</title>'+(RM?'':'<animateTransform attributeName="transform" type="translate" values="'+x+','+(v[2]>0?640:100)+';'+x+','+(v[2]>0?100:640)+'" dur="'+d+'s" repeatCount="indefinite"/>')+'<rect x="-9" y="-14" width="18" height="28" rx="5"'+(RM?' transform="translate('+x+','+(140+i*110)+')"':'')+'/></g>'});
  return g+'</g>'}
@@ -61,7 +61,7 @@ function svg(){var fs=fachStat(),pw2=crew('Werk 2'),pw1=crew('Werk 1');
   +'<rect class="hhall" x="20" y="70" width="360" height="600" rx="22"/><text class="hht" x="40" y="104">WERK 2</text>'+(pw2.length?'<text class="hhp" x="360" y="104" text-anchor="end">'+esc(pw2.join(' · '))+'</text>':'')
   +'<rect class="hhall" x="480" y="70" width="700" height="600" rx="22"/><text class="hht" x="500" y="104">WERK 1</text>'+(pw1.length?'<text class="hhp" x="1160" y="104" text-anchor="end">'+esc(pw1.join(' · '))+'</text>':'')
   +road()+Z.map(zone).join('')
-  +'<g class="hz hfz" style="--i:3" role="group" aria-label="Fachlager: '+fs.o+' von '+fs.n+' belegt"><rect class="hzr" x="500" y="124" width="410" height="300" rx="16"/>'
+  +'<g class="hz hfz" data-z="lag" style="--i:3" role="group" aria-label="Fachlager: '+fs.o+' von '+fs.n+' belegt"><rect class="hzr" x="500" y="124" width="410" height="300" rx="16"/>'
   +'<text class="hzt" x="518" y="150">FACHLAGER</text><text class="hzs" x="892" y="150" text-anchor="end">'+fs.o+' / '+fs.n+' belegt'+(fs.l?' · '+fs.l+' Langlieger':'')+'</text>'
   +'<text class="hzk" x="520" y="170">S · 132 FÄCHER</text><text class="hzk" x="520" y="312">P · 72 FÄCHER</text>'+cells()+'</g>'
   +milk()+'</svg>'}

@@ -1,0 +1,52 @@
+/* ---------- Materialfluss im Hallenplan ---------- */
+.hfl{fill:none;stroke:color-mix(in srgb,var(--signal) 22%,transparent);stroke-width:2;stroke-dasharray:1 7;stroke-linecap:round;pointer-events:none}
+.hfl.off{stroke:color-mix(in srgb,var(--ink3) 25%,transparent)}
+.hfl.jam{stroke:color-mix(in srgb,var(--crit) 45%,transparent)}
+.hfd{fill:var(--signal);pointer-events:none;filter:drop-shadow(0 0 4px var(--signal))}
+.hfd.jam{fill:var(--warn);filter:drop-shadow(0 0 4px var(--warn))}
+
+/* ---------- Kamerafahrt ---------- */
+.hz.foc .hzr{stroke:var(--signal);stroke-width:2.5;fill:color-mix(in srgb,var(--signal) 9%,var(--panel))}
+.hrd.foc .hrdr{stroke:var(--signal);stroke-dasharray:none}
+.hcard{position:relative}
+#hcap{position:absolute;left:28px;bottom:64px;display:flex;align-items:center;gap:16px;max-width:min(720px,calc(100% - 56px));padding:16px 22px 16px 18px;border-radius:18px;background:color-mix(in srgb,var(--panel) 88%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid var(--line2);box-shadow:var(--shadow);opacity:0;transform:translateY(14px);pointer-events:none;transition:opacity .5s,transform .6s var(--ease)}
+#hcap.on{opacity:1;transform:none}
+#hcap.still{transition:none}
+#hcap > i{flex:none;align-self:stretch;width:4px;border-radius:4px;background:var(--signal)}
+#hcap.crit > i{background:var(--crit)}#hcap.warn > i{background:var(--warn)}#hcap.ok > i{background:var(--ok)}#hcap.vio > i{background:#B48CFF}
+#hcap small{display:block;font:600 11px var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--ink3)}
+#hcap b{display:block;margin-top:4px;font:700 clamp(18px,1.9vw,28px)/1.15 var(--body)}
+#hcap > span{margin-left:auto;align-self:flex-start;font-size:11px;color:var(--ink3)}
+html.htour .hcard{position:fixed;inset:0;z-index:150;margin:0;border-radius:0;border:0;padding:0;display:flex;flex-direction:column;justify-content:center;background:var(--ground)}
+html.htour .hcard .hwrap{border-radius:0;overflow:hidden}
+html.htour .hcard .hsvg{min-width:0;max-height:100vh}
+html.htour .hcard .hlg{display:none}
+html.htour #hcap{left:max(3vw,24px);bottom:max(5vh,28px)}
+#htx{position:fixed;right:max(2vw,16px);top:calc(max(2vh,16px) + env(safe-area-inset-top,0px));z-index:151;opacity:.55}
+#htx:hover,#htx:focus-visible{opacity:1}
+
+/* ---------- Lebender Hintergrund ---------- */
+.livebg{position:absolute;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none;border-radius:inherit}
+#amb > canvas.livebg{position:absolute}
+#amb .livebg ~ .am-glow{display:none}
+#amb,#mon,html.rpm-live .sf-stage{isolation:isolate}
+
+/* ---------- Bauchbinde ---------- */
+#l3{position:fixed;left:max(3vw,24px);bottom:calc(max(4vh,24px) + 96px);z-index:140;display:flex;align-items:stretch;gap:16px;padding:16px 26px 16px 16px;border-radius:16px;background:color-mix(in srgb,var(--panel) 90%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid var(--line2);box-shadow:var(--shadow);animation:l3in .8s var(--ease) both;pointer-events:none}
+#l3.out{animation:l3out .6s ease both}
+#l3 > i{width:5px;border-radius:5px;background:var(--signal);transform-origin:bottom;animation:l3bar .6s var(--ease) both .2s}
+#l3 small{display:block;font:600 11px var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--signal)}
+#l3 b{display:block;font:800 clamp(30px,3vw,46px)/1 var(--display);text-transform:uppercase;margin:6px 0 4px}
+#l3 span{font-size:14px;color:var(--ink2)}
+@keyframes l3in{from{opacity:0;transform:translateX(-30px);clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+@keyframes l3out{to{opacity:0;transform:translateX(-20px)}}
+@keyframes l3bar{from{transform:scaleY(0)}}
+
+/* ---------- Video-Aufnahme ---------- */
+.vr-prev{border-radius:14px;overflow:hidden;background:#050506;border:1px solid var(--line2)}
+.vr-prev canvas{display:block;width:100%;height:auto;aspect-ratio:16/9}
+.vr-bar{height:4px;border-radius:4px;background:var(--line);margin-top:12px;overflow:hidden}
+.vr-bar i{display:block;height:100%;width:0;background:var(--signal);transition:width .2s linear}
+@media (prefers-reduced-motion:reduce){#l3,#l3 > i,#hcap{animation:none!important;transition:none!important}}
+
+.sf-th h2{margin-top:10px}
