@@ -3864,4 +3864,139 @@ function buildHUD(){var d=document.createElement('div');d.id='hud';d.setAttribut
 
 </script>
 
+<style id="mfpro">
+/* ===== PRO-SCHICHT: Hallenlicht, Lichtkante, Live-Änderungen, Tipp-Feedback, Tastenkürzel ===== */
+/* Hintergrund: weiches, langsam wanderndes Hallenlicht statt rotierendem Radar-Strahl (ruhig, keine harten Kanten) */
+.bgfx::before{width:120vmax!important;height:120vmax!important;margin:-60vmax!important;background:radial-gradient(closest-side,rgba(255,140,60,.11),rgba(255,140,60,.04) 55%,transparent)!important;animation:mfpHall 18s ease-in-out infinite!important;opacity:.75!important;transition:background 1.2s}
+html:not([data-pg="lage"]) .bgfx::before{opacity:.4!important}
+html.mfp-crit .bgfx::before{background:radial-gradient(closest-side,rgba(255,84,104,.10),rgba(255,84,104,.035) 55%,transparent)!important}
+@keyframes mfpHall{0%,100%{transform:translate(-5%,-3%) scale(1)}50%{transform:translate(5%,4%) scale(1.07)}}
+
+/* Kennzahlen: drei Kacheln füllen die Reihe statt eine Lücke zu lassen */
+@media(min-width:901px){.kpis:has(> .nd:nth-child(3):last-child){grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+/* Lichtkante: folgt dem Mauszeiger über Kacheln und Bereichen */
+.mfp-sp{position:absolute;inset:0;pointer-events:none;border-radius:inherit;z-index:0;opacity:0;transition:opacity .35s;mix-blend-mode:screen;background:radial-gradient(260px circle at var(--mx,50%) var(--my,50%),rgba(255,170,110,.09),transparent 62%)}
+.mfp-sp::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;background:radial-gradient(200px circle at var(--mx,50%) var(--my,50%),rgba(255,186,130,.65),transparent 70%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+.mfp-hov > .mfp-sp{opacity:1}
+#view .kpis .nd,#view .cmd .nd{transition:transform .25s cubic-bezier(.2,.8,.2,1),box-shadow .25s}
+@media(hover:hover){#view .kpis .nd.mfp-hov{transform:translateY(-2px);box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 30px 60px -30px #000,0 0 0 1px rgba(255,160,90,.18)}}
+
+/* Live: Wert hat sich durch ein anderes Gerät geändert */
+.mfp-chg{animation:mfpChg 2.2s ease-out}
+@keyframes mfpChg{0%{box-shadow:0 0 0 1px rgba(255,160,90,.9),0 0 46px -6px rgba(255,140,60,.75)}100%{box-shadow:0 0 0 1px rgba(255,160,90,0),0 0 0 0 rgba(255,140,60,0)}}
+.mfp-chg .ndv,.mfp-chg > b{animation:mfpNum .9s cubic-bezier(.2,.8,.2,1)}
+@keyframes mfpNum{0%{transform:translateY(6px);opacity:.3}100%{transform:none;opacity:1}}
+.mfp-d{position:absolute;top:10px;right:12px;z-index:2;font:600 11px/1 var(--mono);letter-spacing:.06em;padding:4px 7px;border-radius:999px;background:rgba(255,160,90,.16);color:var(--or);border:1px solid rgba(255,160,90,.45);animation:mfpD 2.6s ease-out forwards;pointer-events:none}
+.mfp-d.dn{background:rgba(120,200,255,.12);color:var(--ice2,#cfe7ff);border-color:rgba(120,200,255,.4)}
+@keyframes mfpD{0%{transform:translateY(4px);opacity:0}12%{transform:none;opacity:1}80%{opacity:1}100%{opacity:0;transform:translateY(-4px)}}
+
+/* Tipp-Feedback: Druck und Welle */
+.btn,.ibtn,.dm,.fx2,.nd[data-act],button.nd{-webkit-tap-highlight-color:transparent}
+.btn:active,.ibtn:active,.dm:active,.fx2:active{transform:translateY(1px) scale(.985)}
+.mfp-rpp{position:relative;overflow:hidden}
+.mfp-rp{position:absolute;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(255,200,150,.55),rgba(255,160,90,0) 70%);animation:mfpRp .6s ease-out forwards}
+@keyframes mfpRp{to{transform:scale(28);opacity:0}}
+
+/* Balken füllen sich beim Seitenwechsel nacheinander */
+#view.mfp-in .sg i.on{animation:mfpSeg .55s cubic-bezier(.2,.8,.2,1) backwards;animation-delay:calc(var(--i,0)*32ms + 120ms)}
+@keyframes mfpSeg{from{transform:scaleY(.25);opacity:.25}}
+
+/* Kopfzeile bekommt Tiefe, sobald die Seite scrollt */
+.top{transition:box-shadow .3s,background-color .3s}
+html.mfp-sc .top{box-shadow:0 14px 34px -14px rgba(0,0,0,.9),0 1px 0 rgba(255,160,90,.12)}
+
+/* Tabellen: Zeile unter dem Zeiger hervorheben */
+#view table.t tbody tr{transition:background-color .15s}
+@media(hover:hover){#view table.t tbody tr:hover{background-color:rgba(255,160,90,.055)}#view table.t tbody tr:hover td:first-child{box-shadow:inset 2px 0 0 var(--or)}}
+
+/* Meldungen unten: Laufbalken für die Anzeigedauer, auf dem Handy über dem Dock */
+.toast{overflow:hidden;animation:mfpT .35s cubic-bezier(.2,.8,.2,1)}
+.toast::after{content:"";position:absolute;left:0;bottom:0;height:2px;width:100%;background:linear-gradient(90deg,var(--or),rgba(255,160,90,.2));transform-origin:left;animation:mfpTb 3.2s linear forwards}
+@keyframes mfpT{from{transform:translate(-50%,14px);opacity:0}}
+@keyframes mfpTb{to{transform:scaleX(0)}}
+@media(max-width:980px){html:has(#dock) .toast{bottom:calc(98px + env(safe-area-inset-bottom,0px))}}
+
+/* Tastenkürzel-Übersicht */
+.mfp-keys{display:grid;grid-template-columns:auto 1fr;gap:9px 16px;align-items:center;margin:14px 0 6px;font-size:14px}
+.mfp-keys kbd,.mfp-k kbd{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 7px;border-radius:6px;border:1px solid var(--ln2);border-bottom-width:2px;background:rgba(255,160,90,.06);font:600 11.5px var(--mono);color:var(--ice2,#f1d3b8)}
+.mfp-keys span.mfp-kk{display:flex;gap:4px;white-space:nowrap}
+.mfp-gh{position:fixed;left:50%;bottom:calc(28px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:96;padding:8px 14px;border-radius:999px;border:1px solid var(--ln2);background:rgba(12,18,27,.96);font:500 12.5px var(--ui);color:var(--dim);box-shadow:0 18px 40px -16px #000;animation:mfpT .2s ease-out;display:flex;gap:10px;align-items:center}
+.mfp-gh b{color:var(--or);font-family:var(--mono)}
+
+@media (prefers-reduced-motion:reduce){
+ .bgfx::before{animation:none!important}
+ .mfp-rp,.mfp-sp{display:none!important}
+ .mfp-chg,.mfp-chg .ndv,.mfp-chg > b,#view.mfp-in .sg i.on,.toast,.toast::after,.mfp-d{animation:none!important}
+ #view .kpis .nd.mfp-hov{transform:none}
+}
+</style>
+<script>
+/* ===== PRO-SCHICHT (Verhalten) ===== */
+(function(){
+ var RM=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+ var FINE=window.matchMedia&&matchMedia('(hover: hover) and (pointer: fine)').matches;
+ var root=document.documentElement;
+ function q(s,c){return (c||document).querySelector(s)}
+ function qa(s,c){return [].slice.call((c||document).querySelectorAll(s))}
+ function kiosk(){return !!(q('#mon')||q('#stn')||q('#lfm'))}
+
+ /* --- Live-Änderungen: Kennzahlen vor und nach dem Rendern vergleichen --- */
+ var pgAt=0,lastPg=null;
+ function tiles(){var m={};qa('#view .nd').forEach(function(n){var l=n.querySelector('.nl'),v=n.querySelector('.ndv')||n.querySelector(':scope > b');if(l&&v){var k=l.textContent.trim();if(k&&!(k in m))m[k]={n:n,v:v.textContent.trim()}}});return m}
+ function num(t){var m=String(t).replace(/\./g,'').match(/-?\d+(?:,\d+)?/);return m?parseFloat(m[0].replace(',','.')):null}
+ function markChanges(before){var after=tiles();Object.keys(after).forEach(function(k){var b=before[k];if(!b||b.v===after[k].v)return;var a=num(after[k].v),o=num(b.v),n=after[k].n;if(a===null||o===null||a===o)return;
+   n.classList.remove('mfp-chg');void n.offsetWidth;n.classList.add('mfp-chg');
+   if(getComputedStyle(n).position==='static')n.style.position='relative';
+   var d=document.createElement('span');d.className='mfp-d'+(a<o?' dn':'');var df=Math.round((a-o)*10)/10;d.textContent=(df>0?'+':'−')+String(Math.abs(df)).replace('.',',');n.appendChild(d);
+   setTimeout(function(){if(d.parentNode)d.remove();n.classList.remove('mfp-chg')},2700)})}
+
+ /* --- Balken nacheinander füllen beim Seitenwechsel --- */
+ function segIn(){if(RM)return;var v=q('#view');if(!v)return;qa('.sg',v).forEach(function(sg){var i=0;qa('i.on',sg).forEach(function(x){x.style.setProperty('--i',i++)})});v.classList.remove('mfp-in');void v.offsetWidth;v.classList.add('mfp-in');clearTimeout(segIn.t);segIn.t=setTimeout(function(){v.classList.remove('mfp-in')},1600)}
+
+ /* --- Warnlage färbt das Hallenlicht --- */
+ function mood(){try{var al=alerts(new Date());root.classList.toggle('mfp-crit',al.some(function(a){return a.tone==='crit'}))}catch(e){}}
+
+ if(typeof render==='function'){var r0=render;render=function(){var pg=window.S&&S.ui&&S.ui.page,same=pg===lastPg&&Date.now()-pgAt>1500,before=same?tiles():null;var res=r0.apply(this,arguments);
+   try{if(pg!==lastPg){lastPg=pg;pgAt=Date.now();segIn()}else if(before)markChanges(before);mood()}catch(e){}return res}}
+
+ /* --- Lichtkante unter dem Mauszeiger --- */
+ if(FINE&&!RM){var SEL='#view .kpis .nd,#view .cmd .nd,#view section.sec,#view .stt',cur=null,raf=0,lx=0,ly=0;
+  function leave(){if(cur){cur.classList.remove('mfp-hov');cur=null}}
+  document.addEventListener('pointermove',function(e){lx=e.clientX;ly=e.clientY;if(raf)return;raf=requestAnimationFrame(function(){raf=0;if(kiosk())return leave();var t=document.elementFromPoint(lx,ly),el=t&&t.closest&&t.closest(SEL);
+    if(el&&el.matches('section.sec')){var inner=t.closest('#view .kpis .nd,#view .cmd .nd,#view .stt');if(inner)el=inner}
+    if(el!==cur){leave();if(el){cur=el;if(getComputedStyle(el).position==='static')el.style.position='relative';var sp=el.querySelector(':scope > .mfp-sp');if(!sp){sp=document.createElement('i');sp.className='mfp-sp';sp.setAttribute('aria-hidden','true');el.insertBefore(sp,el.firstChild)}el.classList.add('mfp-hov')}}
+    if(cur){var r=cur.getBoundingClientRect();cur.style.setProperty('--mx',(lx-r.left)+'px');cur.style.setProperty('--my',(ly-r.top)+'px')}})},{passive:true});
+  document.addEventListener('pointerleave',leave)}
+
+ /* --- Welle beim Antippen --- */
+ if(!RM)document.addEventListener('pointerdown',function(e){var b=e.target.closest&&e.target.closest('.btn,.ibtn,.dm,.fx2');if(!b||b.disabled)return;var cs=getComputedStyle(b);if(cs.position==='static')b.classList.add('mfp-rpp');else if(cs.overflow==='visible'&&cs.clipPath==='none')return;var r=b.getBoundingClientRect(),s=document.createElement('span');s.className='mfp-rp';s.style.left=(e.clientX-r.left)+'px';s.style.top=(e.clientY-r.top)+'px';b.appendChild(s);setTimeout(function(){s.remove()},650)},{passive:true});
+
+ /* --- Kopfzeile mit Tiefe beim Scrollen --- */
+ document.addEventListener('scroll',function(e){var v=e.target;if(v&&v.id==='view')root.classList.toggle('mfp-sc',v.scrollTop>8)},{capture:true,passive:true});
+
+ /* --- Tastenkürzel: G + Buchstabe springt zur Seite, ? zeigt die Übersicht --- */
+ var GO=[['h','heute','Heute'],['l','lage','Lagebild'],['r','runde','Shopfloor 06:45'],['f','fach','Fachverwaltung'],['m','milk','Milkrun'],['t','tz','Tageszahlen'],['q','qs','QS und Störmeldungen'],['u','urlaub','Urlaub und Anwesenheit'],['s','schicht','Schichtplan'],['b','brett','Schwarzes Brett'],['a','ausw','Auswertung']];
+ var gT=0,gEl=null;
+ function gOff(){gT=0;if(gEl){gEl.remove();gEl=null}}
+ function help(){if(typeof modal!=='function')return;modal('<div class="ph"><div class="lab">Tastenkürzel</div></div><div class="mfp-keys">'
+  +'<span class="mfp-kk"><kbd>Strg</kbd><kbd>K</kbd></span><span>Suche und Perplexity</span>'
+  +'<span class="mfp-kk"><kbd>/</kbd></span><span>Suche öffnen</span>'
+  +GO.filter(function(g){return window.VIEW&&VIEW[g[1]]}).map(function(g){return '<span class="mfp-kk"><kbd>G</kbd><kbd>'+g[0].toUpperCase()+'</kbd></span><span>'+g[2]+'</span>'}).join('')
+  +'<span class="mfp-kk"><kbd>Esc</kbd></span><span>Fenster schließen</span>'
+  +'<span class="mfp-kk"><kbd>?</kbd></span><span>Diese Übersicht</span></div>')}
+ window.mfpHelp=help;
+ document.addEventListener('keydown',function(e){if(e.ctrlKey||e.metaKey||e.altKey)return;var a=document.activeElement,tg=(a&&a.tagName)||'';if(/INPUT|TEXTAREA|SELECT/.test(tg)||(a&&a.isContentEditable))return;if(q('#boot')||q('#lx')||q('#pal')||kiosk())return;
+  if(e.key==='?'){e.preventDefault();gOff();if(q('#modal'))return;help();return}
+  if(q('#modal'))return;
+  var k=e.key.toLowerCase();
+  if(gT&&Date.now()-gT<1400){var g=GO.filter(function(x){return x[0]===k&&window.VIEW&&VIEW[x[1]]})[0];gOff();if(g){e.preventDefault();go(g[1])}return}
+  if(k==='g'){gT=Date.now();gEl=document.createElement('div');gEl.className='mfp-gh';gEl.innerHTML='<b>G</b> Wohin? H Heute · L Lagebild · F Fächer · M Milkrun · T Zahlen · <b>?</b> alle';document.body.appendChild(gEl);setTimeout(function(){if(gT&&Date.now()-gT>=1350)gOff()},1450)}});
+
+ /* Suche: Hinweis auf die Kürzel-Übersicht */
+ if(typeof palItems==='function'){var p0=palItems;palItems=function(qs){var o=p0.apply(this,arguments);if(String(qs||'').trim().length<2&&FINE)o.push({k:'Hilfe',t:'Tastenkürzel anzeigen',s:'Taste ?',run:help});return o}}
+ mood();
+})();
+</script>
+
 </body></html>
