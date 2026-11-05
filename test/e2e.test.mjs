@@ -292,3 +292,32 @@ test('Persönliche Nachricht bei Ablehnung, Etikett mit Barcode, Geräteübersic
   assert.match(await lead.textContent('#stage'), /dieses Gerät/);
   assert.deepEqual(lead.errors, []); assert.deepEqual(team.errors, []); assert.deepEqual(other.errors, []);
 });
+
+test('Etikettengröße: Vorlage und eigene Maße, exakte Druckmaße, je Gerät gemerkt', async () => {
+  const lead = await open();
+  await signIn(lead, 'M. Thiel', 'notfall-123456');
+  await lead.waitForFunction(() => window.SY && SY.ok);
+  await lead.evaluate(() => { const f = S.fach.find((x) => !x.auf && !x.legacy); fachIn(f, '4876543'); go('fach'); ACT.fo({ id: f.id }); });
+  await lead.click('[data-act="fet"]');
+  await lead.waitForSelector('#etbc rect');
+  await lead.selectOption('#et_p', '62x29');
+  await lead.waitForFunction(() => document.getElementById('etinfo').textContent.startsWith('62 × 29 mm'));
+  const mm = (px) => Math.round(px * 25.4 / 96 * 10) / 10;
+  await lead.evaluate(() => { document.body.classList.add('prlbl'); const e = document.getElementById('etk'); e.style.transform = ''; });
+  await lead.emulateMedia({ media: 'print' });
+  let r = await lead.evaluate(() => { const b = document.getElementById('etk').getBoundingClientRect(); return [b.width, b.height, document.getElementById('etk').classList.contains('flat')]; });
+  assert.deepEqual([mm(r[0]), mm(r[1]), r[2]], [62, 29, true], '62 × 29 mm, flaches Layout');
+  await lead.emulateMedia({ media: 'screen' });
+  await lead.evaluate(() => document.body.classList.remove('prlbl'));
+  await lead.selectOption('#et_p', 'eigen');
+  await lead.fill('#et_w', '80'); await lead.fill('#et_h', '60');
+  await lead.waitForFunction(() => document.getElementById('etinfo').textContent.startsWith('80 × 60 mm'));
+  // Druck auslösen ohne echten Dialog: @page muss die Größe tragen
+  await lead.evaluate(() => { window.print = () => {}; ACT.etprint(); });
+  assert.match(await lead.evaluate(() => document.getElementById('lblpage').textContent), /size:80mm 60mm;margin:0/);
+  assert.deepEqual(await lead.evaluate(() => lblSize()), { p: 'eigen', w: 80, h: 60, date: true, bar: 'n' });
+  await lead.waitForFunction(() => { try { return JSON.parse(localStorage.getItem('mflow.v2')).ui.lbl.w === 80; } catch { return false; } }, null, { timeout: 3000 }); // auf diesem Gerät gespeichert (verzögert)
+  await lead.fill('#et_w', '5');
+  await lead.waitForFunction(() => document.getElementById('etinfo').textContent.startsWith('20 × 60 mm'));
+  assert.deepEqual(lead.errors, []);
+});

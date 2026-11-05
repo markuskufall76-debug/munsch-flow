@@ -43,9 +43,36 @@ var adm0=VIEW.adm;VIEW.adm=function(){var h=adm0.apply(this,arguments);if(!isLea
  return h+card('Geräte','<p class="lead" style="margin-bottom:14px">Jedes Gerät meldet sich etwa alle 90 Sekunden. So siehst du, ob Station und Monitore laufen und die neueste Version haben. Schweigt eine Station oder ein Monitor während der Schicht länger als 15 Minuten, erscheint eine Warnung.</p>'+(L.length?'<div class="tw"><table class="t"><thead><tr><th>Benutzer</th><th>Darstellung</th><th>Version</th><th>Status</th></tr></thead><tbody>'+rows+'</tbody></table></div>':empty('Noch keine Meldungen','Geräte erscheinen, sobald sie mit der Zentrale verbunden sind.')),{r:cp('',L.length+' Geräte')})};
 
 /* ---------- Fach-Etikett mit Barcode ---------- */
-ACT.fet=function(d){var f=S.fach.filter(function(x){return x.id===d.id})[0];if(!f)return;var a=f.auf||'';M.closeDrawer();
- modal('<h3>Fach-Etikett</h3><div class="etk" id="etk"><div class="etn">'+esc(fachName(f))+'</div>'+(a?'<div class="eta">'+esc(a)+'</div><svg id="etbc" role="img" aria-label="Barcode '+esc(a)+'"></svg><div class="etd">Eingelagert '+(f.ts?fmtD(iso(new Date(f.ts)),{day:'2-digit',month:'2-digit',year:'numeric'}):'')+' · MUNSCH Logistik</div>':'<div class="etd">Fach frei oder Altbestand ohne Auftragsnummer</div>')+'</div><div class="acts"><button class="btn ghost" data-act="mclose">Schließen</button>'+(a?'<button class="btn pri" data-act="etp">Etikett drucken</button>':'')+'</div>');
- try{if(a&&window.JsBarcode)JsBarcode('#etbc',a,{format:'CODE128',width:3,height:96,displayValue:false,margin:0,background:'#ffffff',lineColor:'#000000'})}catch(e){}};
-ACT.etp=function(){document.body.classList.add('prlbl');var off=function(){document.body.classList.remove('prlbl');removeEventListener('afterprint',off)};addEventListener('afterprint',off);try{window.print()}catch(e){off()}setTimeout(function(){document.body.classList.remove('prlbl')},4000)};
+/* Etikettengrößen: Vorlagen gängiger Drucker plus eigene Maße. Gespeichert je Gerät (S.ui bleibt lokal). */
+var LBL=[['100x50','100 × 50 mm','Standard, Zebra und Thermodrucker',100,50],['102x51','102 × 51 mm','Zebra 4 × 2 Zoll',102,51],['62x29','62 × 29 mm','Brother DK-11209, klein',62,29],['62x100','62 × 100 mm','Brother DK-11202, hoch',62,100],['57x32','57 × 32 mm','kleines Regaletikett',57,32],['105x74','105 × 74 mm','A7 quer, Regalschild',105,74],['148x105','148 × 105 mm','A6 quer, Fachschild groß',148,105],['eigen','Eigene Größe','Breite und Höhe frei',0,0]];
+function clamp(v,a,b){return Math.max(a,Math.min(b,Math.round(v)))}
+function lbl(){var u=S.ui.lbl||{},p=LBL.filter(function(x){return x[0]===u.p})[0]||LBL[0],w=p[0]==='eigen'?clamp(+u.w||100,20,210):p[3],h=p[0]==='eigen'?clamp(+u.h||50,15,297):p[4];return {p:p[0],w:w,h:h,date:u.date!==0,bar:u.bar||'n'}}
+window.lblSize=lbl;
+/* Maße in mm, aus der Etikettenhöhe abgeleitet; sehr flache Etiketten setzen Fach und Auftrag nebeneinander */
+function lblFlat(L){return L.h<35||L.w/L.h>=2.6}
+function lblHTML(f,L){var a=f.auf||'',flat=lblFlat(L),H=L.h,bh=H*(L.bar==='g'?0.42:L.bar==='k'?0.24:0.32),W=L.w,name=Math.min(flat?H*0.30:H*0.26,flat?W*0.2:W*0.36),auf=Math.min(flat?H*0.15:H*0.12,flat?W*0.09:W*0.165),dt=Math.min(Math.max(2.2,H*0.055),W/24); // Höhe und Breite begrenzen, damit nichts umbricht
+ return '<div class="etk'+(flat?' flat':'')+'" id="etk" style="--w:'+L.w+'mm;--h:'+L.h+'mm;--fn:'+name.toFixed(2)+'mm;--fa:'+auf.toFixed(2)+'mm;--fb:'+bh.toFixed(2)+'mm;--fd:'+dt.toFixed(2)+'mm">'
+  +'<div class="ett"><div class="etn">'+esc(fachName(f))+'</div>'+(a?'<div class="eta">'+esc(a)+'</div>':'')+'</div>'
+  +(a?'<svg id="etbc" role="img" aria-label="Barcode '+esc(a)+'" preserveAspectRatio="none"></svg>'+(L.date?'<div class="etd">Eingelagert '+(f.ts?fmtD(iso(new Date(f.ts)),{day:'2-digit',month:'2-digit',year:'numeric'}):'')+' · MUNSCH Logistik</div>':''):'<div class="etd">Fach frei oder Altbestand ohne Auftragsnummer</div>')+'</div>'}
+function lblDraw(f){var L=lbl(),box=$('#etbox');if(!box)return;box.innerHTML=lblHTML(f,L);
+ try{if(f.auf&&window.JsBarcode)JsBarcode('#etbc',f.auf,{format:'CODE128',width:2,height:100,displayValue:false,margin:0,background:'#ffffff',lineColor:'#000000'})}catch(e){}
+ var e=$('#etk'),pv=$('#etpv');if(e&&pv){var pw=L.w*96/25.4,ph=L.h*96/25.4,sc=Math.min(1,(pv.clientWidth-8)/pw,300/ph);e.style.transform='scale('+sc.toFixed(3)+')';pv.style.height=(ph*sc+8)+'px'}
+ var i=$('#etinfo');if(i)i.textContent=L.w+' × '+L.h+' mm'+(lblFlat(L)?' · flach: Fach und Auftrag nebeneinander':'')}
+ACT.fet=function(d){var f=S.fach.filter(function(x){return x.id===d.id})[0];if(!f)return;M.closeDrawer();var L=lbl();window._etf=f.id;
+ modal('<h3>Fach-Etikett</h3><div class="frm" style="margin-top:14px"><label class="fl w2">Etikettengröße<select class="in" id="et_p" data-in="etp">'+LBL.map(function(x){return '<option value="'+x[0]+'"'+(x[0]===L.p?' selected':'')+'>'+x[1]+' · '+x[2]+'</option>'}).join('')+'</select></label>'
+  +'<label class="fl" id="et_wl"'+(L.p==='eigen'?'':' hidden')+'>Breite (mm)<input class="in" id="et_w" type="number" min="20" max="210" value="'+L.w+'" data-in="etw"></label><label class="fl" id="et_hl"'+(L.p==='eigen'?'':' hidden')+'>Höhe (mm)<input class="in" id="et_h" type="number" min="15" max="297" value="'+L.h+'" data-in="eth"></label></div>'
+  +'<div class="frm" style="margin-top:10px;align-items:center"><div class="fl">Barcode<div class="seg" style="margin-top:6px">'+[['k','klein'],['n','normal'],['g','groß']].map(function(x){return '<button class="'+(L.bar===x[0]?'on':'')+'" data-act="etbar" data-v="'+x[0]+'">'+x[1]+'</button>'}).join('')+'</div></div><label style="display:flex;gap:8px;align-items:center;font-size:14px;margin-top:18px"><input type="checkbox" id="et_d" data-in="etd"'+(L.date?' checked':'')+'> Datum und Absender</label></div>'
+  +'<div class="etpv" id="etpv"><div id="etbox"></div></div><div class="dim mono" id="etinfo" style="font-size:11.5px;text-align:center;margin-top:6px"></div>'
+  +'<p class="dim" style="font-size:12.5px;margin:8px 0 0">Die Größe gilt für dieses Gerät. Im Druckdialog Ränder „keine“ und Maßstab 100 % wählen.</p><div class="acts"><button class="btn ghost" data-act="mclose">Schließen</button>'+(f.auf?'<button class="btn pri" data-act="etprint">Etikett drucken</button>':'')+'</div>');
+ setTimeout(function(){lblDraw(f)},30)};
+function lblSet(o){S.ui.lbl=Object.assign({},S.ui.lbl||{},o);save();var f=S.fach.filter(function(x){return x.id===window._etf})[0];if(f)lblDraw(f)}
+ACT.etbar=function(d,el){lblSet({bar:d.v});$$('#modal .seg button').forEach(function(b){b.classList.toggle('on',b===el)})};
+document.addEventListener('input',function(e){var t=e.target,k=t.dataset&&t.dataset.in;if(!k||!/^et[pwhd]$/.test(k))return;
+ if(k==='etp'){var eig=t.value==='eigen',L=lbl();lblSet(eig?{p:'eigen',w:(S.ui.lbl&&S.ui.lbl.w)||L.w,h:(S.ui.lbl&&S.ui.lbl.h)||L.h}:{p:t.value});$('#et_wl').hidden=!eig;$('#et_hl').hidden=!eig;if(eig){$('#et_w').value=lbl().w;$('#et_h').value=lbl().h}}
+ else if(k==='etw'||k==='eth'){if(t.value!=='')lblSet(k==='etw'?{w:+t.value}:{h:+t.value})}
+ else if(k==='etd')lblSet({date:t.checked?1:0})});
+ACT.etprint=function(){var L=lbl(),st=$('#lblpage');if(!st){st=document.createElement('style');st.id='lblpage';document.head.appendChild(st)}
+ st.textContent='@media print{@page{size:'+L.w+'mm '+L.h+'mm;margin:0}}';var e=$('#etk');if(e)e.style.transform='';
+ document.body.classList.add('prlbl');var off=function(){document.body.classList.remove('prlbl');removeEventListener('afterprint',off);var f=S.fach.filter(function(x){return x.id===window._etf})[0];if(f)lblDraw(f)};addEventListener('afterprint',off);try{window.print()}catch(x){off()}setTimeout(function(){if(document.body.classList.contains('prlbl'))off()},4000)};
 var fo0=ACT.fo;ACT.fo=function(d){fo0(d);var f=S.fach.filter(function(x){return x.id===d.id})[0],dr=$('#drawer');if(!f||!f.auf||!dr)return;var b=dr.querySelector('[data-act="fout"]');if(b)b.insertAdjacentHTML('beforebegin','<button class="btn xl" data-act="fet" data-id="'+f.id+'">'+ic('lager')+'Etikett mit Barcode</button>')};
 })();
