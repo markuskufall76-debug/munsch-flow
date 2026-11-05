@@ -337,3 +337,22 @@ svg.chart .bar:hover{fill:var(--signal2)}
 #trb .btn{background:#1a1200;color:var(--warn);border-color:transparent}
 @media (max-width:980px){.bzg{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media (max-width:560px){.ring.big{width:150px}.ring.big b{font-size:44px}.bzg{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* ---------- Persönliche Nachrichten, Etikett ---------- */
+.msg.rej{border-color:color-mix(in srgb,var(--crit) 45%,transparent);background:var(--crit-soft)}
+.etk{margin-top:16px;padding:26px 24px;border-radius:16px;background:#fff;color:#000;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px}
+.etn{font:800 92px/1 var(--display);letter-spacing:.04em}
+.eta{font:700 44px/1 var(--mono);letter-spacing:.12em}
+.etk svg{max-width:100%;height:96px}
+.etd{font:500 13px var(--body);color:#333}
+@media print{
+ body.prlbl{background:#fff!important;overflow:visible}
+ body.prlbl > *:not(#modal){display:none!important}
+ body.prlbl #modal{position:static;background:none;backdrop-filter:none;padding:0;display:block}
+ body.prlbl .dlg{box-shadow:none;border:0;background:#fff;padding:0;width:auto;max-height:none;animation:none}
+ body.prlbl .dlg > :not(.etk){display:none!important}
+ body.prlbl .etk{margin:0;border:2px solid #000;border-radius:0;page-break-inside:avoid}
+}
+
+.btn svg{width:18px;height:18px;flex:none}
+.btn.xl svg{width:20px;height:20px}

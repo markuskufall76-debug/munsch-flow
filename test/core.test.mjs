@@ -142,3 +142,14 @@ test('Fristen: überfällige und baldige Fristen erscheinen in der Warnlage', ()
   assert.ok(run(c, "alerts(new Date()).some(a=>a.go==='frist'&&/überfällig/.test(a.t))"));
   assert.ok(run(c, "alerts(new Date()).some(a=>a.go==='frist'&&/nächsten 3 Tagen/.test(a.t))"));
 });
+
+test('Sync: Danke vom Server auf einem frischen Gerät bleibt eine Liste, Abgleich läuft weiter', () => {
+  const c = loadCore({ now: THU, server: true });
+  run(c, 'SY.last=syFlat();delete S.dank');
+  c.__rows = [{ s: 'dank', k: 'd1', v: '{"id":"d1","from":"M. Thiel","to":"M. Bode","txt":"Danke","ts":1}' }];
+  run(c, 'syApply(__rows)');
+  assert.equal(run(c, 'Array.isArray(S.dank)'), true);
+  assert.equal(run(c, 'S.dank[0].txt'), 'Danke');
+  assert.doesNotThrow(() => run(c, 'syFlat()'));
+  assert.deepEqual(JSON.parse(JSON.stringify(run(c, 'syOps(syFlat())'))), []);
+});

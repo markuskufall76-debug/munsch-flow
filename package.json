@@ -17,6 +17,7 @@
   },
   "devDependencies": {
     "@e965/xlsx": "0.20.3",
-    "esbuild": "0.25.10"
+    "esbuild": "0.25.10",
+    "jsbarcode": "3.11.6"
   }
 }

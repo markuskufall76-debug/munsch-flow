@@ -31,7 +31,8 @@ async function signIn(page, name, pin) {
   await page.focus('#lpi');
   await page.keyboard.type(pin);
   await page.keyboard.press('Enter');
-  await page.waitForSelector('#stage, #stn', { timeout: 15000 });
+  try { await page.waitForSelector('#stage, #stn', { timeout: 15000 }); }
+  catch (e) { throw new Error(`Anmeldung ${name} fehlgeschlagen: ${await page.evaluate(() => (document.querySelector('.toast')?.textContent || 'keine Meldung') + ' | SY ' + JSON.stringify({ tok: !!SY.tok, busy: SY.busy, ok: SY.ok, seq: SY.seq }) + ' | login=' + !!document.getElementById('login') + ' welcome=' + !!document.querySelector('.welcome'))} | Fehler: ${JSON.stringify(page.errors)}`); }
 }
 const api = async (path, token, body) => (await fetch(srv.url + path, { method: body ? 'POST' : 'GET', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + token }, body: body && JSON.stringify(body) })).json();
 
@@ -237,7 +238,8 @@ test('Heute: Danke und Sonderbetrieb kommen an; Probelauf sendet nichts an die Z
   assert.equal(await lead.evaluate(() => isWork('2026-11-14')), true, 'Samstag mit Sonderbetrieb ist Arbeitstag');
   for (const p of ['frist', 'woche', 'tag']) { await lead.evaluate((x) => go(x), p); await lead.waitForTimeout(250); }
   // Probelauf: Einlagern darf die Zentrale nicht erreichen
-  const before = (await api('/api/sync?since=0', tok)).seq;
+  const content = (rows) => JSON.stringify(rows.filter((r) => r.s !== 'dev')); // Herzschlag anderer offener Geräte ausnehmen
+  const before = content((await api('/api/sync?since=0', tok)).rows);
   await lead.evaluate(() => go('train'));
   await lead.click('[data-act="trs"]');
   await lead.waitForSelector('#trb');
@@ -247,7 +249,46 @@ test('Heute: Danke und Sonderbetrieb kommen an; Probelauf sendet nichts an die Z
   await lead.waitForTimeout(1500);
   assert.ok(await lead.evaluate(() => S.fach.some((f) => f.auf === '4999111')), 'lokal sichtbar');
   const after = await api('/api/sync?since=0', tok);
-  assert.equal(after.seq, before, 'kein einziger Schreibvorgang in der Zentrale');
+  assert.equal(content(after.rows), before, 'kein einziger Schreibvorgang dieses Geräts in der Zentrale');
   assert.ok(!after.rows.some((r) => r.s === 'fach' && r.v && JSON.parse(r.v).auf === '4999111'));
   assert.deepEqual(lead.errors, []);
+});
+
+test('Persönliche Nachricht bei Ablehnung, Etikett mit Barcode, Geräteübersicht', async () => {
+  const lead = await open();
+  await signIn(lead, 'M. Thiel', 'notfall-123456');
+  await lead.waitForFunction(() => window.SY && SY.ok);
+  const tok = await lead.evaluate(() => SY.tok);
+  await api('/api/pin', tok, { name: 'K. Braun', pin: 'braun-123456' });
+  await api('/api/pin', tok, { name: 'M. Neifer', pin: 'neifer-12345' });
+  const team = await open();
+  await signIn(team, 'K. Braun', 'braun-123456');
+  await team.waitForFunction(() => SY.ok);
+  await team.evaluate(() => go('urlaub'));
+  await team.click('[data-act="vq"][data-e="K. Braun"]');
+  await team.click('[data-act="vadd"]');
+  await team.waitForTimeout(1200);
+  await lead.evaluate(() => new Promise((ok) => syPull(ok)));
+  await lead.evaluate(() => go('urlaub'));
+  await lead.click('[data-act="vno"]');
+  await lead.click('[data-act="mconf"]');
+  await lead.waitForTimeout(1200);
+  await team.evaluate(() => new Promise((ok) => syPull(ok)));
+  assert.ok(await team.evaluate(() => alerts(new Date()).some((a) => /Persönlich von M\. Thiel: Dein Urlaub/.test(a.t))), 'Warnlage zeigt die Ablehnung');
+  const other = await open();
+  await signIn(other, 'M. Neifer', 'neifer-12345');
+  await other.waitForFunction(() => SY.ok);
+  assert.equal(await other.evaluate(() => Object.keys(S.funk).filter((k) => k[0] === '@').length), 0, 'fremde persönliche Nachrichten kommen gar nicht erst an');
+  // Etikett
+  await lead.evaluate(() => { const f = S.fach.find((x) => !x.auf && !x.legacy); fachIn(f, '4823456'); go('fach'); ACT.fo({ id: f.id }); });
+  await lead.click('[data-act="fet"]');
+  await lead.waitForSelector('#etbc rect');
+  assert.ok(await lead.$$eval('#etbc rect', (r) => r.length) > 20, 'Code128-Balken gezeichnet');
+  // Geräte
+  await lead.evaluate(() => devBeat());
+  await lead.waitForTimeout(800);
+  await lead.evaluate(() => { closeModal(); go('adm'); });
+  assert.match(await lead.textContent('#stage'), /Geräte/);
+  assert.match(await lead.textContent('#stage'), /dieses Gerät/);
+  assert.deepEqual(lead.errors, []); assert.deepEqual(team.errors, []); assert.deepEqual(other.errors, []);
 });

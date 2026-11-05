@@ -69,7 +69,7 @@ export default {
       switch (p) {
         case '/api/me': return json({ name: who.name, role: who.role });
         case '/api/logout': await logout(db, who); return json({ ok: 1 });
-        case '/api/sync': return json(await pull(db, url.searchParams.get('since')));
+        case '/api/sync': return json(await pull(db, url.searchParams.get('since'), who));
         case '/api/push': if (m !== 'POST') break; return out(await push(db, who, await body(request)));
         case '/api/seed':
           if (who.role !== 'lead') return json({ error: 'Nur Teamleitung' }, 403);

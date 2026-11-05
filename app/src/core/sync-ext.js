@@ -3,6 +3,9 @@
    2. Sicherheitsnetz: Abschnitte, die die Zentrale liefert, die dieses Gerät aber nicht selbst erzeugt, werden
       unverändert weitergereicht. Ohne das würde syOps sie als gelöscht melden und in der Zentrale entfernen. */
 (function(){
+ /* 3. Danke-Brett ist eine Liste: ohne Anmeldung legt syTarget es beim ersten Eingang als Objekt an und syFlat bricht ab (auch in Flow 5) */
+ SYK.dank=function(x){return x.id};
+ var tgt=syTarget;syTarget=function(sec){if(sec==='dank'&&!Array.isArray(S.dank))S.dank=S.dank&&typeof S.dank==='object'?Object.keys(S.dank).map(function(k){return S.dank[k]}):[];return tgt(sec)};
  var base=syFlat;
  syFlat=function(){
   var o=base();

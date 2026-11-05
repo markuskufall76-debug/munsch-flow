@@ -12,10 +12,11 @@ const read = (p) => readFileSync(R(p), 'utf8');
 const quiet = process.argv.includes('--quiet');
 
 const parts = {
+  barcode: read('node_modules/jsbarcode/dist/barcodes/JsBarcode.code128.min.js'),
   mfdata: read('app/src/legacy/mfdata.js'),
   core: read('app/src/legacy/core.js') + '\n' + read('app/src/core/rules-ext.js'),
   sync: read('app/src/legacy/sync.js') + '\n' + read('app/src/core/sync-ext.js') + '\n' + read('app/src/legacy/excel.js'),
-  app: ['app.js', 'shopfloor.js', 'station.js', 'pages.js', 'today.js'].map((f) => read('app/src/ui/' + f)).join('\n;\n'),
+  app: ['app.js', 'shopfloor.js', 'station.js', 'pages.js', 'today.js', 'extras.js'].map((f) => read('app/src/ui/' + f)).join('\n;\n'),
   css: ['app.css', 'modules.css'].map((f) => read('app/src/ui/' + f)).join('\n'),
 };
 const BUILD = '7-' + createHash('sha256').update(Object.values(parts).join('\0')).digest('hex').slice(0, 10);
@@ -25,6 +26,7 @@ const BUILD = '7-' + createHash('sha256').update(Object.values(parts).join('\0')
 const min = async (code, loader = 'js') => (await esbuild.transform(code, { loader, minify: true, legalComments: 'none', target: 'es2020', charset: 'utf8' })).code.trim();
 const js = {
   build: `window.MF_BUILD=${JSON.stringify(BUILD)};`,
+  barcode: parts.barcode.trim(), // JsBarcode 3.11.6 (MIT), Code128, wie in Flow 5
   mfdata: await min(parts.mfdata),
   core: await min(parts.core),
   sync: await min(parts.sync),
@@ -34,7 +36,7 @@ const css = await min(parts.css, 'css');
 
 const FONTS = 'https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;600;700;800&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap';
 function page(server) {
-  const scripts = [server ? 'window.MF_SERVER=1;' : '', js.build, js.mfdata, js.core, js.sync, js.app].filter(Boolean);
+  const scripts = [server ? 'window.MF_SERVER=1;' : '', js.build, js.barcode, js.mfdata, js.core, js.sync, js.app].filter(Boolean);
   const html = `<!doctype html>
 <html lang="de">
 <head>

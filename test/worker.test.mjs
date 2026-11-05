@@ -103,6 +103,27 @@ test('Rechte: Team darf keine Personalgespräche, keine fremden Urlaube, kein Pr
   assert.ok(au.n >= 2);
 });
 
+test('Vertraulich: persönliche Nachrichten nur für Empfänger und Teamleitung, Gespräche nur für Teamleitung', async () => {
+  const { lead, team } = await withPins();
+  const other = await loginAs(OTHER, 'team-002');
+  const pm = (n) => 'funk.@' + n.replace(/[^A-Za-z0-9]/g, '');
+  const r = await call('/api/push', { token: lead, body: { ops: [
+    { s: pm(TEAMER), k: '1|M. Thiel', v: JSON.stringify({ by: LEAD, t: 'Dein Urlaub wurde abgelehnt', ts: 1 }) },
+    { s: 'reg.gespr', k: 'g1', v: JSON.stringify({ id: 'g1', ref: TEAMER, thema: 'Entwicklung', st: 0, ts: 1 }) },
+  ] } });
+  assert.equal(r.body.n, 2);
+  const see = async (t) => (await call('/api/sync?since=0', { token: t })).body;
+  const sT = await see(team), sO = await see(other), sL = await see(lead);
+  assert.ok(sT.rows.some((x) => x.s === pm(TEAMER)), 'Empfänger sieht seine Nachricht');
+  assert.ok(!sO.rows.some((x) => x.s.startsWith('funk.@')), 'andere sehen sie nicht');
+  assert.ok(!sT.rows.some((x) => x.s === 'reg.gespr') && !sO.rows.some((x) => x.s === 'reg.gespr'), 'Gespräche nur Teamleitung');
+  assert.ok(sL.rows.some((x) => x.s === 'reg.gespr') && sL.rows.some((x) => x.s === pm(TEAMER)));
+  assert.equal(sO.seq, sL.seq, 'Nummernstand bleibt für alle gleich');
+  const w = await call('/api/push', { token: other, body: { ops: [{ s: pm(TEAMER), k: 'x', v: '{"t":"Fake"}' }, { s: pm(OTHER), k: 'y', v: '{"t":"Antwort an die Leitung","by":"x","ts":2}' }] } });
+  assert.equal(w.body.n, 1, 'nur in den eigenen Kanal');
+  assert.equal(w.body.rej[0].v, null, 'Ablehnung verrät keinen fremden Inhalt');
+});
+
 test('Rechte: PINs setzen, PIN-Liste und Erstbefüllung nur für Teamleitung', async () => {
   const { team, lead } = await withPins();
   assert.equal((await call('/api/pin', { token: team, body: { name: OTHER, pin: 'hack-123456' } })).status, 403);

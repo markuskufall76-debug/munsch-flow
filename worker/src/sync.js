@@ -2,9 +2,19 @@
 import { audit } from './auth.js';
 
 const PAGE = 1000, MAX_OPS = 200, MAX_VALUE = 64 * 1024;
-const SECTION = /^[a-zA-Z0-9]{1,24}(\.[\wÄÖÜäöüß \-]{1,40})?$/;
+const SECTION = /^[a-zA-Z0-9]{1,24}(\.@?[\wÄÖÜäöüß \-]{1,40})?$/; // z. B. reg.qs, funk.Säge Metall, funk.@MBode
 const LEAD_ONLY = new Set(['reg.gespr', 'carry', 'carryY', 'quali']);
 const APPEND_ONLY = new Set(['log', 'fachlog']);
+
+/** Persönlicher Kanal einer Person, wie in Flow 5: '@' + Name ohne Sonderzeichen */
+export const pmKey = (name) => '@' + String(name).replace(/[^A-Za-z0-9]/g, '');
+/** Wer darf diesen Abschnitt lesen? Persönliche Nachrichten nur Empfänger und Teamleitung, Personalgespräche nur Teamleitung. */
+export function canRead(who, s) {
+  if (who.role === 'lead') return true;
+  if (s === 'reg.gespr') return false;
+  if (s.startsWith('funk.@')) return s === 'funk.' + pmKey(who.name);
+  return true;
+}
 
 /**
  * Darf diese Person diese Operation schreiben? Gibt null oder einen Ablehnungsgrund zurück.
@@ -17,6 +27,7 @@ export function rule(who, op, current) {
   if (op.v != null) { try { JSON.parse(op.v); } catch { return 'Wert ist kein JSON'; } }
   if (who.role === 'lead') return null;
   if (LEAD_ONLY.has(op.s)) return 'nur Teamleitung';
+  if (op.s.startsWith('funk.@') && op.s !== 'funk.' + pmKey(who.name)) return 'persönliche Nachricht an andere nur durch die Teamleitung';
   if (APPEND_ONLY.has(op.s) && op.v == null) return 'Protokoll kann nicht gelöscht werden';
   if (op.s === 'vacs') {
     const next = op.v != null ? JSON.parse(op.v) : null, prev = current != null ? JSON.parse(current) : null;
@@ -26,7 +37,7 @@ export function rule(who, op, current) {
   return null;
 }
 
-export async function pull(db, since) {
+export async function pull(db, since, who) {
   since = Math.max(0, parseInt(since, 10) || 0);
   const [r, cur, cnt] = await db.batch([
     db.prepare('SELECT s, k, v, seq FROM rows WHERE seq > ? ORDER BY seq LIMIT ?').bind(since, PAGE + 1),
@@ -36,7 +47,8 @@ export async function pull(db, since) {
   const rows = r.results, more = rows.length > PAGE;
   if (more) rows.length = PAGE;
   const seq = more ? rows[rows.length - 1].seq : Math.max(since, cur.results[0]?.v || 0);
-  return { rows: rows.map(({ s, k, v }) => ({ s, k, v })), seq, more, empty: cnt.results[0].n === 0 };
+  // Nummernstand aus allen Zeilen, Inhalt nur aus den lesbaren: so bleibt der Abgleich lückenlos
+  return { rows: rows.filter((r) => !who || canRead(who, r.s)).map(({ s, k, v }) => ({ s, k, v })), seq, more, empty: cnt.results[0].n === 0 };
 }
 
 export async function push(db, who, body) {
@@ -47,7 +59,8 @@ export async function push(db, who, body) {
   for (const op of ops) {
     const cur = await db.prepare('SELECT v FROM rows WHERE s = ? AND k = ?').bind(String(op?.s), String(op?.k)).first();
     const why = rule(who, op || {}, cur ? cur.v : null);
-    if (why) { rej.push({ s: op?.s, k: op?.k, v: cur ? cur.v : null, why }); continue; }
+    // Abgelehnt: gültigen Wert nur zurückgeben, wenn die Person ihn lesen darf
+    if (why) { rej.push({ s: op?.s, k: op?.k, v: cur && canRead(who, String(op?.s)) ? cur.v : null, why }); continue; }
     if ((cur ? cur.v : null) === (op.v ?? null)) continue;
     ok.push(op);
   }
