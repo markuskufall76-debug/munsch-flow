@@ -190,7 +190,7 @@ ACT.fo=function(d){var f=S.fach.filter(function(x){return x.id===d.id})[0];if(!f
  var a=$('#fa');if(a)setTimeout(function(){a.focus()},80)};
 ACT.fin=function(d){var f=S.fach.filter(function(x){return x.id===d.id})[0];if(f&&fachIn(f,($('#fa')||{}).value)){closeDrawer();render()}};
 ACT.fpick=function(d){S.ui.fsel=d.id;save();closeDrawer();render();var n=$('#fscan');if(n)n.focus()};
-ACT.fout=function(d){var f=S.fach.filter(function(x){return x.id===d.id})[0];if(!f)return;confirmM(fachName(f)+' auslagern'+(f.auf?' (Auftrag '+esc(f.auf)+')':'')+'?',function(){var a=f.auf||'Altbestand';S.fachlog.unshift({ts:Date.now(),u:S.user,f:f.id,a:a,k:'aus'});f.auf='';f.ts=0;f.legacy=0;logA('Ausgelagert: '+a+' aus '+fachName(f));save();closeDrawer();render();toast(fachName(f)+' ist wieder frei')},'Auslagern','no')};
+ACT.fout=function(d){var f=S.fach.filter(function(x){return x.id===d.id})[0];if(!f)return;confirmM(fachName(f)+' auslagern'+(f.auf?' (Auftrag '+esc(f.auf)+')':'')+'?',function(){var a=f.auf||'Altbestand';S.fachlog.unshift({ts:Date.now(),u:S.user,f:f.id,a:a,k:'aus'});f.auf='';f.ts=0;f.legacy=0;logA('Ausgelagert: '+a+' aus '+fachName(f));save();closeDrawer();render();toast(fachName(f)+' ist wieder frei');if(window.fx)fx.ok(true)},'Auslagern','no')};
 
 /* ---------- Milkrun ---------- */
 VIEW.milk=function(){var now=new Date(),t=todayIso(),mk=mkDay(t),done=0,od=mkOverdue(now),cards='';

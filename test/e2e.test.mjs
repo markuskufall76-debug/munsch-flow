@@ -321,3 +321,37 @@ test('Etikettengröße: Vorlage und eigene Maße, exakte Druckmaße, je Gerät g
   await lead.waitForFunction(() => document.getElementById('etinfo').textContent.startsWith('20 × 60 mm'));
   assert.deepEqual(lead.errors, []);
 });
+
+test('Offline-Start: nach dem ersten Laden startet die App ohne Netz; Alarm-Banner und Erfolgs-Rückmeldung', async () => {
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 820 }, reducedMotion: 'no-preference', serviceWorkers: 'allow' });
+  await ctx.addInitScript((d) => { try { localStorage.setItem('mf6.intro', d); } catch {} }, today);
+  const page = await ctx.newPage(); page.errors = [];
+  page.on('pageerror', (e) => page.errors.push(e.message));
+  await page.goto(srv.url + '/');
+  await page.click('.pc[data-u="M. Thiel"]'); await page.focus('#lpi'); await page.keyboard.type('notfall-123456'); await page.keyboard.press('Enter');
+  await page.waitForSelector('#stage', { timeout: 15000 });
+  await page.evaluate(() => navigator.serviceWorker.ready);
+  assert.ok(await page.evaluate(async () => (await caches.keys()).some((k) => k.startsWith('mf-7-'))), 'Seite liegt im Cache');
+  // Erfolgs-Rückmeldung beim Einlagern
+  await page.evaluate(() => go('fach'));
+  await page.fill('#fscan', '4811111'); await page.keyboard.press('Enter');
+  await page.waitForSelector('.burst.ok');
+  // Alarm-Banner bei neuer kritischer Lage (Langlieger)
+  await page.evaluate(() => { S.extra = S.extra || {}; S.extra[todayIso()] = { by: 'Test', ts: 1 }; mkDay(todayIso())[3] = { s: Date.now() - 25 * 6e4 }; render(); }); // Runde 4 seit 25 Min. offen = eskaliert
+  await page.waitForSelector('#albar', { timeout: 5000 });
+  assert.match(await page.textContent('#albar'), /Milkrun/);
+  // Hallenmonitor im Vollbild: Alarmszene muss im Monitor liegen, sonst ist sie im Vollbild unsichtbar
+  await page.evaluate(() => { const x = document.getElementById('albar'); if (x) x.remove(); delete mkDay(todayIso())[3]; render(); openMon(); });
+  await page.evaluate(() => { mkDay(todayIso())[2] = { s: Date.now() - 30 * 6e4 }; afterRender('lage'); });
+  await page.waitForSelector('#mon #alarm', { timeout: 3000 });
+  assert.match(await page.textContent('#mon #alarm'), /Milkrun/);
+  await page.evaluate(() => ACT.monx());
+  // Netz weg, neu laden: App startet aus dem Cache
+  await ctx.setOffline(true);
+  await page.reload();
+  await page.waitForSelector('#stage, #login', { timeout: 15000 });
+  assert.ok(await page.evaluate(() => typeof window.go === 'function' && !!window.MF_SERVER), 'App aus dem Cache gestartet');
+  await ctx.setOffline(false);
+  assert.deepEqual(page.errors.filter((e) => !/Failed to fetch|NetworkError|net::/.test(e)), []);
+  await ctx.close();
+});

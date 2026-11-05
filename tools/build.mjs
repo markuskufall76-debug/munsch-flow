@@ -16,8 +16,8 @@ const parts = {
   mfdata: read('app/src/legacy/mfdata.js'),
   core: read('app/src/legacy/core.js') + '\n' + read('app/src/core/rules-ext.js'),
   sync: read('app/src/legacy/sync.js') + '\n' + read('app/src/core/sync-ext.js') + '\n' + read('app/src/legacy/excel.js'),
-  app: ['app.js', 'shopfloor.js', 'station.js', 'pages.js', 'today.js', 'extras.js'].map((f) => read('app/src/ui/' + f)).join('\n;\n'),
-  css: ['app.css', 'modules.css'].map((f) => read('app/src/ui/' + f)).join('\n'),
+  app: ['app.js', 'shopfloor.js', 'station.js', 'pages.js', 'today.js', 'extras.js', 'cinema.js'].map((f) => read('app/src/ui/' + f)).join('\n;\n'),
+  css: ['app.css', 'modules.css', 'cinema.css'].map((f) => read('app/src/ui/' + f)).join('\n'),
 };
 const BUILD = '7-' + createHash('sha256').update(Object.values(parts).join('\0')).digest('hex').slice(0, 10);
 
@@ -47,7 +47,7 @@ function page(server) {
 <meta name="theme-color" content="#0A0B0D">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="${FONTS}">
+<link rel="stylesheet" href="${FONTS}">${server ? '\n<link rel="manifest" href="/manifest.webmanifest">\n<link rel="icon" href="/icon.svg" type="image/svg+xml">\n<link rel="apple-touch-icon" href="/icon.svg">' : ''}
 <style>${css}</style>
 </head>
 <body>
@@ -70,6 +70,7 @@ const CSP = [
   "connect-src 'self'",
   "img-src 'self' data:",
   "manifest-src 'self'",
+  "worker-src 'self'",
   "base-uri 'none'",
   "form-action 'none'",
   "frame-ancestors 'none'",
@@ -79,7 +80,7 @@ const CSP = [
 const ctx = { window: {}, document: { querySelector: () => null } };
 ctx.window = ctx;
 vm.createContext(ctx);
-vm.runInContext(parts.mfdata + '\n' + parts.core + '\nthis.__TEAM = TEAM;', ctx);
+vm.runInContext(parts.mfdata + '\n' + parts.core + '\nthis.__TEAM = TEAM; this.__ICON = logoCore(512);', ctx);
 const TEAM = ctx.__TEAM.map((m) => ({ n: m.n, lead: m.lead ? 1 : 0, station: m.station ? 1 : 0, monitor: m.monitor ? 1 : 0 }));
 
 mkdirSync(R('dist'), { recursive: true });
@@ -90,6 +91,7 @@ writeFileSync(R('worker/src/generated/page.js'),
   `export const BUILD = ${JSON.stringify(BUILD)};\n` +
   `export const CSP = ${JSON.stringify(CSP)};\n` +
   `export const TEAM = ${JSON.stringify(TEAM)};\n` +
+  `export const ICON = ${JSON.stringify(ctx.__ICON.replace(/<svg /, '<svg xmlns="http://www.w3.org/2000/svg" ').replace(/ class="[^"]*"/, ''))};\n` +
   `export const MFDATA = ${JSON.stringify(ctx.MFDATA)};\n` +
   `export const HTML = ${JSON.stringify(server.html)};\n` +
   `export const XLSX_JS = ${JSON.stringify(readFileSync(R('node_modules/@e965/xlsx/dist/xlsx.full.min.js'), 'utf8'))};\n`);

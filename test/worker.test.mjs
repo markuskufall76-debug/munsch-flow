@@ -147,6 +147,14 @@ test('Excel-Bibliothek: vom Worker selbst ausgeliefert, aktuelle Version', async
   assert.match(r.body.slice(0, 200), /SheetJS/); assert.match(r.body, /version:"0\.20\.3"|"0\.20\.3"/);
 });
 
+test('Installierbar: Manifest, Logo und Service Worker werden ausgeliefert', async () => {
+  const m = await call('/manifest.webmanifest');
+  assert.equal(m.status, 200); assert.equal(m.body.name, 'MUNSCH Flow'); assert.equal(m.body.display, 'standalone');
+  const i = await call('/icon.svg'); assert.match(i.headers.get('content-type'), /svg/); assert.match(i.body, /^<svg xmlns=/);
+  const w = await call('/sw.js'); assert.match(w.body, /mf-7-/); assert.match(w.body, /\/api\//, 'API wird nie gecacht');
+  assert.match((await call('/')).headers.get('content-security-policy'), /worker-src 'self'/);
+});
+
 test('Perplexity: ohne Schlüssel sauber abgeschaltet', async () => {
   const t = await loginAs(LEAD, 'notfall-123456');
   const r = await call('/api/ask', { token: t, body: { messages: [{ role: 'user', content: 'Test' }] } });
