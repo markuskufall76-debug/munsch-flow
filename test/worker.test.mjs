@@ -207,3 +207,35 @@ test('Station: Scan nennt die Person nur dem Stations-Konto; Stammbereich setzt 
   assert.equal((await call('/api/push', { token: team, body: { ops: [op] } })).body.rej.length, 1);
   assert.equal((await call('/api/push', { token: lead, body: { ops: [op] } })).body.n, 1);
 });
+
+test('Datensicherung: nur Teamleitung lädt herunter; nachts nach R2 mit 30 Tagen Vorrat, Protokoll nach 180 Tagen gelöscht', async () => {
+  const { lead, team } = await withPins();
+  await call('/api/push', { token: lead, body: { ops: [{ s: 'tz', k: '2026-10-01', v: JSON.stringify({ we_pak: 9 }) }] } });
+  assert.equal((await call('/api/backup', { token: team })).status, 403);
+  const b = await call('/api/backup', { token: lead });
+  assert.equal(b.status, 200); assert.equal(b.body.app, 'MUNSCH Zentrale'); assert.ok(b.body.rows.some((r) => r.s === 'tz' && r.k === '2026-10-01'));
+  const store = new Map();
+  for (let i = 1; i <= 31; i++) store.set(`sicherung-2026-09-${String(i).padStart(2, '0')}.json`, '{}');
+  env.BACKUP = { put: async (k, v) => store.set(k, v), list: async () => ({ objects: [...store.keys()].map((key) => ({ key })) }), delete: async (k) => store.delete(k) };
+  await env.DB.prepare('INSERT INTO audit (ts, name, ev, detail) VALUES (?, ?, ?, ?)').bind(Date.now() - 200 * 864e5, 'x', 'alt', null).run();
+  const waits = []; await worker.scheduled({}, env, { waitUntil: (p) => waits.push(p) }); await Promise.all(waits);
+  assert.equal(store.size, 30, 'nur die letzten 30 Sicherungen');
+  const today = [...store.keys()].sort().pop(); assert.match(today, /^sicherung-\d{4}-\d\d-\d\d\.json$/);
+  assert.ok(JSON.parse(store.get(today)).rows.length >= 1);
+  assert.equal((await env.DB.prepare("SELECT COUNT(*) AS n FROM audit WHERE ev = 'alt'").first()).n, 0);
+});
+
+test('Datenschutz: Krankmeldungen anderer sieht das Team nur als „Abwesend“, die Teamleitung vollständig; maskierte Daten überschreiben nichts', async () => {
+  const { lead, team } = await withPins();
+  const k = { id: 'k1', emp: OTHER, type: 'Krank', d0: '2026-11-02', d1: '2026-11-03', st: 'genehmigt', note: 'Grippe' };
+  const own = { id: 'k2', emp: TEAMER, type: 'Krank', d0: '2026-11-04', d1: '2026-11-04', st: 'genehmigt' };
+  await call('/api/push', { token: lead, body: { ops: [{ s: 'vacs', k: 'k1', v: JSON.stringify(k) }, { s: 'vacs', k: 'k2', v: JSON.stringify(own) }] } });
+  const rows = (await call('/api/sync?since=0', { token: team })).body.rows.filter((r) => r.s === 'vacs');
+  const seen = JSON.parse(rows.find((r) => r.k === 'k1').v);
+  assert.equal(seen.type, 'Abwesend'); assert.equal(seen.note, undefined); assert.equal(seen.emp, OTHER);
+  assert.equal(JSON.parse(rows.find((r) => r.k === 'k2').v).type, 'Krank', 'eigene Krankmeldung bleibt sichtbar');
+  assert.equal(JSON.parse((await call('/api/sync?since=0', { token: lead })).body.rows.find((r) => r.k === 'k1').v).type, 'Krank');
+  const back = await call('/api/push', { token: team, body: { ops: [{ s: 'vacs', k: 'k1', v: JSON.stringify(seen) }] } });
+  assert.equal(back.body.n, 0); assert.equal(back.body.rej.length, 1, 'Team kann den Eintrag nicht überschreiben');
+  assert.equal(JSON.parse(back.body.rej[0].v).type, 'Abwesend', 'auch die Ablehnung verrät nichts');
+});

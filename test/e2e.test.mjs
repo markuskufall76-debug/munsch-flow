@@ -553,7 +553,7 @@ test('Bereichsansicht und Anmeldekarte: Teamleitung stellt aus, Handscanner meld
   const lead = await open();
   await signIn(lead, 'M. Thiel', 'notfall-123456');
   await lead.waitForFunction(() => window.SY && SY.ok);
-  await lead.evaluate(() => go('adm'));
+  await lead.evaluate(() => { go('adm'); ACT.cardset({ v: '1' }); });
   await lead.selectOption('select[data-home="D. Isola"]', 'Säge Kunststoff');
   await lead.click('[data-act="bdgnew"][data-n="D. Isola"]');
   await lead.waitForSelector('#mfcard #mcbc rect');
@@ -571,7 +571,7 @@ test('Bereichsansicht und Anmeldekarte: Teamleitung stellt aus, Handscanner meld
 
   // Handscanner am Anmeldebildschirm: tippt schnell und schließt mit Enter
   const team = await open();
-  await team.waitForSelector('#login .lscan');
+  await team.waitForSelector('#login .pc');
   await team.keyboard.type(code, { delay: 4 }); await team.keyboard.press('Enter');
   await team.waitForFunction(() => window.SY && SY.ok && S.user === 'D. Isola' && S.ui.page === 'mein', null, { timeout: 10000 });
   const want = await team.evaluate(() => (S.plan[todayIso()] || {})['D. Isola'] || S.home['D. Isola']);
@@ -594,4 +594,47 @@ test('Bereichsansicht und Anmeldekarte: Teamleitung stellt aus, Handscanner meld
   await st.keyboard.type(code, { delay: 4 }); await st.keyboard.press('Enter');
   await st.waitForFunction(() => /Isola/.test(document.querySelector('#stn').textContent), null, { timeout: 8000 });
   assert.deepEqual(lead.errors, []); assert.deepEqual(team.errors, []); assert.deepEqual(st.errors, []);
+});
+
+test('Vorsorge: Ausfallrisiko der Qualifikationen, Warnung vor dem Genehmigen, Nutzung anonym, Schnellanmeldung am Bereichs-Tablet', async () => {
+  const lead = await open();
+  await signIn(lead, 'M. Thiel', 'notfall-123456');
+  await lead.waitForFunction(() => window.SY && SY.ok);
+  const r = await lead.evaluate(() => {
+    CREW.forEach((c) => { S.quali[c.n] = Object.assign(S.quali[c.n] || {}, { 'Säge Kunststoff': 0 }); });
+    S.quali['D. Isola']['Säge Kunststoff'] = 2; S.quali['M. Bode'] = Object.assign(S.quali['M. Bode'] || {}, { 'Säge Kunststoff': 3 });
+    let d = nextWork(todayIso()); d = nextWork(d);
+    S.vacs = S.vacs.filter((v) => !(['D. Isola', 'M. Bode'].includes(v.emp) && v.d1 >= todayIso()));
+    S.vacs.push({ id: 'qv1', emp: 'D. Isola', type: 'Urlaub', d0: d, d1: d, st: 'genehmigt', by: 'Test', ts: 1 });
+    S.vacs.push({ id: 'qv2', emp: 'M. Bode', type: 'Urlaub', d0: d, d1: d, st: 'beantragt', by: 'M. Bode', ts: 2 });
+    save(); return { d, risk: qRisk(10).find((x) => x.sk === 'Säge Kunststoff') };
+  });
+  assert.equal(r.risk.zero.length, 0, 'noch ist Bode da');
+  await lead.evaluate(() => go('quali'));
+  await lead.waitForSelector('.qrc .qr-row');
+  await lead.evaluate(() => go('urlaub'));
+  await lead.evaluate(() => ACT.vok({ id: 'qv2' }));
+  await lead.waitForSelector('#modal');
+  assert.match(await lead.textContent('#modal'), /niemand sicher da für: Säge Kunststoff am/);
+  await lead.evaluate(() => closeModal());
+  assert.equal(await lead.evaluate(() => S.vacs.find((v) => v.id === 'qv2').st), 'beantragt', 'ohne Bestätigung nicht genehmigt');
+  await lead.evaluate(() => { S.vacs.find((v) => v.id === 'qv2').st = 'genehmigt'; save(); });
+  assert.ok(await lead.evaluate(() => alerts(new Date()).some((a) => /Säge Kunststoff: am .* niemand sicher da/.test(a.t))));
+  await lead.evaluate(() => { go('fach'); go('tz'); go('tz'); S.ui.aw = 'm'; S.ui.awo = 0; go('ausw'); });
+  const u = await lead.evaluate(() => useStats(28));
+  assert.ok(u.all.find((x) => x[0] === 'tz')[2] >= 2); assert.equal(u.devices >= 1, true);
+  assert.match(await lead.textContent('#stage'), /Nutzung im Pilot/);
+  await lead.evaluate(() => { S.vacs = S.vacs.filter((v) => !['qv1', 'qv2'].includes(v.id)); const t = todayIso(); S.plan[t] = S.plan[t] || {}; S.plan[t]['F. Ahmadi'] = 'Werksverkehr'; save(); syPush(); });
+  await lead.waitForTimeout(1200);
+  // Bereichs-Tablet: Gerät gehört zu Werksverkehr, die heute Eingeteilten stehen oben
+  const tab = await open();
+  await signIn(tab, 'M. Thiel', 'notfall-123456');
+  await tab.waitForFunction(() => window.SY && SY.ok && S.plan[todayIso()] && S.plan[todayIso()]['F. Ahmadi'] === 'Werksverkehr', null, { timeout: 15000 });
+  await tab.evaluate(() => { localStorage.setItem('mflow.area', 'Werksverkehr'); go('mein'); });
+  await tab.evaluate(() => new Promise((ok) => syApi('/api/logout', {}).then(() => { localStorage.removeItem('mflow.tok'); ok(); })));
+  await tab.reload(); await tab.waitForSelector('#ppl .pc');
+  await tab.waitForSelector('.lhere');
+  assert.equal(await tab.$eval('#ppl .pc', (b) => b.dataset.u), 'F. Ahmadi');
+  assert.ok(await tab.evaluate(() => document.documentElement.classList.contains('lite')), 'Bereichs-Tablet ist ruhig');
+  assert.deepEqual(lead.errors, []); assert.deepEqual(tab.errors, []);
 });

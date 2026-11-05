@@ -13,3 +13,12 @@ database_id = "HIER-DIE-D1-ID-EINTRAGEN"
 # Secrets (nie in diese Datei):
 #   npx wrangler secret put PIN_LEAD   # Notfall-PIN der Teamleitung, mindestens 12 Zeichen
 #   npx wrangler secret put PPLX_KEY   # optional, Perplexity
+
+# Nächtliche Sicherung und Aufräumen (03:17 UTC). Ohne R2-Bindung wird nur aufgeräumt.
+[triggers]
+crons = ["17 3 * * *"]
+
+# Optional: Sicherungen in R2 (30 Tage). Bucket vorher anlegen: npx wrangler r2 bucket create munsch-sicherung
+# [[r2_buckets]]
+# binding = "BACKUP"
+# bucket_name = "munsch-sicherung"

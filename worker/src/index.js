@@ -1,12 +1,13 @@
 // MUNSCH Zentrale · Cloudflare Worker
 // Liefert die Seite aus und stellt die API bereit. Bindungen: DB (D1). Secrets: PIN_LEAD, PPLX_KEY (optional),
-// PIN_TEAM + ALLOW_SHARED=1 (optional, Gruppen-PIN). Details: docs/BETRIEB.md
+// PIN_TEAM + ALLOW_SHARED=1 (optional, Gruppen-PIN). Optional: R2-Bindung BACKUP für nächtliche Sicherungen. Details: docs/BETRIEB.md
 import { HTML, CSP, BUILD, MFDATA, XLSX_JS, ICON } from './generated/page.js';
 import { serviceWorker, MANIFEST } from './pwa.js';
 const SW = serviceWorker(BUILD);
 import { login, session, logout, setPin, usersWithPin, audit } from './auth.js';
 import { pull, push } from './sync.js';
 import { handleAsk } from './ask.js';
+import { backupDownload, nightly } from './backup.js';
 import { badgeLogin, badgeWho, badgeIssue, badgeRevoke, badgeList } from './badge.js';
 
 const SCHEMA = [
@@ -45,6 +46,12 @@ async function body(request) {
 }
 
 export default {
+  /** Cron-Trigger (wrangler.toml [triggers]): nächtliche Sicherung und Aufräumen */
+  async scheduled(event, env, ctx) {
+    if (!env.DB) return;
+    await ensure(env.DB);
+    ctx.waitUntil(nightly(env, BUILD));
+  },
   async fetch(request, env) {
     const url = new URL(request.url), p = url.pathname, m = request.method;
     try {
@@ -90,6 +97,7 @@ export default {
         case '/api/badge/revoke': if (m !== 'POST') break; return out(await badgeRevoke(db, who, await body(request)));
         case '/api/badge/who': if (m !== 'POST') break; return out(await badgeWho(db, who, (await body(request)).code, ip));
         case '/api/badges': return out(await badgeList(db, who));
+        case '/api/backup': return out(await backupDownload(db, who, BUILD));
       }
       return json({ error: 'Nicht gefunden' }, 404);
     } catch (e) {

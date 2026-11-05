@@ -112,7 +112,7 @@ function ticker(){var a=[],now=new Date();S.brett.filter(function(x){return x.pi
 var lastPg=null,pgAt=0;
 window.go=function(p){if(p==='mon')return openMon();if(p==='lfm'&&window.openLfm)return openLfm();if(!PAGE[p])p='lage';if(!pageOk(p))return toast('Nur für die Teamleitung');flyClose();closeDrawer();closeModal();closePal();
  var changed=p!==S.ui.page||lastPg===null;S.ui.page=p;save();try{history.replaceState(null,'','#'+p)}catch(e){}
- if(changed&&document.startViewTransition&&!RM&&lastPg!==null){try{document.startViewTransition(function(){render()})}catch(e){render()}}else render()};
+ if(changed&&document.startViewTransition&&!RM&&lastPg!==null){try{var vt=document.startViewTransition(function(){render()});if(vt){var q=function(){};if(vt.ready)vt.ready.catch(q);if(vt.finished)vt.finished.catch(q);if(vt.updateCallbackDone)vt.updateCallbackDone.catch(q)}}catch(e){render()}}else render()};
 window.render=function(){if(window.stnRender&&$('#stn'))stnRender();var st=$('#stage');if(!st)return;var p=S.ui.page,isNew=p!==lastPg,before=isNew?null:tileVals();
  var a=document.activeElement,id=a&&a.id,sel=a&&a.selectionStart,sc=st.scrollTop;
  try{st.innerHTML='<div class="scene">'+(VIEW[p]||VIEW.lage)()+'</div>'}catch(e){console.error(e);st.innerHTML='<div class="scene">'+card('Fehler in dieser Ansicht','<p>'+esc(e.message)+'</p><button class="btn" data-act="go" data-go="lage">Zum Lagebild</button>')+'</div>'}

@@ -54,13 +54,14 @@ function people(){return CREW.filter(function(c){return !c.nonop&&!c.station&&!c
 var adm=VIEW.adm;VIEW.adm=function(){var h=adm.apply(this,arguments),d=devArea(),sh=ls('mflow.shared')==='1';
  var dev=card('Dieses Gerät','<div class="fgrid"><label class="fl">Gerät gehört fest zum Bereich<select class="in" data-fdev><option value="">– persönlich, Bereich aus dem Schichtplan –</option>'+AREAS.map(function(a){return '<option'+(a===d?' selected':'')+'>'+esc(a)+'</option>'}).join('')+'</select></label>'
   +'<div><div class="fl" style="margin-bottom:8px">Gemeinsames Gerät</div><div class="seg"><button class="'+(sh?'on':'')+'" data-act="fshared" data-v="1">ja</button><button class="'+(sh?'':'on')+'" data-act="fshared" data-v="0">nein</button></div></div></div>'
-  +'<p class="dim" style="font-size:12.5px;margin:12px 0 0">Ein Tablet im Bereich zeigt allen nur die Seiten dieses Bereichs. Gemeinsame Geräte melden nach 10 Minuten ohne Bedienung ab; mit der Karte ist die nächste Person in einer Sekunde angemeldet.</p>');
+  +'<p class="dim" style="font-size:12.5px;margin:12px 0 0">Ein Tablet im Bereich zeigt allen nur die Seiten dieses Bereichs. Gemeinsame Geräte melden nach 10 Minuten ohne Bedienung ab'+(window.cardsOn&&cardsOn()?'; mit der Karte ist die nächste Person in einer Sekunde angemeldet.':'; am Anmeldebildschirm stehen dann die heute hier Eingeteilten oben.')+'</p>');
  if(!isLead())return h+dev;
+ var KC=window.cardsOn&&cardsOn();
  var rows=people().map(function(c){var n=c.n,ld=(c.lead||(window.CREWLEAD&&CREWLEAD(n)));var hm=(S.home||{})[n]||'';
   return '<tr><td><b>'+esc(n)+'</b></td><td><select class="in sm" data-home="'+esc(n)+'"><option value="">–</option>'+AREAS.map(function(a){return '<option'+(a===hm?' selected':'')+'>'+esc(a)+'</option>'}).join('')+'</select></td>'
-   +'<td class="bdst" data-n="'+esc(n)+'">'+(ld?'<span class="dim">PIN</span>':'<span class="dim">…</span>')+'</td><td class="r">'+(ld?'':'<button class="btn sm" data-act="bdgnew" data-n="'+esc(n)+'">Karte</button> <button class="btn sm ghost" data-act="bdgdel" data-n="'+esc(n)+'">Sperren</button>')+'</td></tr>'}).join('');
- var lead=card('Bereiche und Anmeldekarten','<p class="dim" style="font-size:13px;margin:0 0 12px">Stammbereich gilt, wenn jemand heute nicht im Schichtplan steht. Karten druckst du auf Etikett oder Papier; der Handscanner liest sie wie eine Tastatur. Eine neue Karte macht die alte ungültig, Sperren meldet die Person überall ab.</p>'
-  +'<div class="tw"><table class="t ftab"><thead><tr><th>Person</th><th>Stammbereich</th><th>Karte</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>'
+   +(KC?'<td class="bdst" data-n="'+esc(n)+'">'+(ld?'<span class="dim">PIN</span>':'<span class="dim">…</span>')+'</td><td class="r">'+(ld?'':'<button class="btn sm" data-act="bdgnew" data-n="'+esc(n)+'">Karte</button> <button class="btn sm ghost" data-act="bdgdel" data-n="'+esc(n)+'">Sperren</button>')+'</td>':'')+'</tr>'}).join('');
+ var lead=card(KC?'Bereiche und Anmeldekarten':'Bereiche','<p class="dim" style="font-size:13px;margin:0 0 12px">Stammbereich gilt, wenn jemand heute nicht im Schichtplan steht.'+(KC?' Karten druckst du auf Etikett oder Papier; der Handscanner liest sie wie eine Tastatur. Eine neue Karte macht die alte ungültig, Sperren meldet die Person überall ab.':'')+'</p>'
+  +'<div class="tw"><table class="t ftab"><thead><tr><th>Person</th><th>Stammbereich</th>'+(KC?'<th>Karte</th><th></th>':'')+'</tr></thead><tbody>'+rows+'</tbody></table></div>'
   +'<div class="fprev"><span class="fl">Ansicht testen</span><select class="in sm" id="fvsel">'+AREAS.map(function(a){return '<option>'+esc(a)+'</option>'}).join('')+'</select><button class="btn sm" data-act="fview">So sieht es der Bereich</button></div>');
  return h+lead+dev};
 document.addEventListener('change',function(e){var t=e.target;if(!t||!t.matches)return;
@@ -101,7 +102,7 @@ function scan(code){
 window.badgeScan=scan;
 
 /* Anmeldebildschirm: Hinweis auf die Karte */
-new MutationObserver(function(){var l=$('#login');if(!l||l.querySelector('.lscan')||!window.MF_SERVER)return;var h=document.createElement('div');h.className='lscan';h.innerHTML='<i aria-hidden="true"></i><span><b>Karte scannen</b> meldet sofort an</span>';l.appendChild(h)}).observe(document.body,{childList:true});
+new MutationObserver(function(){var l=$('#login');if(!l||l.querySelector('.lscan')||!window.MF_SERVER||!(window.cardsOn&&cardsOn()))return;var h=document.createElement('div');h.className='lscan';h.innerHTML='<i aria-hidden="true"></i><span><b>Karte scannen</b> meldet sofort an</span>';l.appendChild(h)}).observe(document.body,{childList:true});
 
 /* ---------- Gemeinsames Gerät: Abmelden nach 10 Minuten ---------- */
 var ACTV=Date.now();['pointerdown','keydown','touchstart'].forEach(function(ev){document.addEventListener(ev,function(){ACTV=Date.now()},{capture:true,passive:true})});

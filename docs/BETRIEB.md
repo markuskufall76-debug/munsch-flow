@@ -39,10 +39,20 @@ Danach Schritt 5 wiederholen. Die Daten bleiben erhalten. Die Version steht in d
 - Die Seite läuft mit einer Content-Security-Policy, die nur die eigenen, per Hash bekannten Skripte erlaubt.
 - Anmeldungen, Notfallzugänge, PIN-Änderungen und abgelehnte Schreibversuche stehen in der Tabelle `audit`.
 
-## Anmeldekarten (Handscanner)
+## Anmeldekarten (Handscanner, optional)
+
+- Standardmäßig aus; einschalten unter Einstellungen → „Anmeldekarten“. Die App druckt eigene Karten, Firmenausweise braucht es nicht.
 
 - Einstellungen → „Bereiche und Anmeldekarten“: Stammbereich je Person, „Karte“ stellt eine Karte aus und druckt sie im Scheckkartenformat (85,6 × 54 mm, Code 128). Der Code erscheint nur einmal.
 - Handscanner als Tastatur (HID) mit Enter als Abschluss einstellen – das ist bei fast allen Geräten die Werkseinstellung.
 - Verlorene Karte: „Sperren“ (meldet die Person überall ab) oder einfach neue Karte ausstellen.
 - Tablets im Bereich: Einstellungen → „Dieses Gerät“ → Bereich wählen und „Gemeinsames Gerät: ja“ (Abmeldung nach 10 Minuten ohne Bedienung).
 - Die Tabelle `badges` legt der Worker beim ersten Aufruf selbst an.
+
+## Datensicherung
+
+- Einstellungen → „Datensicherung und Aufbewahrung“: Sicherung als Datei herunterladen (die Warnlage erinnert nach 7 Tagen), Sicherung einspielen, alte Krankmeldungen löschen.
+- Nächtlicher Lauf: In `wrangler.toml` ist der Cron-Trigger eingetragen. Wer den Worker im Dashboard einfügt: Worker → Einstellungen → Trigger → Cron „17 3 * * *“ anlegen.
+- Optional R2: Bucket `munsch-sicherung` anlegen und als Bindung `BACKUP` an den Worker hängen; dann liegen dort die letzten 30 Tage.
+- Zusätzlich kann D1 per Time Travel auf einen früheren Stand zurück: `npx wrangler d1 time-travel restore munsch-zentrale --timestamp=…`.
+- Empfehlung für den Speicherort: D1-Datenbank mit `--jurisdiction eu` anlegen.

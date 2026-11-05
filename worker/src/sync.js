@@ -3,7 +3,7 @@ import { audit } from './auth.js';
 
 const PAGE = 1000, MAX_OPS = 200, MAX_VALUE = 64 * 1024;
 const SECTION = /^[a-zA-Z0-9]{1,24}(\.@?[\wÄÖÜäöüß \-]{1,40})?$/; // z. B. reg.qs, funk.Säge Metall, funk.@MBode
-const LEAD_ONLY = new Set(['reg.gespr', 'carry', 'carryY', 'quali', 'home']); // home: Stammbereich je Person
+const LEAD_ONLY = new Set(['reg.gespr', 'carry', 'carryY', 'quali', 'home', 'cfg']); // home: Stammbereich je Person, cfg: Einstellungen der Teamleitung
 const APPEND_ONLY = new Set(['log', 'fachlog']);
 
 /** Persönlicher Kanal einer Person, wie in Flow 5: '@' + Name ohne Sonderzeichen */
@@ -14,6 +14,16 @@ export function canRead(who, s) {
   if (s === 'reg.gespr') return false;
   if (s.startsWith('funk.@')) return s === 'funk.' + pmKey(who.name);
   return true;
+}
+
+/** Gesundheitsdaten: Krankmeldungen anderer sieht nur die Teamleitung, das Team sieht „Abwesend“ (Datenschutz, Art. 9 DSGVO). */
+export function mask(who, s, v) {
+  if (who.role === 'lead' || s !== 'vacs' || v == null) return v;
+  try {
+    const x = JSON.parse(v);
+    if (x && x.type === 'Krank' && x.emp !== who.name) { const { note, grund, ...rest } = x; return JSON.stringify({ ...rest, type: 'Abwesend' }); }
+  } catch { /* unverändert */ }
+  return v;
 }
 
 /**
@@ -48,7 +58,7 @@ export async function pull(db, since, who) {
   if (more) rows.length = PAGE;
   const seq = more ? rows[rows.length - 1].seq : Math.max(since, cur.results[0]?.v || 0);
   // Nummernstand aus allen Zeilen, Inhalt nur aus den lesbaren: so bleibt der Abgleich lückenlos
-  return { rows: rows.filter((r) => !who || canRead(who, r.s)).map(({ s, k, v }) => ({ s, k, v })), seq, more, empty: cnt.results[0].n === 0 };
+  return { rows: rows.filter((r) => !who || canRead(who, r.s)).map(({ s, k, v }) => ({ s, k, v: who ? mask(who, s, v) : v })), seq, more, empty: cnt.results[0].n === 0 };
 }
 
 export async function push(db, who, body) {
@@ -60,7 +70,7 @@ export async function push(db, who, body) {
     const cur = await db.prepare('SELECT v FROM rows WHERE s = ? AND k = ?').bind(String(op?.s), String(op?.k)).first();
     const why = rule(who, op || {}, cur ? cur.v : null);
     // Abgelehnt: gültigen Wert nur zurückgeben, wenn die Person ihn lesen darf
-    if (why) { rej.push({ s: op?.s, k: op?.k, v: cur && canRead(who, String(op?.s)) ? cur.v : null, why }); continue; }
+    if (why) { rej.push({ s: op?.s, k: op?.k, v: cur && canRead(who, String(op?.s)) ? mask(who, String(op?.s), cur.v) : null, why }); continue; }
     if ((cur ? cur.v : null) === (op.v ?? null)) continue;
     ok.push(op);
   }

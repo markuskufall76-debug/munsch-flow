@@ -1,0 +1,37 @@
+/* ---------- Ausfallrisiko ---------- */
+.qrc .qr-head,.qr-row{display:grid;grid-template-columns:minmax(180px,260px) minmax(0,1fr) 140px;gap:16px;align-items:center}
+.qr-row{padding:10px 0;border-top:1px solid var(--line)}
+.qr-row.bad .qr-n b{color:var(--crit)}
+.qr-n{display:flex;flex-direction:column;gap:2px;min-width:0}
+.qr-n b{font-size:14.5px}
+.qr-n span{font-size:12px;color:var(--ink3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.qr-d{display:grid;grid-template-columns:repeat(20,minmax(0,1fr));gap:3px}
+.qr-d i{height:22px;border-radius:5px;background:color-mix(in srgb,var(--ok) 70%,var(--panel2))}
+.qr-d i.o{background:var(--warn)}
+.qr-d i.z{background:var(--crit);box-shadow:0 0 0 1px var(--crit),0 0 12px -2px var(--crit)}
+.qr-d.lab em{font:500 10.5px var(--mono);font-style:normal;color:var(--ink3);white-space:nowrap;overflow:visible}
+.qr-s{text-align:right}
+.qr-lg{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:12px}
+.qr-lg span{display:inline-flex;align-items:center;gap:6px}
+.qr-lg i{width:14px;height:10px;border-radius:3px;display:inline-block}
+.qr-lg .g{background:color-mix(in srgb,var(--ok) 70%,var(--panel2))}.qr-lg .o{background:var(--warn)}.qr-lg .z{background:var(--crit)}
+@media (max-width:820px){.qrc .qr-head{display:none}.qr-row{grid-template-columns:1fr auto;grid-template-areas:"n s" "d d"}.qr-n{grid-area:n}.qr-s{grid-area:s}.qr-d{grid-area:d}}
+
+/* ---------- Nutzung ---------- */
+.us{display:flex;flex-direction:column;gap:6px}
+.us div{display:grid;grid-template-columns:minmax(140px,240px) minmax(0,1fr) 48px;gap:12px;align-items:center;font-size:13.5px}
+.us span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.us i{height:10px;border-radius:10px;background:linear-gradient(90deg,var(--signal) var(--w),color-mix(in srgb,var(--line) 70%,transparent) var(--w))}
+.us b{text-align:right;font-variant-numeric:tabular-nums}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+
+/* ---------- Schnellanmeldung am Bereichs-Tablet ---------- */
+.lhere{font:600 12px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--signal);margin:0 0 10px}
+.lhere b{color:var(--ink)}
+.pc.here{border-color:var(--signal);box-shadow:0 0 0 1px var(--signal)}
+
+/* ---------- Ruhiger Modus ---------- */
+html.lite .sweep,html.lite .livebg,html.lite #vignette{display:none!important}
+html.lite::view-transition-old(root),html.lite::view-transition-new(root){animation:none!important}
+html.lite .tile:hover,html.lite .fquick button:hover{transform:none}
+html.lite #stage > *{animation:none!important}

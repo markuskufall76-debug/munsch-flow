@@ -48,8 +48,8 @@ Maßgeblich sind die Originaldaten aus dem Excel-Import (`app/src/legacy/mfdata.
 
 | Befehl | Prüft |
 |---|---|
-| `npm test` | Logik-Kern inkl. Originaldaten und Sync-Sicherheitsnetz (14 Tests) und API inkl. Sicherheit (17 Tests, inkl. Anmeldekarten) gegen SQLite |
-| `npm run test:e2e` | echter Worker lokal + Seite in zwei Browsern: Erstbefüllung, PIN, Live-Abgleich, Rechte, Umzug, falsche PIN, Shopfloor-Runde, Station mit Rückgängig, Excel-Import mit echter .xlsx, Schichtaufgaben/5S/Schichtplan, Danke/Sonderbetrieb, Probelauf ohne Schreibzugriff, persönliche Nachricht bei Ablehnung, Etikett, Geräte, Etikettengröße, Offline-Start, Alarm-Banner und Monitor-Alarm im Vollbild, Monatsrückblick als Film, Handy-Fernbedienung mit folgendem Monitor, Mein Tag, Hallenplan mit Suche und Zoom, Prognose, Morgenauftakt und Ruhemodus, Rekord auf zwei Geräten, Materialfluss mit Stau, Kamerafahrt, Bauchbinde, Videobild, Bereichsansicht mit Karten-Anmeldung und Station-Scan (21 Tests) |
+| `npm test` | Logik-Kern inkl. Originaldaten und Sync-Sicherheitsnetz (14 Tests) und API inkl. Sicherheit (19 Tests, inkl. Anmeldekarten, Sicherung, Datenschutz) gegen SQLite |
+| `npm run test:e2e` | echter Worker lokal + Seite in zwei Browsern: Erstbefüllung, PIN, Live-Abgleich, Rechte, Umzug, falsche PIN, Shopfloor-Runde, Station mit Rückgängig, Excel-Import mit echter .xlsx, Schichtaufgaben/5S/Schichtplan, Danke/Sonderbetrieb, Probelauf ohne Schreibzugriff, persönliche Nachricht bei Ablehnung, Etikett, Geräte, Etikettengröße, Offline-Start, Alarm-Banner und Monitor-Alarm im Vollbild, Monatsrückblick als Film, Handy-Fernbedienung mit folgendem Monitor, Mein Tag, Hallenplan mit Suche und Zoom, Prognose, Morgenauftakt und Ruhemodus, Rekord auf zwei Geräten, Materialfluss mit Stau, Kamerafahrt, Bauchbinde, Videobild, Bereichsansicht mit Karten-Anmeldung und Station-Scan, Ausfallrisiko, Nutzung, Schnellanmeldung (22 Tests) |
 | `npm run dev` | lokaler Server unter http://localhost:8787 |
 
 CI (`.github/workflows/ci.yml`) führt alles bei jedem Push aus und stellt die Worker-Datei als Download bereit.
@@ -88,3 +88,11 @@ am Dateianfang und lässt sich dort anpassen. Störmeldungen erscheinen am Berei
 `focus.js`: Der Bereich einer Person kommt aus Gerät (Einstellung „Gerät gehört fest zum Bereich“, je Gerät in `localStorage`) vor Schichtplan heute vor Stammbereich (`S.home`, Abschnitt `home`, nur Teamleitung schreibt). Navigation, Schnellwahl und „Mein Tag“ zeigen dann nur die Seiten des Bereichs (`AREAP`) plus gemeinsame Seiten; „Alle Seiten“ hebt das auf. Die Rechte prüft unverändert der Server.
 
 `worker/src/badge.js`: Teamleitung stellt je Person eine Karte aus (Code `MF-` + 16 Zeichen Base32 = 80 Bit, gespeichert nur als SHA-256 in Tabelle `badges`; eine neue Karte ersetzt die alte, Sperren beendet alle Sitzungen der Person). `POST /api/login {badge}` meldet an (nicht für die Teamleitung), `POST /api/badge/who` nennt dem Stations-Konto die gescannte Person. 20 unbekannte Karten je IP in 15 Minuten sperren die IP für 15 Minuten. Der Handscanner wird an seiner Tippgeschwindigkeit und dem Präfix `MF-` erkannt; andere Barcodes laufen wie bisher.
+
+## Vorsorge und Betrieb
+
+`care.js`: Ausfallrisiko aus Qualifikationen (sicher = Stufe 2+) und genehmigten Abwesenheiten der nächsten 20 Arbeitstage; Lücken in den nächsten 10 Tagen erscheinen in der Warnlage, und vor dem Genehmigen eines Urlaubs fragt die App nach, wenn dadurch niemand mehr sicher da wäre. Datensicherung als Datei (`GET /api/backup`, nur Teamleitung) und Einspielen über den normalen, rechtegeprüften Push. Nutzung anonym im Abschnitt `use` (Schlüssel Datum.Geräte-Zufallskennung). Abschnitt `cfg` (nur Teamleitung): Anmeldekarten an/aus, letzte Sicherung.
+
+`worker/src/backup.js`: Cron-Trigger nachts: Sicherung nach R2 (Bindung `BACKUP`, 30 Tage), Protokoll 180 Tage, alte Sitzungen und Fehlversuche löschen.
+
+Datenschutz im Server (`sync.js`, `mask`): Krankmeldungen anderer erreichen Team-Geräte nur als „Abwesend“, auch in Ablehnungen. Siehe docs/DATENSCHUTZ.md.
