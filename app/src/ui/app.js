@@ -255,6 +255,7 @@ function regView(k){var R=REG[k],fl=S.ui['rf'+k]||'offen',t=todayIso(),all=S.reg
   +card('Neuer Eintrag','<div class="frm">'+form+'<button class="btn pri" data-act="radd" data-k="'+k+'" style="height:46px">Eintragen</button></div>')
   +card('Einträge',list.length?'<div class="tw"><table class="t"><thead><tr>'+th+'</tr></thead><tbody>'+rows+'</tbody></table></div>':emptyS(all.length?'Alles erledigt':'Noch keine Einträge',all.length?'Keine offenen Einträge.':'Der erste Eintrag kommt über das Formular oben.'),{r:'<div class="seg"><button class="'+(fl==='offen'?'on':'')+'" data-act="rfl" data-k="'+k+'" data-f="offen">Offen<span class="c">'+op+'</span></button><button class="'+(fl==='alle'?'on':'')+'" data-act="rfl" data-k="'+k+'" data-f="alle">Alle<span class="c">'+all.length+'</span></button></div>'+demoTag()})}
 ['wep','we','mw','wv','tb','vork','auf','qs','mas','aud','gespr'].forEach(function(k){VIEW[k]=function(){return regView(k)}});
+window.regView=regView;
 ACT.rfl=function(d){S.ui['rf'+d.k]=d.f;save();render()};
 ACT.radd=function(d){var R=REG[d.k],e={id:uid(),ts:Date.now(),u:S.user,st:0};for(var i=0;i<R.f.length;i++){var f=R.f[i],el=$('#rf_'+d.k+'_'+f[0]),v=el?el.value.trim():'';if(f[2]==='a'){v=aufNr(v);if(!v)return toast('Auftragsnummer: die ersten 7 Stellen müssen Ziffern sein')}else if(f[2]==='n')v=v===''?0:Math.round(num(v));else if(i===0&&!v)return toast('Bitte „'+f[1]+'“ ausfüllen');e[f[0]]=v}
  S.reg[d.k].push(e);logA(R.t+': neuer Eintrag '+(e[R.f[0][0]]||''));save();render();toast('Eingetragen')};

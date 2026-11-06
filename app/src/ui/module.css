@@ -1,0 +1,16 @@
+/* Zusatzmodule (module.js) */
+.mods{display:flex;flex-direction:column}
+.mod{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:14px 0;border-top:1px solid var(--line)}
+.mod:first-child{border-top:0}
+.mod b{display:block;font-weight:600;font-size:15px}
+.mod span{display:block;color:var(--ink2);font-size:13.5px;margin-top:2px}
+.aa{padding:14px 0;border-top:1px solid var(--line)}
+.aa:first-child{border-top:0;padding-top:0}
+.aa h3{margin:0 0 8px;font:700 22px/1.1 var(--display);text-transform:uppercase;letter-spacing:.01em}
+.aa ol{margin:0 0 10px;padding-left:22px;display:flex;flex-direction:column;gap:6px;font-size:15px}
+.aa ol li::marker{color:var(--signal);font-weight:700}
+.ab-r{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)}
+.ab-r b{font-weight:600}
+.ab-r em{font-style:normal;margin-left:8px;font-size:13px}
+.ab-r.warn em{color:var(--warn)}.ab-r.crit em{color:var(--crit)}
+@media (max-width:560px){.mod{flex-direction:column;align-items:flex-start}}
