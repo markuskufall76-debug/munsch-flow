@@ -33,6 +33,7 @@ var DEPS=SL.filter(function(x){return x.ty==='dep'}).map(function(x){return x.id
 function rDay(){var t=todayIso();S.runde[t]=S.runde[t]||{};return S.runde[t]}
 function who(rd){if(!rd.who||typeof rd.who!=='object')rd.who={};return rd.who}
 function away(n,t){return isWork(t)&&CREW.some(function(c){return c.n===n})&&presentOn(t).indexOf(n)<0}
+window.sfMod=function(t){t=t||todayIso();return modOf((S.runde||{})[t]||{},t)};
 function modOf(rd,t){if(rd.mod&&MODS.indexOf(rd.mod)>=0)return rd.mod;for(var i=0;i<MODS.length;i++)if(!away(MODS[i],t))return MODS[i];return MODS[0]}
 function pres(id,t){var z=(S.zust||{})[id]||{},m=z.m||'',v=z.v||'',x=(z.s&&z.s.d===t)?z.s.n:'';if(!m&&!v&&!x)return {n:''};if(m&&!away(m,t))return {n:m};if(x&&!away(x,t))return {n:x,sub:1,for:m||v};if(v&&!away(v,t))return {n:v,sub:m?1:0,for:m};return {n:'',miss:1,for:m||v}}
 window._presToday=function(t){t=t||todayIso();return DEPS.map(function(id){var p=pres(id,t),x=SL.filter(function(s){return s.id===id})[0];return {id:id,t:x.s||x.t,n:p.n,miss:!!p.miss}})};

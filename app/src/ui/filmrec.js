@@ -60,21 +60,26 @@ function loadLogo(){return new Promise(function(ok){try{var s=logoSVG({h:90});if
 function fonts(){try{return Promise.all(['800 100px '+F.d,'600 30px '+F.b,'500 30px '+F.b,'600 30px '+F.m].map(function(f){return document.fonts.load(f)})).catch(function(){})}catch(e){return Promise.resolve()}}
 var REC=null;
 function lastYm(){var k=Object.keys(S.tz).filter(function(x){return Object.keys(S.tz[x]).length}).sort();return k.length?k[k.length-1].slice(0,7):todayIso().slice(0,7)}
-window.recordFilm=function(ym){ym=ym||lastYm();var mt=mime();if(!mt)return toast('Dieser Browser kann keine Videos aufnehmen. Bitte Chrome oder Edge nehmen.');var d=filmData(ym);if(!d.n)return toast('Für '+ym+' gibt es keine Tageszahlen');
- modal('<h3>Monatsrückblick als Video</h3><p class="dim" style="margin:0 0 14px">'+MN[+ym.slice(5,7)-1]+' '+ym.slice(0,4)+' · 1920 × 1080 · '+(mt.indexOf('mp4')>=0?'MP4':'WebM')+'. Die Aufnahme läuft in Echtzeit, bitte dieses Fenster offen lassen.</p><div class="vr-prev"><canvas id="vrc" width="'+W+'" height="'+H+'"></canvas></div><div class="vr-bar"><i id="vrb"></i></div><div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px"><span class="dim mono" id="vrt" style="margin-right:auto;align-self:center"></span><button class="btn" data-act="vrx">Abbrechen</button></div>');
- var c=$('#vrc'),x=c.getContext('2d');Promise.all([fonts(),loadLogo()]).then(function(r){if(!$('#vrc'))return;var SC=scenes(d,r[1]),tot=SC.reduce(function(a,s){return a+s[0]},0),st=c.captureStream(30),mr=new MediaRecorder(st,{mimeType:mt,videoBitsPerSecond:8e6}),parts=[];
+window.recordFilm=function(ym){ym=ym||lastYm();var d=filmData(ym);if(!d.n)return toast('Für '+ym+' gibt es keine Tageszahlen');
+ recordScenes({title:'Monatsrückblick als Video',sub:MN[+ym.slice(5,7)-1]+' '+ym.slice(0,4),fn:'MUNSCH-Monatsrueckblick-'+ym,make:function(logo){return scenes(d,logo)}})};
+/* Allgemeine Aufnahme: o = {title, sub, fn (ohne Endung), make(logo) → Szenen} */
+function recordScenes(o){var mt=mime();if(!mt)return toast('Dieser Browser kann keine Videos aufnehmen. Bitte Chrome oder Edge nehmen.');
+ modal('<h3>'+esc(o.title)+'</h3><p class="dim" style="margin:0 0 14px">'+esc(o.sub)+' · 1920 × 1080 · '+(mt.indexOf('mp4')>=0?'MP4':'WebM')+'. Die Aufnahme läuft in Echtzeit, bitte dieses Fenster offen lassen.</p><div class="vr-prev"><canvas id="vrc" width="'+W+'" height="'+H+'"></canvas></div><div class="vr-bar"><i id="vrb"></i></div><div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px"><span class="dim mono" id="vrt" style="margin-right:auto;align-self:center"></span><button class="btn" data-act="vrx">Abbrechen</button></div>');
+ var c=$('#vrc'),x=c.getContext('2d');Promise.all([fonts(),loadLogo()]).then(function(r){if(!$('#vrc'))return;var SC=o.make(r[1]),tot=SC.reduce(function(a,s){return a+s[0]},0),st=c.captureStream(30),mr=new MediaRecorder(st,{mimeType:mt,videoBitsPerSecond:8e6}),parts=[];
   REC={mr:mr,stop:false};mr.ondataavailable=function(e){if(e.data&&e.data.size)parts.push(e.data)};
-  mr.onstop=function(){st.getTracks().forEach(function(t){t.stop()});if(REC&&REC.stop){REC=null;return}REC=null;var b=new Blob(parts,{type:mt.split(';')[0]}),u=URL.createObjectURL(b),ext=mt.indexOf('mp4')>=0?'mp4':'webm',fn='MUNSCH-Monatsrueckblick-'+ym+'.'+ext;
+  mr.onstop=function(){st.getTracks().forEach(function(t){t.stop()});if(REC&&REC.stop){REC=null;return}REC=null;var b=new Blob(parts,{type:mt.split(';')[0]}),u=URL.createObjectURL(b),ext=mt.indexOf('mp4')>=0?'mp4':'webm',fn=o.fn+'.'+ext;
    var a=document.createElement('a');a.href=u;a.download=fn;document.body.appendChild(a);a.click();setTimeout(function(){a.parentNode.removeChild(a);URL.revokeObjectURL(u)},4000);
    closeModal();toast('Video gespeichert: '+fn+' ('+(b.size/1048576).toFixed(1).replace('.',',')+' MB)');try{fx.ok()}catch(e){}};
   paint(x,SC,0);mr.start(500);var t0=performance.now();
   (function f(){if(!REC)return;var T=(performance.now()-t0)/1000;paint(x,SC,Math.min(T,tot));var b=$('#vrb'),tt=$('#vrt');if(b)b.style.width=(Math.min(1,T/tot)*100).toFixed(1)+'%';if(tt)tt.textContent=Math.min(Math.ceil(T),Math.ceil(tot))+' / '+Math.ceil(tot)+' s';
-   if(T>=tot+.4){mr.stop();return}requestAnimationFrame(f)})()})};
+   if(T>=tot+.4){mr.stop();return}requestAnimationFrame(f)})()})}
+
 ACT.vrx=function(){if(REC){REC.stop=true;try{REC.mr.stop()}catch(e){}}closeModal()};
 ACT.filmvid=function(d){recordFilm(d&&d.ym)};
 /* Knopf in der Auswertung neben „Monat als Film“ */
 var aw=VIEW.ausw;VIEW.ausw=function(){var h=aw.apply(this,arguments),m=/data-act="film" data-ym="([0-9-]+)"/.exec(h);if(!m||!mime())return h;return h.replace('▶ Monat als Film</button>','▶ Monat als Film</button><button class="btn sm" data-act="filmvid" data-ym="'+m[1]+'">Als Video speichern</button>')};
 /* und im Film selbst */
 var of=window.openFilm;window.openFilm=function(ym){of.apply(this,arguments);var c=$('#film .fctl');if(c&&mime()&&!c.querySelector('[data-act="filmvid2"]')){var b=document.createElement('button');b.className='btn sm ghost';b.setAttribute('data-act','filmvid2');b.textContent='Als Video';c.insertBefore(b,c.lastChild)}FYM=ym};
+window.filmKit={W:W,H:H,C:C,F:F,ease:ease,rr:rr,spaced:spaced,paint:paint,fonts:fonts,loadLogo:loadLogo,mime:mime,record:recordScenes};
 var FYM=null;ACT.filmvid2=function(){var y=FYM;ACT.flx();setTimeout(function(){recordFilm(y)},200)};
 })();

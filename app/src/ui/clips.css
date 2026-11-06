@@ -1,0 +1,11 @@
+/* Clips: Vollbild-Wiedergabe (clips.js) */
+#clip{position:fixed;inset:0;z-index:185;display:grid;place-items:center;background:#000;cursor:none;animation:clIn .4s cubic-bezier(.23,1,.32,1) both}
+#clip.ui{cursor:default}
+#clip.out{animation:clOut .28s ease-out both}
+#clip canvas{width:100vw;height:100vh;object-fit:contain;display:block}
+#clip .cl-ctl{position:absolute;right:max(24px,env(safe-area-inset-right,0px));bottom:max(24px,env(safe-area-inset-bottom,0px));display:flex;gap:10px;opacity:0;transform:translateY(6px);transition:opacity .2s,transform .2s cubic-bezier(.23,1,.32,1);color-scheme:dark;--panel2:#1A1E23;--ink:#F3EFEA;--line2:rgba(255,236,220,.15)}
+#clip.ui .cl-ctl,#clip .cl-ctl:focus-within{opacity:1;transform:none}
+@media (hover:none){#clip .cl-ctl{opacity:1;transform:none}#clip{cursor:default}}
+@keyframes clIn{from{opacity:0}}
+@keyframes clOut{to{opacity:0}}
+.cl-row{display:flex;gap:10px;flex-wrap:wrap}
