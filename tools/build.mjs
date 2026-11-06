@@ -2,7 +2,7 @@
 //   dist/munsch-flow.html            eigenständige Seite (ohne Zentrale, Daten im Browser) – für Artifact und Vorschau
 //   dist/munsch-zentrale-worker.js   kompletter Cloudflare Worker inkl. Seite, eine Datei zum Einfügen oder Deployen
 // Aufruf: npm run build
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, readdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import vm from 'node:vm';
 import * as esbuild from 'esbuild';
@@ -19,9 +19,16 @@ const parts = {
   app: ['app.js', 'shopfloor.js', 'station.js', 'pages.js', 'today.js', 'extras.js', 'cinema.js', 'cinema2.js', 'film.js', 'stage.js', 'mine.js', 'forecast.js', 'halle.js', 'moments.js', 'flow.js', 'filmrec.js', 'clips.js', 'kino.js', 'focus.js', 'care.js', 'pilot.js', 'lage2.js', 'pagehero.js', 'polish.js'].map((f) => read('app/src/ui/' + f)).join('\n;\n'),
   css: ['app.css', 'modules.css', 'cinema.css', 'cinema2.css', 'stage.css', 'halle.css', 'moments.css', 'flow.css', 'focus.css', 'care.css', 'clips.css', 'kino.css', 'open.css', 'lage2.css', 'pagehero.css', 'polish.css'].map((f) => read('app/src/ui/' + f)).join('\n'),
 };
-// Bilder (app/src/img/*.webp) als data:-URL in die Gestaltung: url(IMG:name)
-parts.css = parts.css.replace(/url\(IMG:([a-z0-9-]+)\)/g, (_, n) => `url(data:image/webp;base64,${readFileSync(R('app/src/img/' + n + '.webp')).toString('base64')})`);
-const BUILD = '7-' + createHash('sha256').update(Object.values(parts).join('\0')).digest('hex').slice(0, 10);
+// Bilder (app/src/img/*.webp): Gestaltung nutzt var(--img-name), ein kleines Skript setzt die Quelle.
+// Eigenständige Seite: data:-URL (eine Datei). Worker: /img/name-hash.webp, unveränderlich zwischengespeichert.
+
+const IMGS = Object.fromEntries(readdirSync(R('app/src/img')).filter((f) => f.endsWith('.webp')).map((f) => {
+  const b = readFileSync(R('app/src/img/' + f)), n = f.replace(/\.webp$/, '');
+  return [n, { b64: b.toString('base64'), path: `/img/${n}-${createHash('sha256').update(b).digest('hex').slice(0, 8)}.webp` }];
+}));
+parts.css = parts.css.replace(/url\(IMG:([a-z0-9-]+)\)/g, (_, n) => { if (!IMGS[n]) throw new Error('Bild fehlt: ' + n); return `var(--img-${n})`; });
+const imgScript = (server) => 'window.MF_IMG=' + JSON.stringify(Object.fromEntries(Object.entries(IMGS).map(([n, v]) => [n, server ? v.path : 'data:image/webp;base64,' + v.b64]))) + ';(function(){var r=document.documentElement.style;for(var k in MF_IMG)r.setProperty("--img-"+k,"url("+MF_IMG[k]+")")})();';
+const BUILD = '7-' + createHash('sha256').update(Object.values(parts).join('\0') + JSON.stringify(Object.values(IMGS).map((v) => v.path))).digest('hex').slice(0, 10);
 
 // Klassische Skripte teilen sich den globalen Namensraum. esbuild ohne "format" lässt Namen auf oberster Ebene
 // unangetastet, kürzt aber alles innerhalb von Funktionen.
@@ -38,7 +45,7 @@ const css = await min(parts.css, 'css');
 
 const FONTS = 'https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;600;700;800&family=Instrument+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap';
 function page(server) {
-  const scripts = [server ? 'window.MF_SERVER=1;' : '', js.build, js.barcode, js.mfdata, js.core, js.sync, js.app].filter(Boolean);
+  const scripts = [server ? 'window.MF_SERVER=1;' : '', imgScript(server), js.build, js.barcode, js.mfdata, js.core, js.sync, js.app].filter(Boolean);
   const html = `<!doctype html>
 <html lang="de">
 <head>
@@ -97,6 +104,7 @@ writeFileSync(R('worker/src/generated/page.js'),
   `export const ICON = ${JSON.stringify(ctx.__ICON.replace(/<svg /, '<svg xmlns="http://www.w3.org/2000/svg" ').replace(/ class="[^"]*"/, ''))};\n` +
   `export const MFDATA = ${JSON.stringify(ctx.MFDATA)};\n` +
   `export const HTML = ${JSON.stringify(server.html)};\n` +
+  `export const IMGS = ${JSON.stringify(Object.fromEntries(Object.values(IMGS).map((v) => [v.path, v.b64])))};\n` +
   `export const XLSX_JS = ${JSON.stringify(readFileSync(R('node_modules/@e965/xlsx/dist/xlsx.full.min.js'), 'utf8'))};\n`);
 
 await esbuild.build({

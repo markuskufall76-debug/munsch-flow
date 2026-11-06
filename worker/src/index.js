@@ -1,9 +1,12 @@
 // MUNSCH Zentrale · Cloudflare Worker
 // Liefert die Seite aus und stellt die API bereit. Bindungen: DB (D1). Secrets: PIN_LEAD, PPLX_KEY (optional),
 // PIN_TEAM + ALLOW_SHARED=1 (optional, Gruppen-PIN). Optional: R2-Bindung BACKUP für nächtliche Sicherungen. Details: docs/BETRIEB.md
-import { HTML, CSP, BUILD, MFDATA, XLSX_JS, ICON } from './generated/page.js';
+import { HTML, CSP, BUILD, MFDATA, XLSX_JS, ICON, IMGS } from './generated/page.js';
 import { serviceWorker, MANIFEST } from './pwa.js';
-const SW = serviceWorker(BUILD);
+const SW = serviceWorker(BUILD, Object.keys(IMGS));
+// Bilder der Bildwelt: Pfad enthält den Inhalts-Hash, daher unveränderlich zwischenspeicherbar
+const IMGB = {};
+function img(p) { if (!IMGS[p]) return null; if (!IMGB[p]) { const s = atob(IMGS[p]), u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); IMGB[p] = u; } return IMGB[p]; }
 import { login, session, logout, setPin, usersWithPin, audit } from './auth.js';
 import { pull, push } from './sync.js';
 import { handleAsk } from './ask.js';
@@ -66,6 +69,7 @@ export default {
       if (p === '/icon.svg') return new Response(ICON, { headers: { ...SEC, 'content-type': 'image/svg+xml', 'cache-control': 'public, max-age=86400' } });
       // Excel-Bibliothek (SheetJS 0.20.3, fest gepinnt) aus dem Worker selbst, nur beim Import geladen
       if (p === '/vendor/xlsx-0.20.3.js') return new Response(XLSX_JS, { headers: { ...SEC, 'content-type': 'application/javascript; charset=utf-8', 'cache-control': 'public, max-age=31536000, immutable' } });
+      if (p.startsWith('/img/') && IMGS[p]) return new Response(m === 'HEAD' ? null : img(p), { headers: { ...SEC, 'content-type': 'image/webp', 'cache-control': 'public, max-age=31536000, immutable' } });
       if (!p.startsWith('/api/')) return json({ error: 'Nicht gefunden' }, 404);
       if (!env.DB) return json({ error: 'Datenbank nicht gebunden (D1-Bindung DB fehlt)' }, 500);
 

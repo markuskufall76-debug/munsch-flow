@@ -1,9 +1,9 @@
 // Installierbar und offline startfähig: Seite und Logo im Cache, die API nie.
 // Jede neue Version (BUILD) bekommt einen eigenen Cache; alte Caches werden beim Aktivieren entfernt.
-export function serviceWorker(build) {
+export function serviceWorker(build, extra = []) {
   return [
     `const C = 'mf-${build}';`,
-    "self.addEventListener('install', (e) => { e.waitUntil(caches.open(C).then((c) => c.addAll(['/', '/icon.svg'])).then(() => self.skipWaiting())); });",
+    "self.addEventListener('install', (e) => { e.waitUntil(caches.open(C).then((c) => c.addAll(" + JSON.stringify(['/', '/icon.svg', ...extra]) + ")).then(() => self.skipWaiting())); });",
     "self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((k) => Promise.all(k.filter((x) => x !== C).map((x) => caches['delete'](x)))).then(() => self.clients.claim())); });",
     "self.addEventListener('fetch', (e) => {",
     "  const u = new URL(e.request.url);",

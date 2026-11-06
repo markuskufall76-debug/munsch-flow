@@ -45,11 +45,15 @@ function scenes(d,logo){var mon=MN[+d.ym.slice(5,7)-1]+' '+d.ym.slice(0,4),quote
    x.fillText(d.best?fmtD(d.best,{weekday:'long',day:'2-digit',month:'long'}):'',170,720);if(d.dank){x.globalAlpha=ease((t-1.6)/.6);x.fillStyle=C.ink;x.font='600 40px '+F.b;x.fillText(d.dank+' Mal Danke gesagt',170,820)}}],
   [4,function(x,t){x.textAlign='center';x.globalAlpha=ease(t/.6);x.fillStyle=C.sig;x.font='600 30px '+F.m;spaced(x,'DANKE, TEAM.',W/2,400,10,true);x.globalAlpha=ease((t-.3)/.8);x.fillStyle=C.ink;x.font='800 220px '+F.d;x.fillText('WEITER SO.',W/2,620);
    if(logo){x.globalAlpha=ease((t-.9)/.6);var lh=90,lw=lh*logo.width/logo.height;x.drawImage(logo,W/2-lw/2,690,lw,lh)}x.textAlign='left'}]]}
+/* Bildwelt als Filmhintergrund: langsamer Zoom, abgedunkelt, links dunkler für Text */
+var IMC={},IMP=null;function imgs(){if(IMP)return IMP;var M=window.MF_IMG||{};IMP=Promise.all(Object.keys(M).map(function(k){return new Promise(function(ok){var i=new Image();i.onload=function(){IMC[k]=i;ok()};i.onerror=function(){ok()};i.src=M[k]})}));return IMP}
+function bgImg(x,im,t,D){var s=1.14-.1*ease(t/Math.max(D,1)),iw=im.width,ih=im.height,k=Math.max(W/iw,H/ih)*s,w=iw*k,h=ih*k;x.save();x.globalAlpha=1;x.drawImage(im,(W-w)/2+(1-s)*120,(H-h)/2,w,h);var g=x.createLinearGradient(0,0,W,0);g.addColorStop(0,'rgba(5,5,6,.9)');g.addColorStop(.5,'rgba(5,5,6,.72)');g.addColorStop(1,'rgba(5,5,6,.45)');x.fillStyle=g;x.fillRect(0,0,W,H);x.restore()}
 function rr(x,X,Y,w,h,r){r=Math.min(r,h/2,w/2);x.beginPath();x.moveTo(X+r,Y);x.arcTo(X+w,Y,X+w,Y+h,r);x.arcTo(X+w,Y+h,X,Y+h,r);x.arcTo(X,Y+h,X,Y,r);x.arcTo(X,Y,X+w,Y,r);x.closePath()}
 function spaced(x,s,X,Y,sp,center){var w=0,i;for(i=0;i<s.length;i++)w+=x.measureText(s[i]).width+sp;w-=sp;var al=x.textAlign;x.textAlign='left';var cx=center?X-w/2:X;for(i=0;i<s.length;i++){x.fillText(s[i],cx,Y);cx+=x.measureText(s[i]).width+sp}x.textAlign=al}
 /* ein Bild zum Zeitpunkt T (s) */
 function paint(x,SC,T){var acc=0,i;for(i=0;i<SC.length;i++){if(T<acc+SC[i][0])break;acc+=SC[i][0]}if(i>=SC.length){i=SC.length-1;acc-=SC[i][0]}var t=T-acc,D=SC[i][0];
  x.globalAlpha=1;x.fillStyle=C.bg;x.fillRect(0,0,W,H);var g=x.createRadialGradient(W*.3,H*.45,0,W*.3,H*.45,W*.7);g.addColorStop(0,'rgba(255,118,27,'+(.10+.04*Math.sin(T*.7)).toFixed(3)+')');g.addColorStop(1,'rgba(255,118,27,0)');x.fillStyle=g;x.fillRect(0,0,W,H);
+ if(SC[i].img&&IMC[SC[i].img])bgImg(x,IMC[SC[i].img],t,D);
  x.save();var fade=Math.min(1,t/.35,(D-t)/.35);x.globalAlpha=1;SC[i][1](x,t,D);x.restore();
  if(fade<1){x.globalAlpha=1-fade;x.fillStyle=C.bg;x.fillRect(0,0,W,H)}
  x.globalAlpha=1;x.fillStyle='#000';x.fillRect(0,0,W,BAR);x.fillRect(0,H-BAR,W,BAR);
@@ -65,7 +69,7 @@ window.recordFilm=function(ym){ym=ym||lastYm();var d=filmData(ym);if(!d.n)return
 /* Allgemeine Aufnahme: o = {title, sub, fn (ohne Endung), make(logo) → Szenen} */
 function recordScenes(o){var mt=mime();if(!mt)return toast('Dieser Browser kann keine Videos aufnehmen. Bitte Chrome oder Edge nehmen.');
  modal('<h3>'+esc(o.title)+'</h3><p class="dim" style="margin:0 0 14px">'+esc(o.sub)+' · 1920 × 1080 · '+(mt.indexOf('mp4')>=0?'MP4':'WebM')+'. Die Aufnahme läuft in Echtzeit, bitte dieses Fenster offen lassen.</p><div class="vr-prev"><canvas id="vrc" width="'+W+'" height="'+H+'"></canvas></div><div class="vr-bar"><i id="vrb"></i></div><div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px"><span class="dim mono" id="vrt" style="margin-right:auto;align-self:center"></span><button class="btn" data-act="vrx">Abbrechen</button></div>');
- var c=$('#vrc'),x=c.getContext('2d');Promise.all([fonts(),loadLogo()]).then(function(r){if(!$('#vrc'))return;var SC=o.make(r[1]),tot=SC.reduce(function(a,s){return a+s[0]},0),st=c.captureStream(30),mr=new MediaRecorder(st,{mimeType:mt,videoBitsPerSecond:8e6}),parts=[];
+ var c=$('#vrc'),x=c.getContext('2d');Promise.all([fonts(),loadLogo(),imgs()]).then(function(r){if(!$('#vrc'))return;var SC=o.make(r[1]),tot=SC.reduce(function(a,s){return a+s[0]},0),st=c.captureStream(30),mr=new MediaRecorder(st,{mimeType:mt,videoBitsPerSecond:8e6}),parts=[];
   REC={mr:mr,stop:false};mr.ondataavailable=function(e){if(e.data&&e.data.size)parts.push(e.data)};
   mr.onstop=function(){st.getTracks().forEach(function(t){t.stop()});if(REC&&REC.stop){REC=null;return}REC=null;var b=new Blob(parts,{type:mt.split(';')[0]}),u=URL.createObjectURL(b),ext=mt.indexOf('mp4')>=0?'mp4':'webm',fn=o.fn+'.'+ext;
    var a=document.createElement('a');a.href=u;a.download=fn;document.body.appendChild(a);a.click();setTimeout(function(){a.parentNode.removeChild(a);URL.revokeObjectURL(u)},4000);
@@ -80,6 +84,6 @@ ACT.filmvid=function(d){recordFilm(d&&d.ym)};
 var aw=VIEW.ausw;VIEW.ausw=function(){var h=aw.apply(this,arguments),m=/data-act="film" data-ym="([0-9-]+)"/.exec(h);if(!m||!mime())return h;return h.replace('▶ Monat als Film</button>','▶ Monat als Film</button><button class="btn sm" data-act="filmvid" data-ym="'+m[1]+'">Als Video speichern</button>')};
 /* und im Film selbst */
 var of=window.openFilm;window.openFilm=function(ym){of.apply(this,arguments);var c=$('#film .fctl');if(c&&mime()&&!c.querySelector('[data-act="filmvid2"]')){var b=document.createElement('button');b.className='btn sm ghost';b.setAttribute('data-act','filmvid2');b.textContent='Als Video';c.insertBefore(b,c.lastChild)}FYM=ym};
-window.filmKit={W:W,H:H,C:C,F:F,ease:ease,rr:rr,spaced:spaced,paint:paint,fonts:fonts,loadLogo:loadLogo,mime:mime,record:recordScenes};
+window.filmKit={W:W,H:H,C:C,F:F,ease:ease,rr:rr,spaced:spaced,paint:paint,fonts:fonts,loadLogo:loadLogo,imgs:imgs,mime:mime,record:recordScenes};
 var FYM=null;ACT.filmvid2=function(){var y=FYM;ACT.flx();setTimeout(function(){recordFilm(y)},200)};
 })();

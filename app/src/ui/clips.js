@@ -51,44 +51,46 @@ function chip(x,t,s,X,Y,col,d){A(x,t,d,.6);x.font='600 28px '+F.m;var w=x.measur
 function outro(a,b,lg){return [3.8,function(x,t){x.textAlign='center';A(x,t,0,.6);x.fillStyle=C.sig;x.font='600 30px '+F.m;spaced(x,a,W/2,400,10,true);head(x,t,b,620,220,C.ink,.25,true);logoAt(x,lg,t,.9,690,90)}]}
 
 /* ---------- Begrüßung ---------- */
+/* Szene mit Hintergrundbild (Name aus der Bildwelt, filmrec.js zeichnet es) */
+function im(n,sc){sc.img=n;return sc}
 function greetScenes(g,lg){var SC=[];
- SC.push([4.4,function(x,t){logoAt(x,lg,t,0,200,84);kick(x,t,'Shopfloor 06:45 · KW '+g.kw,380,true);
-  head(x,t,g.hi.toUpperCase(),580,190,C.ink,.25,true);head(x,t,'LIEBES TEAM.',770,190,C.sig,.55,true);line(x,t,g.date,860,1.1,C.dim,'500 34px '+F.m,true)}]);
- if(g.work)SC.push([4.6,function(x,t){kick(x,t,'Heute im Dienst',300);var s=String(cnt(t,g.pr,.2,1));head(x,t,s,600,300,C.ink,.1);
+ SC.push(im('steuer',[4.4,function(x,t){logoAt(x,lg,t,0,200,84);kick(x,t,'Shopfloor 06:45 · KW '+g.kw,380,true);
+  head(x,t,g.hi.toUpperCase(),580,190,C.ink,.25,true);head(x,t,'LIEBES TEAM.',770,190,C.sig,.55,true);line(x,t,g.date,860,1.1,C.dim,'500 34px '+F.m,true)}]));
+ if(g.work)SC.push(im('pers',[4.6,function(x,t){kick(x,t,'Heute im Dienst',300);var s=String(cnt(t,g.pr,.2,1));head(x,t,s,600,300,C.ink,.1);
   x.font='800 300px '+F.d;var w=x.measureText(s).width;A(x,t,.4,.6);x.fillStyle=C.mute;x.font='800 120px '+F.d;x.fillText('/ '+g.crew,L0+w+30,600);
   for(var i=0;i<g.crew;i++){var e=ease((t-.6-i*.07)/.5),X=L0+i*92+30,Y=740;x.globalAlpha=e;x.beginPath();x.arc(X,Y,26*(.85+.15*e),0,Math.PI*2);
    if(i<g.pr){x.fillStyle=C.sig;x.fill()}else{x.strokeStyle=C.mute;x.lineWidth=3;x.stroke()}}
-  if(g.mod)line(x,t,'Es moderiert '+g.mod,880,1.3)}]);
- if(g.yN)SC.push([6.6,function(x,t){kick(x,t,g.yLab+' in Zahlen',260);line(x,t,g.yDate,320,.15,C.dim,'500 30px '+F.m);grid(x,t,g.yN,700,.3)}]);
- if(g.si)SC.push([4.6,function(x,t){kick(x,t,'Arbeitssicherheit',300);head(x,t,String(cnt(t,g.si.days,.2,1.4)),610,320,C.ok,.1);
+  if(g.mod)line(x,t,'Es moderiert '+g.mod,880,1.3)}]));
+ if(g.yN)SC.push(im('halle',[6.6,function(x,t){kick(x,t,g.yLab+' in Zahlen',260);line(x,t,g.yDate,320,.15,C.dim,'500 30px '+F.m);grid(x,t,g.yN,700,.3)}]));
+ if(g.si)SC.push(im('lager',[4.6,function(x,t){kick(x,t,'Arbeitssicherheit',300);head(x,t,String(cnt(t,g.si.days,.2,1.4)),610,320,C.ok,.1);
   line(x,t,g.si.since?'Tage seit dem letzten Unfall':'Tage ohne Unfall erfasst',700,.6,C.ink,'600 44px '+F.b);
-  line(x,t,g.si.mon+': '+g.si.ok+' unfallfrei · '+g.si.bei+(g.si.bei===1?' Beinaheunfall':' Beinaheunfälle'),790,1,C.dim)}]);
- if(g.today.length)SC.push([5.6,function(x,t){kick(x,t,'Heute',260);head(x,t,'DAS STEHT AN.',420,150,C.ink,.1);
+  line(x,t,g.si.mon+': '+g.si.ok+' unfallfrei · '+g.si.bei+(g.si.bei===1?' Beinaheunfall':' Beinaheunfälle'),790,1,C.dim)}]));
+ if(g.today.length)SC.push(im('steuer',[5.6,function(x,t){kick(x,t,'Heute',260);head(x,t,'DAS STEHT AN.',420,150,C.ink,.1);
   g.today.forEach(function(r,i){var y=560+i*92,d=.5+i*.2,e=ease((t-d)/.7);x.globalAlpha=e;x.fillStyle=C.track;x.fillRect(L0,y+30,(R0-L0)*e,2);
-   x.fillStyle=C.dim;x.font='600 26px '+F.m;spaced(x,r[0].toUpperCase(),L0,y,4);x.fillStyle=C.ink;x.font='700 46px '+F.b;x.textAlign='right';x.fillText(r[1].length>48?r[1].slice(0,47)+'…':r[1],R0,y+6);x.textAlign='left'})}]);
- SC.push(outro('SICHERHEIT ZUERST.','LOS GEHT’S.',lg));return SC}
+   x.fillStyle=C.dim;x.font='600 26px '+F.m;spaced(x,r[0].toUpperCase(),L0,y,4);x.fillStyle=C.ink;x.font='700 46px '+F.b;x.textAlign='right';x.fillText(r[1].length>48?r[1].slice(0,47)+'…':r[1],R0,y+6);x.textAlign='left'})}]));
+ SC.push(im('halle',outro('SICHERHEIT ZUERST.','LOS GEHT’S.',lg)));return SC}
 
 /* ---------- Tag in Zahlen ---------- */
 function dayScenes(d,lg){var t=todayIso(),lab=d===prevWork(t)?'GESTERN':d===t?'HEUTE':fmtD(d,{weekday:'long'}).toUpperCase(),o=S.tz[d]||{},N=nums(d);
  var mt=target(d,'ms_ist','ms_plan','ms_rueck'),kt=target(d,'ks_ist','ks_plan','ks_rueck'),m=+o.ms_ist||0,k=+o.ks_ist||0,mx=Math.max(m,k,mt||0,kt||0,1)*1.1;
  var pak=+o.we_pak||0,av=avg(d,'we_pak'),SC=[];
- SC.push([3.6,function(x,t){kick(x,t,'MUNSCH Logistik · Tag in Zahlen',380,true);head(x,t,lab,610,230,C.ink,.25,true);
-  line(x,t,fmtD(d,{weekday:'long',day:'numeric',month:'long',year:'numeric'}),700,.8,C.dim,'500 34px '+F.m,true)}]);
- SC.push([6.6,function(x,t){kick(x,t,'Auf einen Blick',300);grid(x,t,N,680,.2)}]);
- if(m||k||mt!=null||kt!=null)SC.push([5.4,function(x,t){kick(x,t,'Sägen',300);head(x,t,String(cnt(t,m+k,.2,1.2)),540,220,C.ink,.1);
+ SC.push(im('halle',[3.6,function(x,t){kick(x,t,'MUNSCH Logistik · Tag in Zahlen',380,true);head(x,t,lab,610,230,C.ink,.25,true);
+  line(x,t,fmtD(d,{weekday:'long',day:'numeric',month:'long',year:'numeric'}),700,.8,C.dim,'500 34px '+F.m,true)}]));
+ SC.push(im('lager',[6.6,function(x,t){kick(x,t,'Auf einen Blick',300);grid(x,t,N,680,.2)}]));
+ if(m||k||mt!=null||kt!=null)SC.push(im('prod',[5.4,function(x,t){kick(x,t,'Sägen',300);head(x,t,String(cnt(t,m+k,.2,1.2)),540,220,C.ink,.1);
   A(x,t,.5,.6);x.font='800 220px '+F.d;var w=x.measureText(String(m+k)).width;x.fillStyle=C.dim;x.font='500 44px '+F.b;x.fillText('Teile gesägt',L0+w+36,540);
-  bar(x,t,'Metall',m,mt,mx,C.met,720,.6);bar(x,t,'Kunststoff',k,kt,mx,C.kst,860,.85)}]);
- SC.push([4.8,function(x,t){kick(x,t,'Wareneingang',300);head(x,t,String(cnt(t,pak,.2,1.2)),600,280,C.ink,.1);A(x,t,.5,.6);x.font='800 280px '+F.d;var w=x.measureText(String(pak)).width;x.fillStyle=C.dim;x.font='500 44px '+F.b;x.fillText('Pakete gebucht',L0+w+36,600);
+  bar(x,t,'Metall',m,mt,mx,C.met,720,.6);bar(x,t,'Kunststoff',k,kt,mx,C.kst,860,.85)}]));
+ SC.push(im('lager',[4.8,function(x,t){kick(x,t,'Wareneingang',300);head(x,t,String(cnt(t,pak,.2,1.2)),600,280,C.ink,.1);A(x,t,.5,.6);x.font='800 280px '+F.d;var w=x.measureText(String(pak)).width;x.fillStyle=C.dim;x.font='500 44px '+F.b;x.fillText('Pakete gebucht',L0+w+36,600);
   if(av!=null&&av>0){var p=Math.round((pak-av)/av*100);chip(x,t,(p>0?'+':'')+p+' % zum Ø der letzten 20 Arbeitstage',L0,720,p>=0?C.ok:C.warn,1)}
-  line(x,t,(+o.we_gbpal||0)+' GB / Pal',840,1.3)}]);
- SC.push(outro('DANKE, TEAM.','WEITER SO.',lg));return SC}
+  line(x,t,(+o.we_gbpal||0)+' GB / Pal',840,1.3)}]));
+ SC.push(im('halle',outro('DANKE, TEAM.','WEITER SO.',lg)));return SC}
 
 /* ---------- Abspielen in der App ---------- */
 var PL=null;
 function play(make,rec){closeClip();var c=document.createElement('div');c.id='clip';c.setAttribute('role','dialog');c.setAttribute('aria-label','Film');
  c.innerHTML='<canvas width="'+W+'" height="'+K.H+'"></canvas><div class="cl-ctl"><button class="btn sm ghost" data-act="clrec">Als Video speichern</button><button class="btn sm" data-act="clx">Schließen</button></div>';
  document.body.appendChild(c);var x=c.querySelector('canvas').getContext('2d');
- Promise.all([K.fonts(),K.loadLogo()]).then(function(r){if(!$('#clip'))return;var SC=make(r[1]),tot=SC.reduce(function(a,s){return a+s[0]},0),t0=performance.now();PL={rec:rec,raf:0,end:0};
+ Promise.all([K.fonts(),K.loadLogo(),K.imgs()]).then(function(r){if(!$('#clip'))return;var SC=make(r[1]),tot=SC.reduce(function(a,s){return a+s[0]},0),t0=performance.now();PL={rec:rec,raf:0,end:0};
   (function f(){if(!PL||!$('#clip'))return;var T=(performance.now()-t0)/1000;K.paint(x,SC,Math.min(T,tot-.36));if(T>=tot){PL.end=setTimeout(closeClip,1500);return}PL.raf=requestAnimationFrame(f)})()});
  c.addEventListener('pointermove',function(){c.classList.add('ui');clearTimeout(c._t);c._t=setTimeout(function(){c.classList.remove('ui')},2200)})}
 function closeClip(){if(PL){cancelAnimationFrame(PL.raf);clearTimeout(PL.end)}PL=null;var c=$('#clip');if(c){c.classList.add('out');setTimeout(function(){c.remove()},300)}}

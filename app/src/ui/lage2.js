@@ -37,7 +37,7 @@ function gauge(v,n){var p=n?v/n:0,L=Math.PI*120;return '<svg class="lb-g" viewBo
 function chap(n,t){return '<div class="lb-chap"><span>'+n+'</span><b>'+t+'</b><i></i></div>'}
 /* Tageszeit im Bild: Farbe und Helligkeit des Fotos folgen der Uhrzeit */
 function tod(){var n=new Date(),h=n.getHours()+n.getMinutes()/60;
- if(h<5.5||h>=19.5)return ['nacht',.5,.55,-14];if(h<9)return ['morgen',1.1,1.18,-5];if(h<13)return ['tag',1.14,.96,0];if(h<15.5)return ['nachmittag',1.06,1.1,-7];return ['abend',.78,.92,-11]}
+ if(h<5.5||h>=19.5)return ['nacht',1.02,1,0];if(h<9)return ['morgen',1.1,1.18,-5];if(h<13)return ['tag',1.14,.96,0];if(h<15.5)return ['nachmittag',1.06,1.1,-7];return ['abend',1.12,1.05,0]}
 /* Daten im Bild: Markierungen an Fenster, Regal und Stapler (Lage im gespiegelten Foto, Prozent der Bildfläche) */
 function hs(x,y,k,v,go,tone,side){return '<button class="lb-hs'+(tone?' '+tone:'')+(side?' l':'')+'" style="left:'+x+'%;top:'+y+'%" data-act="go" data-go="'+go+'"><i></i><span><small>'+k+'</small><b data-lv="hs'+go+'">'+v+'</b></span></button>'}
 function stage(){var now=new Date(),t=todayIso(),h=now.getHours(),si=shiftInfo(now),fs=fachStat(),al=alerts(now),nx=isWork(t)?t:nextWork(t),pr=presentOn(nx).length;
