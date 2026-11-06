@@ -1,0 +1,26 @@
+/* ===== Heller Modus mit Bildwelt (html.is-light, gesetzt in polish.js) =====
+   Fotos werden zu gerahmten Bildkarten statt ins Dunkle auszulaufen; dunkle Leuchtschatten entfallen. */
+html.is-light .lb-hero,html.is-light .ph,html.is-light .hero.ph-own,html.is-light .lb-film,html.is-light.open .hero.ph-own{margin:-6px 0 0;border-radius:28px;box-shadow:0 40px 80px -46px rgba(40,24,10,.55),0 0 0 1px rgba(40,24,10,.06)}
+html.is-light .lb-film{margin-top:10px}
+html.is-light .lb-img,html.is-light .ph-img,html.is-light .lb-pimg{-webkit-mask-image:none;mask-image:none;inset:-6% 0 0 0}
+html.is-light .lb-hero::before,html.is-light .ph::before,html.is-light .hero.ph-own::before{-webkit-mask-image:none;mask-image:none}
+html.is-light .lb-hero::before{background:linear-gradient(90deg,rgba(8,9,11,.84) 0%,rgba(8,9,11,.5) 36%,rgba(8,9,11,.08) 66%,transparent 100%),linear-gradient(180deg,rgba(8,9,11,.4) 0%,transparent 22%,transparent 55%,rgba(8,9,11,.72) 100%)}
+html.is-light .ph::before,html.is-light .hero.ph-own::before{background:linear-gradient(90deg,rgba(8,9,11,.86) 0%,rgba(8,9,11,.55) 40%,rgba(8,9,11,.12) 75%,transparent 100%),linear-gradient(180deg,transparent 55%,rgba(8,9,11,.55) 100%)}
+html.is-light .lb-film::before{background:linear-gradient(90deg,rgba(8,9,11,.9) 0%,rgba(8,9,11,.66) 44%,rgba(8,9,11,.08) 80%)}
+html.is-light .lb-in{padding-left:40px}
+html.is-light .ph-in{padding-left:40px}
+html.is-light .hero.ph-own{padding:64px 40px 32px}
+/* Text in den Bildkarten bleibt hell, auch wenn die Seite hell ist */
+html.is-light .hero.ph-own .gr,html.is-light .hero.ph-own{color:#F6F1EB}
+html.is-light .hero.ph-own .dim,html.is-light .hero.ph-own span,html.is-light .hero.ph-own small,html.is-light .hero.ph-own p{color:#D9D0C6}
+html.is-light .hero.ph-own .btn{background:rgba(20,23,27,.6);color:#F6F1EB;border-color:rgba(255,236,220,.2)}
+/* keine dunklen Leuchtschatten auf hellem Grund */
+html.is-light .tile .v,html.is-light .ttl h1,html.is-light .clock b,html.is-light .tile .s,html.is-light .dim,html.is-light .hero .gr:not(.ph-own .gr){text-shadow:none}
+html.is-light .lb-chap span{-webkit-text-stroke-color:color-mix(in srgb,var(--signal) 80%,transparent)}
+@media (max-width:820px){
+ html.is-light .lb-hero,html.is-light .ph,html.is-light .hero.ph-own,html.is-light .lb-film{margin:-8px 0 0;border-radius:22px}
+ html.is-light .lb-in,html.is-light .ph-in{padding-left:18px;padding-right:18px}
+ html.is-light .hero.ph-own{padding:70px 18px 22px}
+}
+html.is-light.open .hero.ph-own{margin:-6px 0 0!important;border-radius:28px!important;overflow:hidden!important;box-shadow:0 40px 80px -46px rgba(40,24,10,.55),0 0 0 1px rgba(40,24,10,.06)!important}
+@media (max-width:820px){html.is-light.open .hero.ph-own{margin:-8px 0 0!important;border-radius:22px!important}}

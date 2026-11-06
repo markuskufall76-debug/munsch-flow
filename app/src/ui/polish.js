@@ -26,5 +26,8 @@ function layApply(){document.documentElement.classList.toggle('open',lay()==='op
 var adm=VIEW.adm;VIEW.adm=function(){var h=adm.apply(this,arguments),o=lay()==='open';
  return h+M.card('Seitengestaltung','<div class="seg"><button class="'+(o?'on':'')+'" data-act="layset" data-v="open">offen</button><button class="'+(o?'':'on')+'" data-act="layset" data-v="tiles">Kacheln</button></div><p class="dim" style="font-size:12.5px;margin:12px 0 0">Offen: Schrift und Zahlen stehen direkt auf dem Hintergrund, gegliedert durch Linien. Kacheln: jede Kennzahl und jeder Abschnitt in einem eigenen Kasten. Gilt für dieses Gerät.</p>')};
 ACT.layset=function(d){M.ls('mflow.layout',d.v);layApply();render()};
+/* Heller Modus erkennen (Einstellung oder System), Gestaltung in hell.css */
+function isLight(){var r=document.documentElement,g=getComputedStyle(r).getPropertyValue('--ground').trim().toLowerCase();r.classList.toggle('is-light',g>'#8')}
+isLight();new MutationObserver(isLight).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});try{matchMedia('(prefers-color-scheme: light)').addEventListener('change',isLight)}catch(e){}
 var t=0;window.addEventListener('resize',function(){clearTimeout(t);t=setTimeout(function(){sync();fit()},120)});
 })();
