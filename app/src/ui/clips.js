@@ -7,6 +7,7 @@
 (function(){
 'use strict';
 var K=window.filmKit;if(!K)return;
+var M=window.MF,RM=M.RM;
 var W=K.W,C=K.C,F=K.F,ease=K.ease,rr=K.rr,spaced=K.spaced,L0=170,R0=W-170;
 var MN=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 
@@ -87,11 +88,12 @@ function dayScenes(d,lg){var t=todayIso(),lab=d===prevWork(t)?'GESTERN':d===t?'H
 
 /* ---------- Abspielen in der App ---------- */
 var PL=null;
-function play(make,rec){closeClip();var c=document.createElement('div');c.id='clip';c.setAttribute('role','dialog');c.setAttribute('aria-label','Film');
- c.innerHTML='<canvas width="'+W+'" height="'+K.H+'"></canvas><div class="cl-ctl"><button class="btn sm ghost" data-act="clrec">Als Video speichern</button><button class="btn sm" data-act="clx">Schließen</button></div>';
+function play(make,rec,o){o=o||{};closeClip();var c=document.createElement('div');c.id='clip';if(o.cls)c.className=o.cls;c.setAttribute('role','dialog');c.setAttribute('aria-label','Film');
+ c.innerHTML='<canvas width="'+W+'" height="'+K.H+'"></canvas><div class="cl-ctl">'+(rec?'<button class="btn sm ghost" data-act="clrec">Als Video speichern</button>':'')+'<button class="btn sm" data-act="clx">'+(o.skip?'Überspringen':'Schließen')+'</button></div>';
+ if(o.skip)c.addEventListener('pointerdown',function(e){if(!e.target.closest('button'))closeClip()});
  document.body.appendChild(c);var x=c.querySelector('canvas').getContext('2d');
  Promise.all([K.fonts(),K.loadLogo(),K.imgs()]).then(function(r){if(!$('#clip'))return;var SC=make(r[1]),tot=SC.reduce(function(a,s){return a+s[0]},0),t0=performance.now();PL={rec:rec,raf:0,end:0};
-  (function f(){if(!PL||!$('#clip'))return;var T=(performance.now()-t0)/1000;K.paint(x,SC,Math.min(T,tot-.36));if(T>=tot){PL.end=setTimeout(closeClip,1500);return}PL.raf=requestAnimationFrame(f)})()});
+  (function f(){if(!PL||!$('#clip'))return;var T=(performance.now()-t0)/1000;K.paint(x,SC,Math.min(T,tot-.36));if(T>=tot){PL.end=setTimeout(closeClip,o.end!=null?o.end:1500);return}PL.raf=requestAnimationFrame(f)})()});
  c.addEventListener('pointermove',function(){c.classList.add('ui');clearTimeout(c._t);c._t=setTimeout(function(){c.classList.remove('ui')},2200)})}
 function closeClip(){if(PL){cancelAnimationFrame(PL.raf);clearTimeout(PL.end)}PL=null;var c=$('#clip');if(c){c.classList.add('out');setTimeout(function(){c.remove()},300)}}
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&$('#clip')){e.stopPropagation();closeClip()}},true);
@@ -127,6 +129,56 @@ function weekRec(){var w=weekData();K.record({title:'Wochenrückblick als Video'
 ACT.clweek=week;ACT.clweekv=weekRec;window.playWeek=week;
 /* Freitags 14:30 bis 14:40: der Werkstattmonitor spielt den Wochenfilm einmal von selbst */
 setInterval(function(){if(!$('#mon')||$('#clip'))return;var n=new Date();if(n.getDay()!==5)return;var m=n.getHours()*60+n.getMinutes();if(m<870||m>880)return;var k='mflow.wfilm',t=todayIso();try{if(localStorage.getItem(k)===t)return;localStorage.setItem(k,t)}catch(e){}week()},20000);
+
+/* ---------- Persönlicher Begrüßungsfilm ----------
+   Einmal am Tag bei der ersten Anmeldung, statt der Einblendung „Guten Tag, Name“. Etwa 7 Sekunden, Tippen überspringt.
+   Zeigt nur, was die Person auch auf „Mein Tag“ sieht: Bereich, Ziel, Vortrag, neue Nachrichten, eigene Maßnahmen,
+   eigene nächste Abwesenheit. Nie Krankmeldungen anderer, nie Gesprächstermine.
+   Nicht an Station, Bereichs-Tablet und im ruhigen Modus. Je Person abschaltbar (Einstellungen). */
+var PIMG={'Wareneingang':'lager','WEP':'pumpe','Säge Metall':'prod','Säge Kunststoff':'prod','Vorkommissionierung':'lager','Materialwagen':'lager','Werksverkehr':'halle','Werk 1':'lager','Werk 2':'halle','Teamleitung':'steuer'};
+function pKey(){return 'mflow.pf.'+String(S.user||'').replace(/[^A-Za-z0-9]/g,'')}
+function pOn(){return (M.ls(pKey()+'.on')||'1')==='1'}
+function pDue(){var t=todayIso();return !!S.user&&pOn()&&!RM&&!document.documentElement.classList.contains('lite')&&!M.ls('mflow.area')&&!(window.isStation&&isStation())&&!(window.me&&me()&&me().station)&&M.ls(pKey())!==t&&(!navigator.webdriver||window.__pf)}
+function persData(){var t=todayIso(),u=S.user,h=new Date().getHours(),w=isWork(t),plan0=(S.plan[t]||{})[u],plan=plan0||(window.myArea?myArea():null),ab=absentOn(t).filter(function(v){return v.emp===u})[0];
+ var hi=(h<11?'Guten Morgen':h<17?'Hallo':'Guten Abend')+',',img=ab?'pers':PIMG[plan]||'steuer',big='',small='';
+ if(ab){big='Heute: '+ab.type+'.';small='Bis '+fmtD(ab.d1,{weekday:'long',day:'numeric',month:'long'})+'. Gute Erholung.'}
+ else if(!w){big='Heute frei.';small='Nächster Arbeitstag: '+fmtD(nextWork(t),{weekday:'long',day:'numeric',month:'long'})+'.'}
+ else if(plan){big=plan+'.';small=plan0?'Dort bist du heute eingeteilt.':'Dein Bereich.';
+  var sw=plan==='Säge Metall'?'ms':plan==='Säge Kunststoff'?'ks':null,o=S.tz[t]||{};
+  if(sw&&o[sw+'_plan']!=null){var lt=tzLatest(prevWork(t)),z=(+o[sw+'_plan']||0)+(+((lt&&S.tz[lt]||{})[sw+'_rueck'])||0);small='Ziel heute: '+z+' Teile.'}
+  if(plan==='Teamleitung'){var al=alerts(new Date()).length;small=al?al+(al===1?' Hinweis':' Hinweise')+' in der Warnlage.':'Alles ruhig in der Warnlage.'}}
+ else{big='Schön, dass du da bist.';small=shiftInfo(new Date()).txt+'.'}
+ var P=[],vt=(window._presToday?_presToday(t):[]).filter(function(x){return x.n===u});
+ vt.forEach(function(x){P.push(['Shopfloor 06:45','Du hältst den Vortrag: '+x.t+'.'])});
+ var pm=window.pmKey?(S.funk[pmKey(u)]||[]).filter(function(m){return m.by!==u&&m.ts>(+(S.ui.pmr||0))}):[];
+ if(pm.length)P.push(['Für dich',pm.length===1?'Eine neue Nachricht von '+pm[0].by+'.':pm.length+' neue Nachrichten.']);
+ var ms=(S.mass||[]).concat((S.s5&&S.s5.mass)||[]).filter(function(m){return !m.done&&m.wer===u});
+ if(ms.length)P.push(['Deine Maßnahmen',ms.length===1?'Eine offene Maßnahme: '+ms[0].txt+'.':ms.length+' offene Maßnahmen.']);
+ if(!ab){var nx=(S.vacs||[]).filter(function(v){return v.emp===u&&v.d0>t&&v.st!=='abgelehnt'}).sort(function(a,b){return a.d0<b.d0?-1:1})[0];
+  if(nx&&(new Date(nx.d0+'T12:00:00')-new Date(t+'T12:00:00'))/864e5<=7)P.push(['Bald',nx.type+' ab '+fmtD(nx.d0,{weekday:'long',day:'numeric',month:'long'})+'.'])}
+ return {hi:hi,name:firstName(u),img:img,big:big,small:small,P:P.slice(0,2),date:fmtD(t,{weekday:'long',day:'numeric',month:'long'})}}
+/* Als Bildschirm-Animation (nicht Leinwand): passt sich jedem Format an, Schrift bleibt scharf, startet ohne Ladezeit */
+var PF=null;
+function pfHtml(d){var hn=d.img==='halle'&&window.MF_SUN&&MF_SUN.dark()?'nacht':d.img,sc=[];
+ sc.push('<div class="pf-s pf-1"><div class="pf-lg">'+logoSVG({h:44})+'</div><div class="pf-k">'+esc(d.date)+'</div><h2><span><i>'+esc(d.hi)+'</i></span><span class="o"><i>'+esc(d.name)+'.</i></span></h2></div>');
+ sc.push('<div class="pf-s pf-2"><div class="pf-k">Dein Tag</div><h2 class="pf-big"><span><i>'+esc(d.big)+'</i></span></h2><p><span><i>'+esc(d.small)+'</i></span></p></div>');
+ if(d.P.length)sc.push('<div class="pf-s pf-3">'+d.P.map(function(x,i){return '<div class="pf-it" style="--d:'+(i*.32)+'s"><div class="pf-k">'+esc(x[0])+'</div><p><span><i>'+esc(x[1])+'</i></span></p></div>'}).join('')+'</div>');
+ return {n:sc.length,h:'<div class="pf-bg" data-img="'+hn+'"><div class="bn-p"></div></div><div class="pf-sh"></div><div class="pf-lb t"></div><div class="pf-lb b"></div>'+sc.join('')+'<div class="pf-bar"><i></i></div><button class="pf-x" data-act="pfx">Überspringen</button>'}}
+function pfClose(){if(!PF)return;PF.T.forEach(clearTimeout);var e=PF.el;PF=null;e.classList.add('out');setTimeout(function(){e.remove()},700)}
+function personal(force){if(!force&&!pDue())return;M.ls(pKey(),todayIso());if(PF)pfClose();var d=persData(),H=pfHtml(d),el=document.createElement('div');el.id='pf';el.setAttribute('role','dialog');el.setAttribute('aria-label','Persönliche Begrüßung');el.innerHTML=H.h;document.body.appendChild(el);
+ var D=[3000,3000,2600].slice(0,H.n),tot=D.reduce(function(a,b){return a+b},0),S2=el.querySelectorAll('.pf-s'),T=[],acc=0;el.style.setProperty('--tot',tot+'ms');
+ S2.forEach(function(x,i){T.push(setTimeout(function(){S2.forEach(function(y){y.classList.toggle('on',y===x)});if(i)S2[i-1].classList.add('gone')},acc+(i?0:120)));acc+=D[i]});
+ T.push(setTimeout(pfClose,tot));PF={el:el,T:T};requestAnimationFrame(function(){el.classList.add('go')});
+ el.addEventListener('pointerdown',function(e){e.preventDefault();pfClose()})}
+ACT.pfx=pfClose;document.addEventListener('keydown',function(e){if(PF&&(e.key==='Escape'||e.key===' '||e.key==='Enter')){e.preventDefault();pfClose()}},true);
+window.playPersonal=function(){personal(true)};ACT.pfnow=function(){personal(true)};
+/* statt der Einblendung „Guten Tag, Name“: Klasse vorab setzen, damit die Einblendung nicht doppelt erscheint */
+var pfDone=false;function pfMark(){document.documentElement.classList.toggle('pf-due',pDue())}
+setInterval(pfMark,1000);document.addEventListener('pointerdown',pfMark,true);
+var arP=window.afterRender;window.afterRender=function(p){if(arP)arP(p);if(pfDone)return;pfDone=true;if(pDue())setTimeout(function(){personal(false);document.documentElement.classList.remove('pf-due')},60)};
+var admP=VIEW.adm;VIEW.adm=function(){var h=admP.apply(this,arguments),on=pOn();
+ return h+M.card('Persönliche Begrüßung','<div class="seg"><button class="'+(on?'on':'')+'" data-act="pfset" data-v="1">an</button><button class="'+(on?'':'on')+'" data-act="pfset" data-v="0">aus</button></div><div style="margin-top:14px"><button class="btn" data-act="pfnow">Jetzt abspielen</button></div><p class="dim" style="font-size:12.5px;margin:12px 0 0">Ein kurzer Film bei der ersten Anmeldung des Tages: dein Bereich, dein Ziel und was heute für dich ansteht. Tippen überspringt. Gilt für dich, nicht an Station und Bereichs-Tablets.</p>')};
+ACT.pfset=function(d){M.ls(pKey()+'.on',d.v);render()};
 window.playGreeting=greet;window.playDay=day;window.clipData={greet:greetData,day:nums};
 
 /* ---------- Knöpfe ---------- */

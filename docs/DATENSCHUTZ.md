@@ -38,6 +38,7 @@ Nicht gespeichert werden: Standort, Kamera, Mikrofon, Arbeitszeiten (Kommen/Gehe
 - Die Station im Bereich bucht mit Namen, damit Rückfragen zu einem Fach oder einer Runde möglich sind. Eine Auswertung „wer hat wie viel gebucht“ gibt es nicht.
 - Die Nutzungszählung kennt keine Person.
 - Krankheitsgründe werden nicht erfasst.
+- Die **persönliche Begrüßung** (kurzer Film bei der ersten Anmeldung des Tages) zeigt nur der angemeldeten Person, was sie ohnehin auf „Mein Tag“ sieht: eigener Bereich, Ziel, eigener Vortrag, neue Nachrichten an sie, eigene Maßnahmen, eigene nächste Abwesenheit. Nie Daten anderer Personen, nie Gesprächstermine, nie Krankmeldungen. Sie läuft nicht an Station und Bereichs-Tablets und ist je Person abschaltbar.
 
 ## 4. Rechte und Schutz
 
