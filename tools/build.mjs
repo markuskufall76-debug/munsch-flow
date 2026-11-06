@@ -16,8 +16,8 @@ const parts = {
   mfdata: read('app/src/legacy/mfdata.js'),
   core: read('app/src/legacy/core.js') + '\n' + read('app/src/core/rules-ext.js'),
   sync: read('app/src/legacy/sync.js') + '\n' + read('app/src/core/sync-ext.js') + '\n' + read('app/src/legacy/excel.js'),
-  app: ['app.js', 'shopfloor.js', 'station.js', 'pages.js', 'today.js', 'extras.js', 'cinema.js', 'cinema2.js', 'film.js', 'stage.js', 'mine.js', 'forecast.js', 'halle.js', 'moments.js', 'flow.js', 'filmrec.js', 'clips.js', 'kino.js', 'focus.js', 'care.js', 'pilot.js', 'lage2.js', 'polish.js'].map((f) => read('app/src/ui/' + f)).join('\n;\n'),
-  css: ['app.css', 'modules.css', 'cinema.css', 'cinema2.css', 'stage.css', 'halle.css', 'moments.css', 'flow.css', 'focus.css', 'care.css', 'clips.css', 'kino.css', 'open.css', 'lage2.css', 'polish.css'].map((f) => read('app/src/ui/' + f)).join('\n'),
+  app: ['app.js', 'shopfloor.js', 'station.js', 'pages.js', 'today.js', 'extras.js', 'cinema.js', 'cinema2.js', 'film.js', 'stage.js', 'mine.js', 'forecast.js', 'halle.js', 'moments.js', 'flow.js', 'filmrec.js', 'clips.js', 'kino.js', 'focus.js', 'care.js', 'pilot.js', 'lage2.js', 'pagehero.js', 'polish.js'].map((f) => read('app/src/ui/' + f)).join('\n;\n'),
+  css: ['app.css', 'modules.css', 'cinema.css', 'cinema2.css', 'stage.css', 'halle.css', 'moments.css', 'flow.css', 'focus.css', 'care.css', 'clips.css', 'kino.css', 'open.css', 'lage2.css', 'pagehero.css', 'polish.css'].map((f) => read('app/src/ui/' + f)).join('\n'),
 };
 // Bilder (app/src/img/*.webp) als data:-URL in die Gestaltung: url(IMG:name)
 parts.css = parts.css.replace(/url\(IMG:([a-z0-9-]+)\)/g, (_, n) => `url(data:image/webp;base64,${readFileSync(R('app/src/img/' + n + '.webp')).toString('base64')})`);
