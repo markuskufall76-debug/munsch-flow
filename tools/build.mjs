@@ -16,9 +16,11 @@ const parts = {
   mfdata: read('app/src/legacy/mfdata.js'),
   core: read('app/src/legacy/core.js') + '\n' + read('app/src/core/rules-ext.js'),
   sync: read('app/src/legacy/sync.js') + '\n' + read('app/src/core/sync-ext.js') + '\n' + read('app/src/legacy/excel.js'),
-  app: ['app.js', 'shopfloor.js', 'station.js', 'pages.js', 'today.js', 'extras.js', 'cinema.js', 'cinema2.js', 'film.js', 'stage.js', 'mine.js', 'forecast.js', 'halle.js', 'moments.js', 'flow.js', 'filmrec.js', 'clips.js', 'kino.js', 'focus.js', 'care.js', 'pilot.js', 'polish.js'].map((f) => read('app/src/ui/' + f)).join('\n;\n'),
-  css: ['app.css', 'modules.css', 'cinema.css', 'cinema2.css', 'stage.css', 'halle.css', 'moments.css', 'flow.css', 'focus.css', 'care.css', 'clips.css', 'kino.css', 'open.css', 'polish.css'].map((f) => read('app/src/ui/' + f)).join('\n'),
+  app: ['app.js', 'shopfloor.js', 'station.js', 'pages.js', 'today.js', 'extras.js', 'cinema.js', 'cinema2.js', 'film.js', 'stage.js', 'mine.js', 'forecast.js', 'halle.js', 'moments.js', 'flow.js', 'filmrec.js', 'clips.js', 'kino.js', 'focus.js', 'care.js', 'pilot.js', 'lage2.js', 'polish.js'].map((f) => read('app/src/ui/' + f)).join('\n;\n'),
+  css: ['app.css', 'modules.css', 'cinema.css', 'cinema2.css', 'stage.css', 'halle.css', 'moments.css', 'flow.css', 'focus.css', 'care.css', 'clips.css', 'kino.css', 'open.css', 'lage2.css', 'polish.css'].map((f) => read('app/src/ui/' + f)).join('\n'),
 };
+// Bilder (app/src/img/*.webp) als data:-URL in die Gestaltung: url(IMG:name)
+parts.css = parts.css.replace(/url\(IMG:([a-z0-9-]+)\)/g, (_, n) => `url(data:image/webp;base64,${readFileSync(R('app/src/img/' + n + '.webp')).toString('base64')})`);
 const BUILD = '7-' + createHash('sha256').update(Object.values(parts).join('\0')).digest('hex').slice(0, 10);
 
 // Klassische Skripte teilen sich den globalen Namensraum. esbuild ohne "format" lässt Namen auf oberster Ebene
@@ -34,7 +36,7 @@ const js = {
 };
 const css = await min(parts.css, 'css');
 
-const FONTS = 'https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;600;700;800&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap';
+const FONTS = 'https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;600;700;800&family=Instrument+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap';
 function page(server) {
   const scripts = [server ? 'window.MF_SERVER=1;' : '', js.build, js.barcode, js.mfdata, js.core, js.sync, js.app].filter(Boolean);
   const html = `<!doctype html>
