@@ -46,7 +46,7 @@ function av(n,c){return '<span class="sf-av'+(c?' '+c:'')+'" title="'+esc(n)+'">
 
 /* ---------- Folien ---------- */
 function sOpen(t,rd){var h=new Date().getHours(),pr=presentOn(t).length;
- return '<div class="sf-open"><div class="sf-lg">'+logoSVG({h:72})+'</div><h2 class="sf-g">'+(h<11?'Guten Morgen':h<17?'Guten Tag':'Guten Abend')+', <em>liebes Team.</em></h2><div class="sf-meta">Shopfloor 06:45 · '+esc(fmtD(t,{weekday:'long',day:'numeric',month:'long'}))+' · KW '+kw(t)+'</div><div class="sf-mod">Es moderiert '+av(modOf(rd,t))+' <b>'+esc(modOf(rd,t))+'</b></div><p class="lead">'+(isWork(t)?pr+' von '+CREW.length+' im Dienst. ':'')+'Sicherheit zuerst, dann der Rest.</p>'
+ return '<div class="sf-open"><div class="sf-lg">'+logoSVG({h:72})+'</div><h2 class="sf-g">'+(h<11?'Guten Morgen':h<17?'Hallo':'Guten Abend')+', <em>Team.</em></h2><div class="sf-meta">Shopfloor 06:45 · '+esc(fmtD(t,{weekday:'long',day:'numeric',month:'long'}))+' · KW '+kw(t)+'</div><div class="sf-mod">Es moderiert '+av(modOf(rd,t))+' <b>'+esc(modOf(rd,t))+'</b></div><p class="lead">'+(isWork(t)?pr+' von '+CREW.length+' im Dienst. ':'')+'Sicherheit zuerst, dann der Rest.</p>'
   +(rd.t0?'<button class="btn xl" data-act="rpi" data-i="1">Weiter zur Anwesenheit</button>':'<button class="btn pri xl" data-act="rstart">Shopfloor eröffnen</button>')+'</div>'}
 function sAnw(t){var w=isWork(t),pr=presentOn(t),ab=absentOn(t),nx=nextWork(t),abn=absentOn(nx),W=who(rDay()),low=w&&pr.length<MIN_STAFF;
  var cards=CREW.map(function(c){var v=ab.filter(function(x){return x.emp===c.n})[0],here=w&&!v;return '<div class="sf-pc'+(here?'':' off')+(W[c.n]?' dabei':'')+'">'+av(c.n,'big')+'<b>'+esc(c.n)+'</b><span>'+(!w?'frei':here?'im Dienst':esc(v.type)+' bis '+dd(v.d1))+'</span></div>'}).join('');
