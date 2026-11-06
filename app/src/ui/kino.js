@@ -71,8 +71,9 @@ function stop(){run=false;cancelAnimationFrame(raf)}
 function expo(){var k=Math.min(1,(performance.now()-EX.t0)/EX.d),e=1-Math.pow(1-k,3);return EX.from+(EX.to-EX.from)*e}
 function ramp(from,to,d){EX.from=from;EX.to=to;EX.t0=performance.now();EX.d=d}
 function pulse(){if(RM||!run)return;ramp(1.28,1,1400)}
+function flash(big){if(RM||!run)return;ramp(big?1.9:1.55,1,big?3400:2400)}
 /* Sonnenstand aus der Uhrzeit: 06:00 links, 15:00 rechts */
-function sun(){var n=new Date(),h=n.getHours()+n.getMinutes()/60;return Math.max(0,Math.min(1,(h-6)/9))}
+function sun(){if(window.MF_SUN)return MF_SUN.frac();var n=new Date(),h=n.getHours()+n.getMinutes()/60;return Math.max(0,Math.min(1,(h-6)/9))}
 addEventListener('pointermove',function(e){if(e.pointerType!=='mouse')return;PT.tx=e.clientX/innerWidth-.5;PT.ty=-(e.clientY/innerHeight-.5)},{passive:true});
 var on=null;
 function apply(force){var w=want();if(w===on&&!force)return;on=w;if(w)start();else{stop();if(root.classList.contains('kino'))root.classList.remove('kino');if(cv){cv.remove();cv=null;gl=null}}vShow(w)}
@@ -101,6 +102,6 @@ ACT.kinodel=function(){tx('readwrite',function(s){return s.delete('bg')}).catch(
 /* ---------- Start und Beobachtung ---------- */
 var mo=new MutationObserver(function(){apply()});mo.observe(root,{attributes:true,attributeFilter:['class','data-theme']});
 var rt=0;addEventListener('resize',function(){clearTimeout(rt);rt=setTimeout(function(){if(gl&&RM)draw(52)},150)});
-window.kino={pulse:pulse,ramp:ramp,mood:function(i){tgt=MOOD[i];cur=null;mdT=1e15},apply:apply,state:function(){return {run:run,gl:!!gl,scale:scale,vid:!!vid}}};
+window.kino={flash:flash,pulse:pulse,ramp:ramp,mood:function(i){tgt=MOOD[i];cur=null;mdT=1e15},apply:apply,state:function(){return {run:run,gl:!!gl,scale:scale,vid:!!vid}}};
 vLoad();apply();
 })();

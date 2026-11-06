@@ -103,10 +103,35 @@ function dayOf(){var d=S.ui.page==='tz'&&S.ui.td||todayIso(),o=S.tz[d];return o&
 function day(d){d=d||dayOf();if(!d)return toast('Noch keine Tageszahlen erfasst');play(function(lg){return dayScenes(d,lg)},function(){dayRec(d)})}
 function dayRec(d){d=d||dayOf();if(!d)return toast('Noch keine Tageszahlen erfasst');K.record({title:'Tag in Zahlen als Video',sub:fmtD(d,{weekday:'long',day:'numeric',month:'long'}),fn:'MUNSCH-Tag-'+d,make:function(lg){return dayScenes(d,lg)}})}
 ACT.clgreet=greet;ACT.clgreetv=greetRec;ACT.clday=function(){day()};ACT.cldayv=function(){dayRec()};
+
+/* ---------- Die Woche in Zahlen ----------
+   Montag bis heute (bzw. Freitag), aus den Tageszahlen. Freitags 14:30 spielt der Werkstattmonitor den Film von selbst. */
+function weekData(){var t=todayIso(),x=new Date(t+'T12:00:00'),mo=addDays(t,-((x.getDay()+6)%7)),D=[];for(var i=0;i<5;i++){var d=addDays(mo,i);if(d>t)break;var o=S.tz[d];if(o&&Object.keys(o).length){var f=tzFn(o);D.push({d:d,pak:+o.we_pak||0,saw:f.gesaegt,milk:+o.milkrun||0,st:f.stoer})}}
+ var sum=function(k){return D.reduce(function(a,b){return a+b[k]},0)},best=D.slice().sort(function(a,b){return b.pak-a.pak})[0];
+ return {kw:kw(t),from:mo,to:D.length?D[D.length-1].d:t,D:D,pak:sum('pak'),saw:sum('saw'),milk:sum('milk'),st:sum('st'),best:best}}
+function dayBars(x,t,D,k,y,col,d0){var n=D.length,mx=Math.max.apply(null,D.map(function(r){return r[k]}).concat([1])),cw=Math.min(240,(R0-L0)/Math.max(n,1));
+ D.forEach(function(r,i){var X=L0+i*cw,e=ease((t-d0-i*.12)/.9),h=230*r[k]/mx*e;A(x,t,d0+i*.12,.4);x.fillStyle=C.track;var bw=Math.min(96,cw-70);rr(x,X,y-230,bw,230,8);x.fill();x.fillStyle=col;rr(x,X,y-h,bw,Math.max(4,h),8);x.fill();
+  x.fillStyle=C.ink;x.font='800 54px '+F.d;x.fillText(String(Math.round(r[k]*e)),X,y-h-18);x.fillStyle=C.dim;x.font='600 24px '+F.m;x.fillText(fmtD(r.d,{weekday:'short'}).toUpperCase(),X,y+40)})}
+function weekScenes(w,lg){var SC=[],q=w.D.length?Math.round(w.milk/(w.D.length*10)*100):0;
+ SC.push(im('steuer',[3.8,function(x,t){kick(x,t,'MUNSCH Logistik · Wochenrückblick',380,true);head(x,t,'DIE WOCHE.',610,230,C.ink,.25,true);line(x,t,'KW '+w.kw+' · '+fmtD(w.from,{day:'numeric',month:'long'})+' bis '+fmtD(w.to,{day:'numeric',month:'long'}),700,.8,C.dim,'500 34px '+F.m,true)}]));
+ if(w.D.length){
+  SC.push(im('lager',[5.6,function(x,t){kick(x,t,'Wareneingang',250);head(x,t,String(cnt(t,w.pak,.2,1.2)),470,200,C.ink,.1);A(x,t,.5,.6);x.font='800 200px '+F.d;var wd=x.measureText(String(w.pak)).width;x.fillStyle=C.dim;x.font='500 42px '+F.b;x.fillText('Pakete gebucht',L0+wd+32,470);dayBars(x,t,w.D,'pak',880,C.sig,.7)}]));
+  SC.push(im('prod',[5.6,function(x,t){kick(x,t,'Sägen',250);head(x,t,String(cnt(t,w.saw,.2,1.2)),470,200,C.ink,.1);A(x,t,.5,.6);x.font='800 200px '+F.d;var wd=x.measureText(String(w.saw)).width;x.fillStyle=C.dim;x.font='500 42px '+F.b;x.fillText('Teile gesägt',L0+wd+32,470);dayBars(x,t,w.D,'saw',880,C.met,.7)}]));
+  SC.push(im('halle',[4.8,function(x,t){kick(x,t,'Milkrun',300);head(x,t,String(cnt(t,q,.2,1.4)),620,300,q>=90?C.ok:C.ink,.1);A(x,t,.4,.6);x.font='800 300px '+F.d;var wd=x.measureText(String(q)).width;x.fillStyle=C.mute;x.font='800 120px '+F.d;x.fillText('%',L0+wd+20,620);line(x,t,w.milk+' von '+(w.D.length*10)+' Runden beendet',720,.8,C.ink,'600 44px '+F.b)}]));
+  SC.push(im('pumpe',[4.6,function(x,t){kick(x,t,'Störungen',300);head(x,t,String(cnt(t,w.st,.2,1.2)),620,300,w.st?C.warn:C.ok,.1);line(x,t,w.st?'Störungen und Abweichungen erfasst':'Keine Störung in dieser Woche',720,.7,C.ink,'600 44px '+F.b);
+   if(w.best){line(x,t,'Stärkster Tag: '+fmtD(w.best.d,{weekday:'long'})+' mit '+w.best.pak+' Paketen',810,1.1)}}]));
+ }
+ SC.push(im('nacht',outro('DANKE FÜR DIESE WOCHE.','SCHÖNES WOCHENENDE.',lg)));return SC}
+function week(){var w=weekData();play(function(lg){return weekScenes(w,lg)},weekRec)}
+function weekRec(){var w=weekData();K.record({title:'Wochenrückblick als Video',sub:'KW '+w.kw,fn:'MUNSCH-Woche-KW'+w.kw,make:function(lg){return weekScenes(w,lg)}})}
+ACT.clweek=week;ACT.clweekv=weekRec;window.playWeek=week;
+/* Freitags 14:30 bis 14:40: der Werkstattmonitor spielt den Wochenfilm einmal von selbst */
+setInterval(function(){if(!$('#mon')||$('#clip'))return;var n=new Date();if(n.getDay()!==5)return;var m=n.getHours()*60+n.getMinutes();if(m<870||m>880)return;var k='mflow.wfilm',t=todayIso();try{if(localStorage.getItem(k)===t)return;localStorage.setItem(k,t)}catch(e){}week()},20000);
 window.playGreeting=greet;window.playDay=day;window.clipData={greet:greetData,day:nums};
 
 /* ---------- Knöpfe ---------- */
 var ar=window.afterRender;window.afterRender=function(p){if(ar)ar(p);var v=!!K.mime();
  if(p==='runde'){var o=document.querySelector('.sf-open');if(o&&!o.querySelector('.cl-row')){var b=o.querySelector('.btn.xl');var h='<div class="cl-row"><button class="btn" data-act="clgreet">▶ Begrüßung abspielen</button>'+(v?'<button class="btn ghost" data-act="clgreetv">Als Video speichern</button>':'')+'</div>';if(b)b.insertAdjacentHTML('afterend',h);else o.insertAdjacentHTML('beforeend',h)}}
+ if(p==='woche'){var wc=document.querySelector('[data-act="wkc"]');if(wc&&!document.querySelector('[data-act="clweek"]'))wc.insertAdjacentHTML('beforebegin','<button class="btn sm" data-act="clweek">▶ Woche als Film</button>'+(v?'<button class="btn sm ghost" data-act="clweekv">Als Video</button>':''))}
  if(p==='tz'){var c=document.querySelector('[data-act="tzcp"]');if(c&&!document.querySelector('[data-act="clday"]'))c.insertAdjacentHTML('beforebegin','<button class="btn sm" data-act="clday">▶ Tag als Film</button>'+(v?'<button class="btn sm ghost" data-act="cldayv">Als Video</button>':''))}};
 })();

@@ -8,7 +8,7 @@
 (function(){
 'use strict';
 var M=window.MF,RM=M.RM;
-function night(){var h=new Date().getHours();return h<6||h>=16}
+function night(){return window.MF_SUN?MF_SUN.dark():(function(h){return h<6||h>=17})(new Date().getHours())}
 function hall(){return night()?'nacht':'halle'}
 function mood(){try{var a=alerts(new Date());return a.some(function(x){return x.tone==='crit'})?'crit':a.length?'warn':'ok'}catch(e){return 'ok'}}
 function layer(n,cls){return '<div class="'+(cls||'bn-l')+'" data-img="'+n+'" aria-hidden="true"><div class="bn-p" style="--kb:-'+(Date.now()/1000%60).toFixed(1)+'s"></div></div>'}
@@ -29,6 +29,12 @@ var SID=['open','anw','ter','sich','we','saw','sawk','w2','w1','wep','wv','s5','
 var ar=window.afterRender;window.afterRender=function(p){if(ar)ar(p);if(p!=='runde')return;var st=document.querySelector('.sf-stage');if(!st||st.querySelector('.bn-sf'))return;
  var i=Math.max(0,Math.min(S.ui.rp||0,SID.length-1)),id=SID[i],n=SFI[id]||'steuer';if(n==='halle')n=hall();
  st.classList.add('bn-on');if(id==='open')st.classList.add('bn-full');st.insertAdjacentHTML('afterbegin',layer(n,'bn-sf'));st.dataset.mood=mood()};
+
+/* ---------- 4 Momente: das Licht leuchtet auf, wenn etwas geschafft ist ----------
+   Milkrun-Runde beendet, Störung behoben; alle zehn Runden: stärker. Auch wenn es an einem anderen Gerät passiert. */
+var SC=null;function score(){try{var mk=mkDay(todayIso()),m=Object.keys(mk).filter(function(k){return mk[k].e}).length,R=REG.qs,q=(S.reg.qs||[]).filter(function(e){return R.done.indexOf(e.st)>=0}).length;return {m:m,q:q,d:todayIso()}}catch(e){return null}}
+function moment(){var s=score();if(!s)return;if(SC&&SC.d===s.d&&window.kino&&kino.flash){if(s.m>SC.m)kino.flash(s.m===10);else if(s.q>SC.q)kino.flash(false)}SC=s}
+var ar4=window.afterRender;window.afterRender=function(p){if(ar4)ar4(p);moment()};setInterval(moment,4000);
 
 /* ---------- 3 Ruhemodus ---------- */
 var AL=['steuer','lager','prod','halle','pumpe','pers','sys'],ai=0,at=0;

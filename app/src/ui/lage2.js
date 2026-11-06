@@ -34,10 +34,20 @@ function band(t,now,si){var mk=mkDay(t),m=mins(),P=function(x){return Math.max(0
 /* Bogenanzeige */
 function gauge(v,n){var p=n?v/n:0,L=Math.PI*120;return '<svg class="lb-g" viewBox="0 0 280 160" aria-hidden="true"><path d="M20 150 A120 120 0 0 1 260 150" class="g0"/><path d="M20 150 A120 120 0 0 1 260 150" class="g1" style="--L:'+L.toFixed(1)+';stroke-dasharray:'+L.toFixed(1)+';stroke-dashoffset:'+(L*(1-p)).toFixed(1)+'"/></svg>'}
 
+/* Echte Sonnenzeiten für Ransbach-Baumbach (50,47° N, 7,74° O), Näherung nach NOAA, ohne Internet.
+   Liefert Minuten seit Mitternacht (Ortszeit) für Aufgang und Untergang. */
+window.MF_SUN=(function(){var LAT=50.47,LON=7.74,R=Math.PI/180,C={};
+ function calc(d,rise){var s=new Date(d.getFullYear(),0,0),N=Math.floor((d-s)/864e5),lh=LON/15,t=N+((rise?6:18)-lh)/24,Mm=.9856*t-3.289,L=(Mm+1.916*Math.sin(Mm*R)+.02*Math.sin(2*Mm*R)+282.634+360)%360;
+  var RA=(Math.atan(.91764*Math.tan(L*R))/R+360)%360;RA=(RA+(Math.floor(L/90)*90-Math.floor(RA/90)*90))/15;var sd=.39782*Math.sin(L*R),cd=Math.cos(Math.asin(sd)),ch=(Math.cos(90.833*R)-sd*Math.sin(LAT*R))/(cd*Math.cos(LAT*R));
+  if(ch>1||ch<-1)return rise?360:1080;var H=(rise?360-Math.acos(ch)/R:Math.acos(ch)/R)/15,T=H+RA-.06571*t-6.622,UT=((T-lh)%24+24)%24;return Math.round(((UT*60-d.getTimezoneOffset())%1440+1440)%1440)}
+ function times(d){d=d||new Date();var k=d.toDateString();if(!C[k])C[k]={rise:calc(d,1),set:calc(d,0)};return C[k]}
+ function now(){var n=new Date();return n.getHours()*60+n.getMinutes()}
+ return {times:times,dark:function(){var s=times(),m=now();return m<s.rise-20||m>s.set+20},
+  frac:function(){var s=times(),m=now();return Math.max(0,Math.min(1,(m-s.rise)/Math.max(60,s.set-s.rise)))}}})();
 function chap(n,t){return '<div class="lb-chap"><span>'+n+'</span><b>'+t+'</b><i></i></div>'}
 /* Tageszeit im Bild: Farbe und Helligkeit des Fotos folgen der Uhrzeit */
-function tod(){var n=new Date(),h=n.getHours()+n.getMinutes()/60;
- if(h<5.5||h>=19.5)return ['nacht',1.02,1,0];if(h<9)return ['morgen',1.1,1.18,-5];if(h<13)return ['tag',1.14,.96,0];if(h<15.5)return ['nachmittag',1.06,1.1,-7];return ['abend',1.12,1.05,0]}
+function tod(){var s=MF_SUN.times(),n=new Date(),m=n.getHours()*60+n.getMinutes();
+ if(MF_SUN.dark())return ['nacht',1.02,1,0];if(m<s.rise+150)return ['morgen',1.1,1.18,-5];if(m>s.set-120)return ['abend',.98,1.16,-9];if(m<780)return ['tag',1.14,.96,0];return ['nachmittag',1.06,1.1,-7]}
 /* Daten im Bild: Markierungen an Fenster, Regal und Stapler (Lage im gespiegelten Foto, Prozent der Bildfläche) */
 function hs(x,y,k,v,go,tone,side){return '<button class="lb-hs'+(tone?' '+tone:'')+(side?' l':'')+'" style="left:'+x+'%;top:'+y+'%" data-act="go" data-go="'+go+'"><i></i><span><small>'+k+'</small><b data-lv="hs'+go+'">'+v+'</b></span></button>'}
 function stage(){var now=new Date(),t=todayIso(),h=now.getHours(),si=shiftInfo(now),fs=fachStat(),al=alerts(now),nx=isWork(t)?t:nextWork(t),pr=presentOn(nx).length;
