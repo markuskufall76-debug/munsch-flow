@@ -14,3 +14,16 @@
 .ab-r em{font-style:normal;margin-left:8px;font-size:13px}
 .ab-r.warn em{color:var(--warn)}.ab-r.crit em{color:var(--crit)}
 @media (max-width:560px){.mod{flex-direction:column;align-items:flex-start}}
+/* Auswahl per Antippen (Register) */
+.pick{display:flex;flex-wrap:wrap;gap:8px}
+.pick button{height:46px;padding:0 16px;border-radius:12px;border:1px solid rgba(255,236,220,.14);background:rgba(9,10,12,.55);color:var(--ink2);font:600 14px var(--body);text-transform:none;letter-spacing:0;display:inline-flex;align-items:center;gap:8px;transition:background-color .16s,border-color .16s,color .16s,transform .16s var(--ease-out,ease)}
+.pick button.on{background:var(--signal-soft);border-color:var(--signal);color:var(--ink);box-shadow:0 0 0 3px color-mix(in srgb,var(--signal) 18%,transparent)}
+.pick button:active{transform:scale(.96)}
+@media (hover:hover) and (pointer:fine){.pick button:not(.on):hover{border-color:rgba(255,236,220,.28);color:var(--ink)}}
+.pick.big{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;width:100%}
+.pick.big button{height:auto;flex-direction:column;justify-content:center;gap:8px;padding:14px 8px;font-size:14.5px}
+.pick.big svg{width:30px;height:30px;color:var(--ink3);transition:color .16s}
+.pick.big button.on svg{color:var(--signal)}
+.frm > .fl.w-full{flex:1 1 100%;order:-1}
+html.is-light .pick button{background:rgba(255,255,255,.7);border-color:rgba(40,24,10,.14)}
+@media (max-width:560px){.pick.big{grid-template-columns:repeat(3,minmax(0,1fr))}}

@@ -82,6 +82,20 @@ var ar=window.afterRender;window.afterRender=function(p){if(ar)ar(p);if(p!=='mil
  var h=card('Offene Abrufe',O.length?'<div class="al">'+O.map(function(e){var m=Math.round((Date.now()-e.ts)/6e4),tone=e.st===1?'':m>60?'crit':m>30?'warn':'';return '<div class="ab-r '+tone+'"><span><b>'+esc(e.ref)+'</b> → '+esc(e.ziel)+(e.menge?' · '+e.menge:'')+' <em class="dim">vor '+m+' Min.</em></span><button class="btn sm'+(e.st?'':' pri')+'" data-act="rst" data-k="abruf" data-id="'+e.id+'" data-n="1">'+(e.st?'Geliefert':'Mitnehmen')+'</button></div>'}).join('')+'</div>':'<div class="calm"><b>Kein offener Abruf</b><span>Die Produktion meldet Bedarf unter Materialabruf.</span></div>',{c:'ab-card',r:'<button class="btn sm" data-act="go" data-go="abruf">Alle</button>'});
  var after=sc.querySelector('.ph');if(after)after.insertAdjacentHTML('afterend',h);else sc.insertAdjacentHTML('afterbegin',h)};
 
+/* ---------- Auswahl per Antippen statt Liste ----------
+   In allen Registern werden Auswahlfelder mit bis zu 6 Möglichkeiten zu großen Tasten. Die letzte Wahl bleibt
+   je Register und Feld gemerkt. Im Wareneingang mit Symbolen: Pakete, GB / Pal, Metall, Kunststoff, sonstige. */
+var SYM={'Pakete':'<path d="M4 8l8-4 8 4v8l-8 4-8-4z"/><path d="M4 8l8 4 8-4M12 12v8"/>','GB / Pal':'<rect x="6" y="3" width="12" height="9" rx="1"/><path d="M6 7.5h12M3 14h18M3 19h18M5 14v5M12 14v5M19 14v5"/>',
+ 'Metall':'<ellipse cx="7" cy="12" rx="3" ry="6"/><path d="M7 6h11M7 18h11"/><ellipse cx="18" cy="12" rx="3" ry="6"/>','Kunststoff':'<path d="M12 3l7.5 4.5v9L12 21l-7.5-4.5v-9z"/><circle cx="12" cy="12" r="2.5"/>','sonstige':'<circle cx="6" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="18" cy="12" r="1.6"/>'};
+function chipify(k,h){var R=REG[k];if(!R)return h;R.f.forEach(function(f){if(f[2]!=='s'||!f[3]||f[3].length>6)return;var id='rf_'+k+'_'+f[0],re=new RegExp('<select class="in" id="'+id+'">[\\s\\S]*?</select>');if(!re.test(h))return;
+  var last=S.ui['rc_'+k+'_'+f[0]],cur=f[3].indexOf(last)>=0?last:f[3][0],big=k==='we'&&f[0]==='kat';
+  var chips='<div class="pick'+(big?' big':'')+'" role="radiogroup">'+f[3].map(function(o){return '<button type="button" role="radio" aria-checked="'+(o===cur)+'" class="'+(o===cur?'on':'')+'" data-act="rpick" data-k="'+k+'" data-f="'+f[0]+'" data-v="'+esc(o)+'">'+(big&&SYM[o]?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+SYM[o]+'</svg>':'')+'<span>'+esc(o)+'</span></button>'}).join('')+'</div>';
+  h=h.replace(re,'<input type="hidden" id="'+id+'" value="'+esc(cur)+'">'+chips);if(big)h=h.replace('<label class="fl">'+esc(f[1])+'<input type="hidden"','<label class="fl w-full">Was kam rein?<input type="hidden"')});return h}
+/* Wareneingang: Zahlfeld passt zu jeder Kategorie */
+if(REG.we&&REG.we.f[1]&&REG.we.f[1][0]==='pak')REG.we.f[1][1]='Anzahl (Pakete, Paletten, Stück)';
+ACT.rpick=function(d,el){var i=$('#rf_'+d.k+'_'+d.f);if(i)i.value=d.v;S.ui['rc_'+d.k+'_'+d.f]=d.v;save();el.parentNode.querySelectorAll('button').forEach(function(b){var on=b===el;b.classList.toggle('on',on);b.setAttribute('aria-checked',on)})};
+Object.keys(REG).forEach(function(k){var v=VIEW[k];if(v)VIEW[k]=function(){return chipify(k,v.apply(this,arguments))}});
+
 /* ---------- Warnlage ---------- */
 var al0=window.alerts;window.alerts=function(now){var A=al0.apply(this,arguments);try{
  if(modOn('unt')){var L=dueList(isLead()?null:S.user),c=L.filter(function(x){return x.s==='crit'}).length,w=L.length-c;
