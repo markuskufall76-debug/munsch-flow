@@ -16,7 +16,7 @@ function sync(){
 }
 /* Seitentitel wie ein Filmtitel aufdecken, nur beim Wechsel (Gestaltung in kino.css) */
 var lastT=null;function title(){var h=document.getElementById('tt'),e=document.getElementById('teb');if(!h)return;var k=h.textContent;if(k===lastT)return;var first=lastT===null;lastT=k;if(first||RM)return;
- [h,e].forEach(function(x){if(!x)return;x.classList.remove('rv');void x.offsetWidth;x.classList.add('rv')})}
+ [h,e].forEach(function(x){if(!x)return;x.classList.remove('rv');void x.offsetWidth;x.classList.add('rv')});if(window.kino&&kino.pulse)kino.pulse()}
 var su=window.shellUpdate;window.shellUpdate=function(){var r=su.apply(this,arguments);sync();title();return r};
 var t=0;window.addEventListener('resize',function(){clearTimeout(t);t=setTimeout(sync,120)});
 })();
