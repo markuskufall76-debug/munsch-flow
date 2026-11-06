@@ -38,7 +38,26 @@ html.open .sf-card{background:none;border-color:var(--line)}
 html.open .sf-st4 div{background:none}
 html.open .msg,html.open .post{background:rgba(255,236,220,.03)}
 
+/* Shopfloor-Bühne: offen wie die übrigen Seiten */
+html.open .sf-stage{background:none;border:0;border-top:1px solid var(--line2);border-radius:0;box-shadow:none;padding:26px 2px}
+
+/* Auswertung: Kennzahlen zum Antippen, aktive mit Signalstrich */
+html.open .awt{background:none;border:0;border-top:1px solid var(--line2);border-radius:0;padding:14px 2px 6px;position:relative}
+html.open .awt::before{content:"";position:absolute;left:0;top:-1px;width:0;height:2px;background:var(--signal);box-shadow:0 0 14px var(--signal);transition:width .3s var(--ease-out,ease)}
+html.open .awt.on{box-shadow:none}html.open .awt.on::before{width:44px}html.open .awt.on .k{color:var(--signal)}
+@media (hover:hover) and (pointer:fine){html.open .awt:hover{transform:none}html.open .awt:hover::before{width:22px}}
+
+/* Wochenbesetzung: Farbstrich oben statt Kasten */
+html.open .bz{background:none;border:0;border-top:2px solid var(--line2);border-radius:0;padding:12px 2px 4px}
+html.open .bz.ok{border-top-color:var(--ok)}html.open .bz.warn{border-top-color:var(--warn)}html.open .bz.crit{border-top-color:var(--crit)}
+
+/* Berichte und Dank: leichte Flächen statt Kästen */
+html.open .rg{background:rgba(255,236,220,.025);border-color:transparent;border-top:1px solid var(--line2);border-radius:0 0 12px 12px}
+html.open .thx div{background:rgba(255,236,220,.03)}
+
 /* Lesbarkeit auf dem bewegten Licht */
+html.open .tile .k,html.open .awt .k,html.open .bz small,html.open .card .ch h2{color:var(--ink2)}
+html.open .tile .s,html.open .dim{text-shadow:0 1px 12px rgba(0,0,0,.55)}
 html.open.kino #kino{opacity:.82}
 html.open .ttl h1,html.open .clock b{text-shadow:0 2px 24px rgba(0,0,0,.5)}
 

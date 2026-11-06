@@ -40,7 +40,7 @@ var FS=['precision mediump float;uniform vec2 R;uniform float T;uniform vec3 A;u
  ' c=g+(c-g)*G;c*=X;float lu=dot(c,vec3(.3,.59,.11));c=mix(c*vec3(.8,1.,1.22),c,smoothstep(.02,.16,lu));',
  ' c=pow(c,vec3(1.18))*1.3;c=c/(1.+c*.2);vec2 v=uv-.5;c*=1.-dot(v,v)*(1.2+.4*V);',
  ' c+=(h(gl_FragCoord.xy+fract(t*7.)*91.)-.5)/255.;gl_FragColor=vec4(c,1.);}'].join('\n');
-var MOOD=[[[1,.46,.11],[1,.6,.3]],[[.96,.69,.29],[1,.55,.2]],[[1,.33,.38],[1,.45,.3]]];
+var MOOD=[[[1,.46,.11],[1,.6,.3]],[[1,.56,.16],[1,.6,.28]],[[1,.36,.16],[.95,.4,.3]]];
 var cv=null,gl=null,U={},run=false,raf=0,t0=performance.now(),last=0,lastR=0,scale=.42,ivs=[],cur=null,tgt=MOOD[0],mdT=0,vid=null,EX={v:1,from:1,to:1,t0:0,d:1},PT={x:0,y:0,tx:0,ty:0};
 
 function mode(){return ls('mflow.kino')||'on'}
