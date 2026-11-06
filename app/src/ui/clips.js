@@ -159,16 +159,34 @@ function persData(){var t=todayIso(),u=S.user,h=new Date().getHours(),w=isWork(t
  return {hi:hi,name:firstName(u),img:img,big:big,small:small,P:P.slice(0,2),date:fmtD(t,{weekday:'long',day:'numeric',month:'long'})}}
 /* Als Bildschirm-Animation (nicht Leinwand): passt sich jedem Format an, Schrift bleibt scharf, startet ohne Ladezeit */
 var PF=null;
+/* Klang zur Begrüßung: weicher Akkord, der aufblüht, ein heller Glockenton beim Namen, leises Rauschen beim Szenenwechsel.
+   Synthetisch (keine Tondatei). Folgt dem Geräte-Ton (Einstellungen › Rückmeldung) und eigener Einstellung;
+   ohne eigene Wahl an auf Handy und Tablet, aus am PC. */
+function pfSndOn(){var v=M.ls(pKey()+'.snd');if(v)return v==='1';return !!(window.matchMedia&&matchMedia('(pointer:coarse)').matches)}
+function pfSound(n){if(!pfSndOn()||S.ui.snd===0||!window.fxAC)return null;var a=fxAC();if(!a)return null;var t=a.currentTime+.05,out=a.createGain(),lp=a.createBiquadFilter();
+ out.gain.value=0;out.connect(a.destination);out.gain.setValueAtTime(0,t);out.gain.linearRampToValueAtTime(1,t+.02);
+ /* Akkord (E-Dur, tief) durch einen Filter, der sich öffnet */
+ lp.type='lowpass';lp.Q.value=.7;lp.frequency.setValueAtTime(220,t);lp.frequency.exponentialRampToValueAtTime(2400,t+2.2);lp.frequency.exponentialRampToValueAtTime(700,t+5.5);lp.connect(out);
+ [[82.41,'sine',0],[123.47,'triangle',3],[164.81,'sine',-4],[207.65,'triangle',5],[246.94,'sine',-2]].forEach(function(f){var o=a.createOscillator(),g=a.createGain();o.type=f[1];o.frequency.value=f[0];o.detune.value=f[2];
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.045,t+1.6);g.gain.setValueAtTime(.045,t+3.4);g.gain.exponentialRampToValueAtTime(.0001,t+6.2);o.connect(g).connect(lp);o.start(t);o.stop(t+6.3)});
+ /* Glocke beim Namen (Grundton + Obertöne, Echo) */
+ var bell=function(at,f,v){[[1,v],[2.76,v*.35],[5.4,v*.12]].forEach(function(h){var o=a.createOscillator(),g=a.createGain();o.type='sine';o.frequency.value=f*h[0];g.gain.setValueAtTime(0,at);g.gain.linearRampToValueAtTime(h[1],at+.008);g.gain.exponentialRampToValueAtTime(.0001,at+2.4/h[0]);o.connect(g).connect(out);o.start(at);o.stop(at+2.5)})};
+ bell(t+.55,659.25,.05);bell(t+.85,987.77,.035);bell(t+1.15,1318.5,.022);bell(t+1.6,1318.5,.008);
+ /* weiches Rauschen beim Szenenwechsel */
+ var noise=a.createBuffer(1,a.sampleRate*.6,a.sampleRate),d=noise.getChannelData(0);for(var i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*(1-i/d.length);
+ for(var k=1;k<n;k++){var s=a.createBufferSource(),bp=a.createBiquadFilter(),g=a.createGain(),at=t+k*3-.18;s.buffer=noise;bp.type='bandpass';bp.Q.value=.8;bp.frequency.setValueAtTime(600,at);bp.frequency.exponentialRampToValueAtTime(3200,at+.5);
+  g.gain.setValueAtTime(0,at);g.gain.linearRampToValueAtTime(.05,at+.15);g.gain.exponentialRampToValueAtTime(.0001,at+.6);s.connect(bp).connect(g).connect(out);s.start(at)}
+ return {stop:function(){try{var c=a.currentTime;out.gain.cancelScheduledValues(c);out.gain.setValueAtTime(out.gain.value,c);out.gain.linearRampToValueAtTime(0,c+.4);setTimeout(function(){out.disconnect()},600)}catch(e){}}}}
 function pfHtml(d){var hn=d.img==='halle'&&window.MF_SUN&&MF_SUN.dark()?'nacht':d.img,sc=[];
  sc.push('<div class="pf-s pf-1"><div class="pf-lg">'+logoSVG({h:44})+'</div><div class="pf-k">'+esc(d.date)+'</div><h2><span><i>'+esc(d.hi)+'</i></span><span class="o"><i>'+esc(d.name)+'.</i></span></h2></div>');
  sc.push('<div class="pf-s pf-2"><div class="pf-k">Dein Tag</div><h2 class="pf-big"><span><i>'+esc(d.big)+'</i></span></h2><p><span><i>'+esc(d.small)+'</i></span></p></div>');
  if(d.P.length)sc.push('<div class="pf-s pf-3">'+d.P.map(function(x,i){return '<div class="pf-it" style="--d:'+(i*.32)+'s"><div class="pf-k">'+esc(x[0])+'</div><p><span><i>'+esc(x[1])+'</i></span></p></div>'}).join('')+'</div>');
  return {n:sc.length,h:'<div class="pf-bg" data-img="'+hn+'"><div class="bn-p"></div></div><div class="pf-sh"></div><div class="pf-lb t"></div><div class="pf-lb b"></div>'+sc.join('')+'<div class="pf-bar"><i></i></div><button class="pf-x" data-act="pfx">Überspringen</button>'}}
-function pfClose(){if(!PF)return;PF.T.forEach(clearTimeout);var e=PF.el;PF=null;e.classList.add('out');setTimeout(function(){e.remove()},700)}
+function pfClose(){if(!PF)return;PF.T.forEach(clearTimeout);if(PF.snd)PF.snd.stop();var e=PF.el;PF=null;e.classList.add('out');setTimeout(function(){e.remove()},700)}
 function personal(force){if(!force&&!pDue())return;M.ls(pKey(),todayIso());if(PF)pfClose();var d=persData(),H=pfHtml(d),el=document.createElement('div');el.id='pf';el.setAttribute('role','dialog');el.setAttribute('aria-label','Persönliche Begrüßung');el.innerHTML=H.h;document.body.appendChild(el);
  var D=[3000,3000,2600].slice(0,H.n),tot=D.reduce(function(a,b){return a+b},0),S2=el.querySelectorAll('.pf-s'),T=[],acc=0;el.style.setProperty('--tot',tot+'ms');
  S2.forEach(function(x,i){T.push(setTimeout(function(){S2.forEach(function(y){y.classList.toggle('on',y===x)});if(i)S2[i-1].classList.add('gone')},acc+(i?0:120)));acc+=D[i]});
- T.push(setTimeout(pfClose,tot));PF={el:el,T:T};requestAnimationFrame(function(){el.classList.add('go')});
+ T.push(setTimeout(pfClose,tot));PF={el:el,T:T,snd:pfSound(H.n)};requestAnimationFrame(function(){el.classList.add('go')});
  el.addEventListener('pointerdown',function(e){e.preventDefault();pfClose()})}
 ACT.pfx=pfClose;document.addEventListener('keydown',function(e){if(PF&&(e.key==='Escape'||e.key===' '||e.key==='Enter')){e.preventDefault();pfClose()}},true);
 window.playPersonal=function(){personal(true)};ACT.pfnow=function(){personal(true)};
@@ -177,8 +195,8 @@ var pfDone=false;function pfMark(){document.documentElement.classList.toggle('pf
 setInterval(pfMark,1000);document.addEventListener('pointerdown',pfMark,true);
 var arP=window.afterRender;window.afterRender=function(p){if(arP)arP(p);if(pfDone)return;pfDone=true;if(pDue())setTimeout(function(){personal(false);document.documentElement.classList.remove('pf-due')},60)};
 var admP=VIEW.adm;VIEW.adm=function(){var h=admP.apply(this,arguments),on=pOn();
- return h+M.card('Persönliche Begrüßung','<div class="seg"><button class="'+(on?'on':'')+'" data-act="pfset" data-v="1">an</button><button class="'+(on?'':'on')+'" data-act="pfset" data-v="0">aus</button></div><div style="margin-top:14px"><button class="btn" data-act="pfnow">Jetzt abspielen</button></div><p class="dim" style="font-size:12.5px;margin:12px 0 0">Ein kurzer Film bei der ersten Anmeldung des Tages: dein Bereich, dein Ziel und was heute für dich ansteht. Tippen überspringt. Gilt für dich, nicht an Station und Bereichs-Tablets.</p>')};
-ACT.pfset=function(d){M.ls(pKey()+'.on',d.v);render()};
+ return h+M.card('Persönliche Begrüßung','<div class="seg"><button class="'+(on?'on':'')+'" data-act="pfset" data-v="1">an</button><button class="'+(on?'':'on')+'" data-act="pfset" data-v="0">aus</button></div><div class="fl" style="margin:14px 0 8px">Klang</div><div class="seg"><button class="'+(pfSndOn()?'on':'')+'" data-act="pfsnd" data-v="1">an</button><button class="'+(pfSndOn()?'':'on')+'" data-act="pfsnd" data-v="0">aus</button></div><div style="margin-top:14px"><button class="btn" data-act="pfnow">Jetzt abspielen</button></div><p class="dim" style="font-size:12.5px;margin:12px 0 0">Ein kurzer Film bei der ersten Anmeldung des Tages: dein Bereich, dein Ziel und was heute für dich ansteht. Tippen überspringt. Gilt für dich, nicht an Station und Bereichs-Tablets.</p>')};
+ACT.pfset=function(d){M.ls(pKey()+'.on',d.v);render()};ACT.pfsnd=function(d){M.ls(pKey()+'.snd',d.v);render()};
 window.playGreeting=greet;window.playDay=day;window.clipData={greet:greetData,day:nums};
 
 /* ---------- Knöpfe ---------- */

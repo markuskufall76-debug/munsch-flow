@@ -12,6 +12,7 @@ var M=window.MF,RM=M.RM;
 var AC=null;function ac(){try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();return AC}catch(e){return null}}
 document.addEventListener('pointerdown',function(){ac()},{once:true,capture:true});
 function tone(seq){if(S.ui.snd===0)return;var a=ac();if(!a)return;var t=a.currentTime;seq.forEach(function(s){var o=a.createOscillator(),g=a.createGain();o.type=s[3]||'sine';o.frequency.value=s[0];g.gain.setValueAtTime(0,t+s[1]);g.gain.linearRampToValueAtTime(.18,t+s[1]+.01);g.gain.exponentialRampToValueAtTime(.0001,t+s[1]+s[2]);o.connect(g).connect(a.destination);o.start(t+s[1]);o.stop(t+s[1]+s[2]+.02)})}
+window.fxAC=ac;
 function buzz(p){try{if(S.ui.vib!==0&&navigator.vibrate)navigator.vibrate(p)}catch(e){}}
 function burst(ok){if(RM)return;var b=document.createElement('div');b.className='burst '+(ok?'ok':'no');b.innerHTML=ok?'<svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="44"/><path d="M38 62l15 15 30-34"/></svg>':'<svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="44"/><path d="M42 42l36 36M78 42 42 78"/></svg>';document.body.appendChild(b);setTimeout(function(){b.remove()},900)}
 window.fx={ok:function(big){tone([[880,0,.09],[1320,.09,.16]]);buzz(30);if(big)burst(true)},err:function(){tone([[196,0,.22,'square'],[165,.12,.24,'square']]);buzz([80,40,80]);burst(false)},tick:function(){tone([[1046,0,.06]]);buzz(12)}};
