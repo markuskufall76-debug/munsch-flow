@@ -1,0 +1,33 @@
+/* ===== Lesbarkeit und Ruhe (fx.js) ===== */
+
+/* 1 Kontrast: Neben- und Beschriftungstext heller (dunkel), dunkler (hell) */
+:root{--ink3:#9C958D}
+:root[data-theme="light"]{--ink3:#6F675F}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--ink3:#6F675F}}
+
+/* 2 Mindestgrößen: kleine Großbuchstaben-Beschriftungen 12 px, etwas weniger Sperrung */
+.tile .k,.lb-k,.lb-fl,.lb-fn span,.lb-sm .lb-k,.awt .k,.bz small,.sf-lbl,.lb-hs small,.fl,.ttl .eb,.tick .lb,.tick .tm b,.clock span,.lb-eb,.sf-when,.kp span,.mk,.tl .mk,.ev,.tl .ev{font-size:12px!important;letter-spacing:.12em!important}
+.card .ch h2{font-size:12.5px;letter-spacing:.16em}
+.chip{font-size:11.5px}
+.sf-tag{font-size:10.5px}
+.tile .s,.lb-sm > span:not(.lb-k),.lb-ms,.dim{font-size:max(13.5px,1em)}
+.sf-t span{font-size:13.5px}
+.sf-t em{font-size:12px}
+table.t td,table.t th{font-size:14px}
+
+/* 3 Ruhe über Inhalten: Licht im Inhaltsbereich gedämpft, unter dem Kopfbild noch mehr */
+html.kino #kino{-webkit-mask-image:linear-gradient(90deg,rgba(0,0,0,.42) 0%,rgba(0,0,0,.42) 50%,rgba(0,0,0,.85) 100%);mask-image:linear-gradient(90deg,rgba(0,0,0,.42) 0%,rgba(0,0,0,.42) 50%,rgba(0,0,0,.85) 100%);transition:opacity .8s ease}
+html.kino.deep #kino{opacity:.55}
+html.kino #vignette::after{opacity:.035}
+html.deep #mark{opacity:.7;transition:opacity .8s ease}
+@media (max-width:820px){html.kino #kino{-webkit-mask-image:linear-gradient(180deg,#000 0%,rgba(0,0,0,.5) 45%,rgba(0,0,0,.4) 100%);mask-image:linear-gradient(180deg,#000 0%,rgba(0,0,0,.5) 45%,rgba(0,0,0,.4) 100%)}}
+
+/* 4 Ausgewogen: Fotos stehen, kein Filmkorn, kein Kino-Licht (kino.js), Laufrad dreht weiter */
+html.fx-mid #vignette::after{display:none}
+html.fx-mid .lb-pic,html.fx-mid .ph-pic,html.fx-mid .bn-p,html.fx-mid .lb-pimg::before{animation:none!important}
+html.fx-mid #light::before,html.fx-mid #light::after{animation:none}
+
+/* 5 Große Schrift für Hallengeräte */
+html.big #app{zoom:1.18}
+html.big #mon,html.big #amb{zoom:1}
+@media (max-width:820px){html.big #app{zoom:1.1}}

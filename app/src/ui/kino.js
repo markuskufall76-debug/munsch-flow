@@ -45,7 +45,7 @@ var cv=null,gl=null,U={},run=false,raf=0,t0=performance.now(),last=0,lastR=0,sca
 
 function mode(){return ls('mflow.kino')||'on'}
 function dark(){var g=getComputedStyle(root).getPropertyValue('--ground').trim().toLowerCase();return !(g>'#8')}
-function want(){return mode()!=='off'&&!root.classList.contains('lite')&&dark()&&!(window.isStation&&isStation())&&!$('#stn')&&!(navigator.webdriver&&!window.__kino)}
+function want(){return mode()!=='off'&&!root.classList.contains('lite')&&!root.classList.contains('fx-mid')&&dark()&&!(window.isStation&&isStation())&&!$('#stn')&&!(navigator.webdriver&&!window.__kino)}
 function covered(){return document.hidden||!!document.querySelector('#clip,#film,#mon,#amb,#sfi')}
 
 function init(){if(gl)return true;try{cv=document.createElement('canvas');cv.id='kino';cv.setAttribute('aria-hidden','true');
@@ -62,7 +62,7 @@ function moodT(){try{var a=alerts(new Date());tgt=MOOD[a.some(function(x){return
 function draw(T){size();if(!cur)cur=JSON.parse(JSON.stringify(tgt));for(var i=0;i<2;i++)for(var k=0;k<3;k++)cur[i][k]+=(tgt[i][k]-cur[i][k])*.03;
  gl.uniform2f(U.R,cv.width,cv.height);gl.uniform1f(U.T,T);gl.uniform3fv(U.A,cur[0]);gl.uniform3fv(U.B,cur[1]);gl.uniform1f(U.V,vid?1:0);gl.uniform1f(U.G,innerWidth<820?(root.classList.contains('open')?1.05:1.45):(root.classList.contains('open')?.92:1));gl.uniform1f(U.X,expo());gl.uniform1f(U.S,sun());PT.x+=(PT.tx-PT.x)*.05;PT.y+=(PT.ty-PT.y)*.05;gl.uniform2f(U.P,PT.x,PT.y);gl.drawArrays(gl.TRIANGLES,0,3)}
 function frame(now){if(!run)return;raf=requestAnimationFrame(frame);if(covered())return;
- if(lastR){ivs.push(now-lastR);if(ivs.length>120){var av=ivs.reduce(function(a,b){return a+b},0)/ivs.length;ivs=[];if(av>45&&scale>.2)scale=Math.max(.2,scale*.8)}}lastR=now;
+ if(lastR){ivs.push(now-lastR);if(ivs.length>120){var av=ivs.reduce(function(a,b){return a+b},0)/ivs.length;ivs=[];if(av>45&&scale>.2)scale=Math.max(.2,scale*.8);else if(av>55&&scale<=.2&&window.fxDowngrade)fxDowngrade()}}lastR=now;
  if(now-last<33)return;last=now;if(now-mdT>5000){mdT=now;moodT()}draw((now-t0)/1000+40)}
 function start(){if(run||!init())return;run=true;if(!root.classList.contains('kino'))root.classList.add('kino');moodT();cur=null;
  if(RM){draw(52);run=false;return}ramp(0,1,$('#intro')?3200:1800);last=0;lastR=0;raf=requestAnimationFrame(frame)}
@@ -91,9 +91,8 @@ function vLoad(){return tx('readonly',function(s){return s.get('bg')}).then(func
 
 /* ---------- Einstellungen ---------- */
 var adm=VIEW.adm;VIEW.adm=function(){var h=adm.apply(this,arguments),m=mode(),ok=!!window.WebGLRenderingContext;
- return h+card('Kino-Hintergrund','<div class="seg"><button class="'+(m!=='off'?'on':'')+'" data-act="kinoset" data-v="on">an</button><button class="'+(m==='off'?'on':'')+'" data-act="kinoset" data-v="off">aus</button></div>'
-  +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px"><button class="btn" data-act="kinofile">'+(vBlob?'Anderes Video wählen':'Eigenes Video wählen')+'</button>'+(vBlob?'<button class="btn ghost" data-act="kinodel">Video entfernen</button>':'')+'</div>'
-  +'<p class="dim" style="font-size:12.5px;margin:12px 0 0">Bewegtes Licht wie im Film, Stimmung folgt der Warnlage. Eigenes Video (MP4 oder WebM, z. B. eine Aufnahme der Halle) bleibt nur auf diesem Gerät, läuft stumm und abgedunkelt. Aus im ruhigen Modus, an der Station und in heller Darstellung.'+(ok?'':' Dieses Gerät kann kein WebGL, es bleibt beim einfachen Hintergrund.')+'</p>')};
+ return h+card('Kino-Hintergrund','<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" data-act="kinofile">'+(vBlob?'Anderes Video wählen':'Eigenes Video wählen')+'</button>'+(vBlob?'<button class="btn ghost" data-act="kinodel">Video entfernen</button>':'')+'</div>'
+  +'<p class="dim" style="font-size:12.5px;margin:12px 0 0">Bewegtes Licht wie im Film, Stimmung folgt der Warnlage. Eigenes Video (MP4 oder WebM, z. B. eine Aufnahme der Halle) bleibt nur auf diesem Gerät, läuft stumm und abgedunkelt. Licht und Video laufen bei Effekten „voll“, nicht an der Station und nicht in heller Darstellung.'+(ok?'':' Dieses Gerät kann kein WebGL, es bleibt beim einfachen Hintergrund.')+'</p>')};
 ACT.kinoset=function(d){ls('mflow.kino',d.v);apply();render()};
 ACT.kinofile=function(){var i=document.createElement('input');i.type='file';i.accept='video/mp4,video/webm,video/*';i.onchange=function(){var f=i.files&&i.files[0];if(!f)return;if(f.size>400*1048576)return toast('Video zu groß (höchstens 400 MB)');
   tx('readwrite',function(s){return s.put(f,'bg')}).then(function(){vBlob=f;var el=$('#kinov');if(el){URL.revokeObjectURL(el.src);el.remove()}if(mode()==='off')ls('mflow.kino','on');apply(true);render();toast('Video als Hintergrund gesetzt')}).catch(function(){toast('Video konnte nicht gespeichert werden')})};i.click()};
