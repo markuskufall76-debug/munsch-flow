@@ -360,3 +360,14 @@ svg.chart .bar:hover{fill:var(--signal2)}
 
 .btn svg{width:18px;height:18px;flex:none}
 .btn.xl svg{width:20px;height:20px}
+/* Shopfloor: Herkunft der Zahlen sichtbar (letzter Tag, aktueller Rückstand, heute, live) */
+.sf-when{display:flex;flex-wrap:wrap;gap:8px 18px;margin:4px 0 6px;font:600 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink2)}
+.sf-when span{display:inline-flex;align-items:center;gap:8px}
+.sf-when i{width:10px;height:10px;border-radius:3px}
+.sf-when .day i{background:var(--line2)}.sf-when .now i{background:var(--warn)}
+.sf-t{position:relative}
+.sf-tag{align-self:flex-start;font:600 9.5px var(--mono);letter-spacing:.14em;text-transform:uppercase;padding:2px 7px;border-radius:6px;margin-bottom:4px;color:var(--ink3);background:rgba(255,236,220,.06)}
+.sf-t.k-now .sf-tag{color:var(--warn);background:var(--warn-soft)}
+.sf-t.k-now{border-color:color-mix(in srgb,var(--warn) 35%,transparent)}
+.sf-t.k-today .sf-tag,.sf-t.k-live .sf-tag{color:var(--signal);background:var(--signal-soft)}
+.sf-t.k-day b{color:var(--ink2)}
