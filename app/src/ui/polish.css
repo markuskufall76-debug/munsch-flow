@@ -1,0 +1,112 @@
+/* ===== Feinschliff: Bewegung und Oberfläche =====
+   Wird als letzte Datei geladen und überschreibt gezielt.
+   1 Kurven und Zeiten: kräftiges ease-out für Reaktionen, kürzerer Seitenauftritt
+   2 Druckgefühl: alles Antippbare gibt beim Drücken leicht nach
+   3 Hover nur mit Maus: keine hängenden Zustände auf Tablet und Handy
+   4 Gleitende Markierung in Leiste und Tab-Leiste
+   5 Kurven zeichnen sich beim Seitenwechsel von links nach rechts
+   6 Flächen: feine Lichtkante oben, ruhigere Schatten
+   7 Handy: Begrüßung untereinander, Zeitleiste ohne überlappende Ziffern */
+
+:root{
+ --ease-out:cubic-bezier(.23,1,.32,1);
+ --ease-io:cubic-bezier(.77,0,.175,1);
+ --ease-drawer:cubic-bezier(.32,.72,0,1);
+ --edge:inset 0 1px 0 rgba(255,244,232,.045)}
+:root[data-theme="light"]{--edge:inset 0 1px 0 rgba(255,255,255,.9)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--edge:inset 0 1px 0 rgba(255,255,255,.9)}}
+
+/* 1 Seitenauftritt: kürzer, weniger Unschärfe, dichtere Staffel */
+.enter .scene > *{animation:pIn .56s var(--ease-out) both;animation-delay:calc(min(var(--n,0),8)*45ms)}
+@keyframes pIn{from{opacity:0;transform:translateY(12px);filter:blur(3px)}}
+::view-transition-old(root){animation:pVo .18s ease-out both}
+::view-transition-new(root){animation:pVn .32s var(--ease-out) both}
+@keyframes pVo{to{opacity:0}}
+@keyframes pVn{from{opacity:0}}
+
+/* Ziffern-Kacheln: gestaffelt innerhalb der Reihe */
+.enter .row > .tile{animation:pIn .5s var(--ease-out) both;animation-delay:calc(min(var(--n,0),8)*45ms + var(--c,0)*40ms)}
+.enter .row > .tile:nth-child(2){--c:1}.enter .row > .tile:nth-child(3){--c:2}.enter .row > .tile:nth-child(4){--c:3}.enter .row > .tile:nth-child(5){--c:4}
+
+/* 2 Druckgefühl */
+.btn,button.tile,.pc,.rb,.ib,.srch,.tabs button,.cell,.stp button,.chs button,.seg button,.pad button,#flyout button,.al button,.mr button,.board .c{transition-property:transform,background-color,border-color,color,box-shadow,opacity;transition-duration:.16s;transition-timing-function:var(--ease-out)}
+.btn:active,button.tile:active,.pc:active,.ib:active,.srch:active,.chs button:active,.seg button:active,#flyout button:active,.al button:active{transform:scale(.97)}
+.rb:active,.tabs button:active{transform:scale(.92)}
+.cell:active,.board .c:active{transform:scale(.94)}
+.pad button:active{transform:scale(.94)}
+
+/* 3 Hover nur mit Maus */
+@media (hover:none),(pointer:coarse){
+ button.tile:hover,.pc:hover,.al button:hover,.tl .bead:hover{transform:none}
+ .cell:hover,.board .c:hover{transform:none;box-shadow:none}
+ .rb:hover .tip{opacity:0}
+ .spot{display:none}
+}
+@media (hover:hover) and (pointer:fine){
+ button.tile:hover{transform:translateY(-3px)}
+ .cell:hover{transition-duration:.12s}
+}
+
+/* 4 Gleitende Markierung */
+.rail{position:relative}
+.rb.on::before{opacity:0}
+.rail.slide .rb.on{background:transparent}
+.rind{position:absolute;left:14px;top:0;width:56px;height:52px;border-radius:14px;background:var(--signal-soft);pointer-events:none;opacity:0;transform:translateY(var(--y,0px));transition:transform .42s var(--ease-drawer),opacity .2s}
+.rind::before{content:"";position:absolute;left:-14px;top:12px;bottom:12px;width:3px;border-radius:3px;background:var(--signal);box-shadow:0 0 14px var(--signal)}
+.rail.slide .rind{opacity:1}
+.rail .rb{z-index:1}
+.tind{position:absolute;left:0;top:7px;bottom:7px;width:var(--w,0px);border-radius:15px;background:var(--signal-soft);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--signal) 22%,transparent);pointer-events:none;opacity:0;transform:translateX(var(--x,0px));transition:transform .42s var(--ease-drawer),width .42s var(--ease-drawer),opacity .2s}
+.tabs.slide .tind{opacity:1}
+.tabs.slide button.on{background:transparent}
+.tabs button{z-index:1;transition-property:transform,color}
+@media (min-width:821px){.tind{display:none}}
+
+/* 5 Kurven zeichnen sich */
+.enter .tile .spark{animation:pDraw .9s var(--ease-io) both;animation-delay:calc(min(var(--n,0),8)*45ms + var(--c,0)*40ms + .18s)}
+@keyframes pDraw{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+
+/* 6 Flächen */
+.card,.tile,.hero{box-shadow:var(--edge),var(--shadow)}
+.tile{box-shadow:var(--edge)}
+button.tile:hover{box-shadow:var(--edge),var(--shadow)}
+.tile.crit{box-shadow:var(--edge),0 0 0 1px color-mix(in srgb,var(--crit) 20%,transparent),0 20px 60px -30px var(--crit)}
+.card.flat{box-shadow:none}
+.tile .v,.hero .gr,.ttl h1,.clock b{font-feature-settings:"tnum" 1,"lnum" 1}
+.clock b{transition:opacity .2s}
+::selection{background:color-mix(in srgb,var(--signal) 35%,transparent);color:var(--ink)}
+#stage::-webkit-scrollbar{width:10px}
+#stage::-webkit-scrollbar-thumb{background:var(--line2);border-radius:10px;border:3px solid transparent;background-clip:padding-box}
+#stage::-webkit-scrollbar-thumb:hover{background-color:var(--ink3)}
+:focus-visible{outline-offset:3px;transition:outline-offset .12s var(--ease-out)}
+
+/* Toasts und Dialoge: schneller, mit ease-out */
+.toast{animation-timing-function:var(--ease-out)!important}
+.dlg{animation:pDlg .28s var(--ease-out) both}
+@keyframes pDlg{from{opacity:0;transform:translateY(12px) scale(.97)}}
+.drawer{animation:pDrw .36s var(--ease-drawer) both}
+@keyframes pDrw{from{transform:translateX(32px);opacity:0}}
+
+/* 7 Handy */
+@media (max-width:820px){
+ .drawer{animation:pSheet .42s var(--ease-drawer) both}
+ @keyframes pSheet{from{transform:translateY(100%)}}
+ .dlg{animation:pSheet .38s var(--ease-drawer) both}
+}
+@media (max-width:560px){
+ .hero .hl{flex-direction:column;align-items:flex-start;gap:14px}
+ .hero .st{flex-direction:row;align-items:baseline;gap:10px;flex-wrap:wrap}
+ .hero .st b{font-size:22px}
+ .tl .bead{width:13px;height:13px;margin-left:-6.5px;top:41px;font-size:0;border-width:2px}
+ .tl .bead.ok{box-shadow:0 0 10px color-mix(in srgb,var(--ok) 50%,transparent)}
+}
+
+/* Ruhiger Modus und reduzierte Bewegung */
+html.lite .enter .scene > *,html.lite .enter .row > .tile,html.lite .enter .tile .spark{animation:none!important}
+html.lite .rind,html.lite .tind{transition:none}
+@media (prefers-reduced-motion:reduce){
+ .enter .scene > *,.enter .row > .tile{animation:pFade .2s ease both!important}
+ @keyframes pFade{from{opacity:0}}
+ .enter .tile .spark{animation:none!important}
+ .rind,.tind{transition:opacity .2s}
+ .btn:active,button.tile:active,.pc:active,.rb:active,.tabs button:active,.cell:active{transform:none}
+}
