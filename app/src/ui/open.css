@@ -1,0 +1,49 @@
+/* ===== Seitengestaltung „offen“ (html.open) =====
+   Statt Kästen: Schrift und Zahlen stehen direkt auf dem Hintergrund, gegliedert durch Typografie,
+   Abstände und feine Linien – wie eine Titelsequenz. Bedienelemente (Knöpfe, Eingaben, Zähler) behalten
+   ihre Form, damit klar bleibt, was antippbar ist. Umschaltbar je Gerät (Einstellungen). */
+
+html.open .scene{gap:40px}
+html.open .row{gap:30px 40px}
+
+/* Abschnitte: kein Kasten, Überschrift mit Linie trägt die Gliederung */
+html.open .card{background:none!important;border:0;box-shadow:none!important;border-radius:0;padding:0;isolation:auto}
+html.open .card .ch{margin-bottom:18px}
+html.open .card.flat{border:0}
+html.open .card .ch h2{color:var(--ink2)}
+
+/* Begrüßung: Text direkt auf dem Bild */
+html.open .hero{background:none!important;border:0;box-shadow:none!important;border-radius:0;padding:6px 0 4px;overflow:visible}
+html.open .hero::after{display:none}
+html.open .hero .gr{text-shadow:0 4px 40px rgba(0,0,0,.45)}
+
+/* Kennzahlen: feine Linie oben, kurzer Farbstrich als Akzent (wie im Film) */
+html.open .tile{background:none!important;border:0;border-top:1px solid var(--line2);border-radius:0;box-shadow:none!important;padding:18px 2px 6px;overflow:visible}
+html.open .tile .stripe{left:0;top:-1px;bottom:auto;width:44px;height:2px;border-radius:0;box-shadow:0 0 14px currentColor}
+html.open .tile .stripe{color:var(--signal)}
+html.open .tile.ok .stripe{color:var(--ok)}html.open .tile.warn .stripe{color:var(--warn)}html.open .tile.crit .stripe{color:var(--crit)}
+html.open .tile .v{text-shadow:0 3px 30px rgba(0,0,0,.4)}
+html.open .tile.crit .k{color:var(--crit)}
+html.open .tile.warn .k{color:var(--warn)}
+html.open button.tile{border-radius:0}
+@media (hover:hover) and (pointer:fine){
+ html.open button.tile:hover{transform:none;background:linear-gradient(180deg,rgba(255,236,220,.045),transparent 70%)!important}
+}
+html.open .spot{display:none}
+
+/* Listen und kleine Einheiten: offen, nur Trennlinien */
+html.open .al button{background:none;border:0;border-bottom:1px solid var(--line);border-radius:0;padding-left:2px;padding-right:2px}
+html.open .run{background:rgba(255,236,220,.025);border-color:var(--line)}
+html.open .sf-card{background:none;border-color:var(--line)}
+html.open .sf-st4 div{background:none}
+html.open .msg,html.open .post{background:rgba(255,236,220,.03)}
+
+/* Lesbarkeit auf dem bewegten Licht */
+html.open.kino #kino{opacity:.82}
+html.open .ttl h1,html.open .clock b{text-shadow:0 2px 24px rgba(0,0,0,.5)}
+
+@media (max-width:820px){
+ html.open .scene{gap:32px}
+ html.open .row{gap:22px 20px}
+ html.open .hero .tl{margin-left:14px;margin-right:14px}
+}

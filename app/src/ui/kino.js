@@ -60,7 +60,7 @@ function init(){if(gl)return true;try{cv=document.createElement('canvas');cv.id=
 function size(){if(!cv)return;var w=Math.max(160,Math.min(1100,Math.round(innerWidth*scale))),h=Math.max(90,Math.round(w*innerHeight/Math.max(1,innerWidth)));if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;gl.viewport(0,0,w,h)}}
 function moodT(){try{var a=alerts(new Date());tgt=MOOD[a.some(function(x){return x.tone==='crit'})?2:a.length?1:0]}catch(e){}}
 function draw(T){size();if(!cur)cur=JSON.parse(JSON.stringify(tgt));for(var i=0;i<2;i++)for(var k=0;k<3;k++)cur[i][k]+=(tgt[i][k]-cur[i][k])*.03;
- gl.uniform2f(U.R,cv.width,cv.height);gl.uniform1f(U.T,T);gl.uniform3fv(U.A,cur[0]);gl.uniform3fv(U.B,cur[1]);gl.uniform1f(U.V,vid?1:0);gl.uniform1f(U.G,innerWidth<820?1.45:1);gl.uniform1f(U.X,expo());gl.uniform1f(U.S,sun());PT.x+=(PT.tx-PT.x)*.05;PT.y+=(PT.ty-PT.y)*.05;gl.uniform2f(U.P,PT.x,PT.y);gl.drawArrays(gl.TRIANGLES,0,3)}
+ gl.uniform2f(U.R,cv.width,cv.height);gl.uniform1f(U.T,T);gl.uniform3fv(U.A,cur[0]);gl.uniform3fv(U.B,cur[1]);gl.uniform1f(U.V,vid?1:0);gl.uniform1f(U.G,innerWidth<820?(root.classList.contains('open')?1.05:1.45):(root.classList.contains('open')?.92:1));gl.uniform1f(U.X,expo());gl.uniform1f(U.S,sun());PT.x+=(PT.tx-PT.x)*.05;PT.y+=(PT.ty-PT.y)*.05;gl.uniform2f(U.P,PT.x,PT.y);gl.drawArrays(gl.TRIANGLES,0,3)}
 function frame(now){if(!run)return;raf=requestAnimationFrame(frame);if(covered())return;
  if(lastR){ivs.push(now-lastR);if(ivs.length>120){var av=ivs.reduce(function(a,b){return a+b},0)/ivs.length;ivs=[];if(av>45&&scale>.2)scale=Math.max(.2,scale*.8)}}lastR=now;
  if(now-last<33)return;last=now;if(now-mdT>5000){mdT=now;moodT()}draw((now-t0)/1000+40)}

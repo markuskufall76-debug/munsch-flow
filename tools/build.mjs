@@ -17,7 +17,7 @@ const parts = {
   core: read('app/src/legacy/core.js') + '\n' + read('app/src/core/rules-ext.js'),
   sync: read('app/src/legacy/sync.js') + '\n' + read('app/src/core/sync-ext.js') + '\n' + read('app/src/legacy/excel.js'),
   app: ['app.js', 'shopfloor.js', 'station.js', 'pages.js', 'today.js', 'extras.js', 'cinema.js', 'cinema2.js', 'film.js', 'stage.js', 'mine.js', 'forecast.js', 'halle.js', 'moments.js', 'flow.js', 'filmrec.js', 'clips.js', 'kino.js', 'focus.js', 'care.js', 'pilot.js', 'polish.js'].map((f) => read('app/src/ui/' + f)).join('\n;\n'),
-  css: ['app.css', 'modules.css', 'cinema.css', 'cinema2.css', 'stage.css', 'halle.css', 'moments.css', 'flow.css', 'focus.css', 'care.css', 'clips.css', 'kino.css', 'polish.css'].map((f) => read('app/src/ui/' + f)).join('\n'),
+  css: ['app.css', 'modules.css', 'cinema.css', 'cinema2.css', 'stage.css', 'halle.css', 'moments.css', 'flow.css', 'focus.css', 'care.css', 'clips.css', 'kino.css', 'open.css', 'polish.css'].map((f) => read('app/src/ui/' + f)).join('\n'),
 };
 const BUILD = '7-' + createHash('sha256').update(Object.values(parts).join('\0')).digest('hex').slice(0, 10);
 

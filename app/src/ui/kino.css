@@ -1,6 +1,5 @@
 /* ===== Kino-Hintergrund (kino.js) und filmische Details ===== */
-#kino{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;display:block;opacity:0;animation:kinoIn 1.6s ease-out .1s forwards}
-@keyframes kinoIn{to{opacity:1}}
+#kino{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;display:block}
 html.kino #light{display:none}
 #kinov{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;pointer-events:none;filter:grayscale(.3) saturate(.6) contrast(1.1) brightness(.3);animation:kinoKb 48s ease-in-out infinite alternate}
 @keyframes kinoKb{from{transform:scale(1.08) translate3d(-1%,0,0)}to{transform:scale(1) translate3d(1%,0,0)}}
@@ -36,7 +35,7 @@ html.kino #login .pc{background:rgba(20,23,27,.72)}
 html.lite #kino,html.lite #kinov{display:none}
 html.lite .ttl h1.rv,html.lite .ttl .eb.rv{animation:none}
 @media (prefers-reduced-motion:reduce){
- #kino{animation:none;opacity:1}#kinov{animation:none}
+ #kinov{animation:none}
  html.kino #vignette::after{animation:none}
  .ttl h1.rv,.ttl .eb.rv,#login h1,#login .eb{animation:none}
 }
