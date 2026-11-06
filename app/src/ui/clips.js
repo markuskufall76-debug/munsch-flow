@@ -136,11 +136,15 @@ setInterval(function(){if(!$('#mon')||$('#clip'))return;var n=new Date();if(n.ge
    eigene nächste Abwesenheit. Nie Krankmeldungen anderer, nie Gesprächstermine.
    Nicht an Station, Bereichs-Tablet und im ruhigen Modus. Je Person abschaltbar (Einstellungen). */
 var PIMG={'Wareneingang':'lager','WEP':'pumpe','Säge Metall':'prod','Säge Kunststoff':'prod','Vorkommissionierung':'lager','Materialwagen':'lager','Werksverkehr':'halle','Werk 1':'lager','Werk 2':'halle','Teamleitung':'steuer'};
+/* Anrede und Vorname je Person: von der Teamleitung gepflegt (S.cfg.gruss, nur Teamleitung schreibt) */
+function gruss(u){var c=S.cfg&&S.cfg.gruss;return (c&&c[u])||{}}
+var MOTIVE=[['','automatisch (dein Bereich)'],['halle','Halle'],['lager','Regalgang'],['prod','Säge'],['pumpe','Pumpe'],['steuer','Besprechungsecke'],['sys','Leitstand'],['pers','Helme und Westen'],['komm','Funkgerät']];
 function pKey(){return 'mflow.pf.'+String(S.user||'').replace(/[^A-Za-z0-9]/g,'')}
 function pOn(){return (M.ls(pKey()+'.on')||'1')==='1'}
 function pDue(){var t=todayIso();return !!S.user&&pOn()&&!RM&&!document.documentElement.classList.contains('lite')&&!M.ls('mflow.area')&&!(window.isStation&&isStation())&&!(window.me&&me()&&me().station)&&M.ls(pKey())!==t&&(!navigator.webdriver||window.__pf)}
 function persData(){var t=todayIso(),u=S.user,h=new Date().getHours(),w=isWork(t),plan0=(S.plan[t]||{})[u],plan=plan0||(window.myArea?myArea():null),ab=absentOn(t).filter(function(v){return v.emp===u})[0];
- var hi=(h<11?'Guten Morgen':h<17?'Hallo':'Guten Abend')+',',img=ab?'pers':PIMG[plan]||'steuer',big='',small='';
+ var G=gruss(u),back=!ab&&w&&absentOn(prevWork(t)).some(function(v){return v.emp===u}),own=M.ls(pKey()+'.img');
+ var hi=(back?'Willkommen zurück':G.a||(h<11?'Guten Morgen':h<17?'Hallo':'Guten Abend'))+',',img=ab?'pers':own||PIMG[plan]||'steuer',big='',small='';
  if(ab){big='Heute: '+ab.type+'.';small='Bis '+fmtD(ab.d1,{weekday:'long',day:'numeric',month:'long'})+'. Gute Erholung.'}
  else if(!w){big='Heute frei.';small='Nächster Arbeitstag: '+fmtD(nextWork(t),{weekday:'long',day:'numeric',month:'long'})+'.'}
  else if(plan){big=plan+'.';small=plan0?'Dort bist du heute eingeteilt.':'Dein Bereich.';
@@ -149,14 +153,15 @@ function persData(){var t=todayIso(),u=S.user,h=new Date().getHours(),w=isWork(t
   if(plan==='Teamleitung'){var al=alerts(new Date()).length;small=al?al+(al===1?' Hinweis':' Hinweise')+' in der Warnlage.':'Alles ruhig in der Warnlage.'}}
  else{big='Schön, dass du da bist.';small=shiftInfo(new Date()).txt+'.'}
  var P=[],vt=(window._presToday?_presToday(t):[]).filter(function(x){return x.n===u});
+ ((window.pmKey&&S.funk[pmKey(u)])||[]).filter(function(m){return m.gd===t}).slice(-1).forEach(function(m){P.push(['Von '+m.by,m.t])});
  vt.forEach(function(x){P.push(['Shopfloor 06:45','Du hältst den Vortrag: '+x.t+'.'])});
- var pm=window.pmKey?(S.funk[pmKey(u)]||[]).filter(function(m){return m.by!==u&&m.ts>(+(S.ui.pmr||0))}):[];
+ var pm=window.pmKey?(S.funk[pmKey(u)]||[]).filter(function(m){return m.by!==u&&m.ts>(+(S.ui.pmr||0))&&m.gd!==t}):[];
  if(pm.length)P.push(['Für dich',pm.length===1?'Eine neue Nachricht von '+pm[0].by+'.':pm.length+' neue Nachrichten.']);
  var ms=(S.mass||[]).concat((S.s5&&S.s5.mass)||[]).filter(function(m){return !m.done&&m.wer===u});
  if(ms.length)P.push(['Deine Maßnahmen',ms.length===1?'Eine offene Maßnahme: '+ms[0].txt+'.':ms.length+' offene Maßnahmen.']);
  if(!ab){var nx=(S.vacs||[]).filter(function(v){return v.emp===u&&v.d0>t&&v.st!=='abgelehnt'}).sort(function(a,b){return a.d0<b.d0?-1:1})[0];
   if(nx&&(new Date(nx.d0+'T12:00:00')-new Date(t+'T12:00:00'))/864e5<=7)P.push(['Bald',nx.type+' ab '+fmtD(nx.d0,{weekday:'long',day:'numeric',month:'long'})+'.'])}
- return {hi:hi,name:firstName(u),img:img,big:big,small:small,P:P.slice(0,2),date:fmtD(t,{weekday:'long',day:'numeric',month:'long'})}}
+ return {hi:hi,name:G.v||firstName(u),img:img,big:big,small:small,P:P.slice(0,2),date:fmtD(t,{weekday:'long',day:'numeric',month:'long'})}}
 /* Als Bildschirm-Animation (nicht Leinwand): passt sich jedem Format an, Schrift bleibt scharf, startet ohne Ladezeit */
 var PF=null;
 /* Klang zur Begrüßung: weicher Akkord, der aufblüht, ein heller Glockenton beim Namen, leises Rauschen beim Szenenwechsel.
@@ -195,8 +200,16 @@ var pfDone=false;function pfMark(){document.documentElement.classList.toggle('pf
 setInterval(pfMark,1000);document.addEventListener('pointerdown',pfMark,true);
 var arP=window.afterRender;window.afterRender=function(p){if(arP)arP(p);if(pfDone)return;pfDone=true;if(pDue())setTimeout(function(){personal(false);document.documentElement.classList.remove('pf-due')},60)};
 var admP=VIEW.adm;VIEW.adm=function(){var h=admP.apply(this,arguments),on=pOn();
- return h+M.card('Persönliche Begrüßung','<div class="seg"><button class="'+(on?'on':'')+'" data-act="pfset" data-v="1">an</button><button class="'+(on?'':'on')+'" data-act="pfset" data-v="0">aus</button></div><div class="fl" style="margin:14px 0 8px">Klang</div><div class="seg"><button class="'+(pfSndOn()?'on':'')+'" data-act="pfsnd" data-v="1">an</button><button class="'+(pfSndOn()?'':'on')+'" data-act="pfsnd" data-v="0">aus</button></div><div style="margin-top:14px"><button class="btn" data-act="pfnow">Jetzt abspielen</button></div><p class="dim" style="font-size:12.5px;margin:12px 0 0">Ein kurzer Film bei der ersten Anmeldung des Tages: dein Bereich, dein Ziel und was heute für dich ansteht. Tippen überspringt. Gilt für dich, nicht an Station und Bereichs-Tablets.</p>')};
-ACT.pfset=function(d){M.ls(pKey()+'.on',d.v);render()};ACT.pfsnd=function(d){M.ls(pKey()+'.snd',d.v);render()};
+ return h+M.card('Persönliche Begrüßung','<div class="seg"><button class="'+(on?'on':'')+'" data-act="pfset" data-v="1">an</button><button class="'+(on?'':'on')+'" data-act="pfset" data-v="0">aus</button></div><div class="fl" style="margin:14px 0 8px">Motiv</div><select class="in" id="pfimgsel" style="max-width:320px">'+MOTIVE.map(function(m){return '<option value="'+m[0]+'"'+((M.ls(pKey()+'.img')||'')===m[0]?' selected':'')+'>'+m[1]+'</option>'}).join('')+'</select><div class="fl" style="margin:14px 0 8px">Klang</div><div class="seg"><button class="'+(pfSndOn()?'on':'')+'" data-act="pfsnd" data-v="1">an</button><button class="'+(pfSndOn()?'':'on')+'" data-act="pfsnd" data-v="0">aus</button></div><div style="margin-top:14px"><button class="btn" data-act="pfnow">Jetzt abspielen</button></div><p class="dim" style="font-size:12.5px;margin:12px 0 0">Ein kurzer Film bei der ersten Anmeldung des Tages: dein Bereich, dein Ziel und was heute für dich ansteht. Tippen überspringt. Gilt für dich, nicht an Station und Bereichs-Tablets.</p>')};
+ACT.pfset=function(d){M.ls(pKey()+'.on',d.v);render()};
+document.addEventListener('change',function(e){if(e.target&&e.target.id==='pfimgsel'){M.ls(pKey()+'.img',e.target.value||null);toast('Motiv gespeichert')}});
+/* Teamleitung: Anrede, Vorname, Begrüßungsnachricht für einen Tag */
+var admG=VIEW.adm;VIEW.adm=function(){var h=admG.apply(this,arguments);if(!isLead())return h;var P=TEAM.filter(function(m){return !m.station&&!m.monitor}),t=todayIso();
+ var rows=P.map(function(m,i){var g=gruss(m.n);return '<tr><td>'+esc(m.n)+'</td><td><input class="in" id="gra'+i+'" data-u="'+esc(m.n)+'" value="'+esc(g.a||'')+'" placeholder="automatisch" maxlength="30"></td><td><input class="in" id="grv'+i+'" value="'+esc(g.v||'')+'" placeholder="'+esc(firstName(m.n))+'" maxlength="30"></td></tr>'}).join('');
+ return h+M.card('Begrüßung im Team','<p class="dim" style="font-size:12.5px;margin:0 0 12px">Anrede und Vorname für die persönliche Begrüßung. Leer: Tageszeit-Gruß und Kurzname. Nach Urlaub oder Krankheit heißt es automatisch „Willkommen zurück“ (ohne Grund).</p><table class="t"><thead><tr><th>Person</th><th>Anrede</th><th>Vorname</th></tr></thead><tbody>'+rows+'</tbody></table><div style="margin-top:12px"><button class="btn pri" data-act="grsave" data-n="'+P.length+'">Speichern</button></div>'
+  +'<div class="fl" style="margin:22px 0 8px">Begrüßungsnachricht für einen Tag</div><div class="frm"><label class="fl">Person<select class="in" id="grp">'+P.map(function(m){return '<option>'+esc(m.n)+'</option>'}).join('')+'</select></label><label class="fl">Tag<input class="in" type="date" id="grd" value="'+nextWork(t)+'"></label><label class="fl w2">Text<input class="in" id="grt" maxlength="90" placeholder="z. B. Willkommen im Team!"></label><button class="btn" data-act="grmsg">Senden</button></div><p class="dim" style="font-size:12.5px;margin:10px 0 0">Erscheint an diesem Tag als eigene Szene in der Begrüßung und als persönliche Nachricht.</p>')};
+ACT.grsave=function(d){var c=S.cfg=S.cfg&&typeof S.cfg==='object'?S.cfg:{},g={};for(var i=0;i<+d.n;i++){var a=$('#gra'+i),v=$('#grv'+i);if(!a)continue;var x={};if(a.value.trim())x.a=a.value.trim();if(v.value.trim())x.v=v.value.trim();if(x.a||x.v)g[a.dataset.u]=x}c.gruss=g;save();toast('Begrüßung gespeichert')};
+ACT.grmsg=function(){var n=$('#grp').value,d=$('#grd').value,tx=$('#grt').value.trim();if(!n||!d||!tx)return toast('Bitte Person, Tag und Text angeben');var k=pmKey(n);S.funk[k]=S.funk[k]||[];S.funk[k].push({by:S.user,t:tx,ts:Date.now(),gd:d});save();$('#grt').value='';toast('Nachricht für '+n+' am '+fmtD(d,{day:'2-digit',month:'2-digit'})+' angelegt')};ACT.pfsnd=function(d){M.ls(pKey()+'.snd',d.v);render()};
 window.playGreeting=greet;window.playDay=day;window.clipData={greet:greetData,day:nums};
 
 /* ---------- Knöpfe ---------- */

@@ -39,6 +39,7 @@ Nicht gespeichert werden: Standort, Kamera, Mikrofon, Arbeitszeiten (Kommen/Gehe
 - Die Nutzungszählung kennt keine Person.
 - Krankheitsgründe werden nicht erfasst.
 - Die **persönliche Begrüßung** (kurzer Film bei der ersten Anmeldung des Tages) zeigt nur der angemeldeten Person, was sie ohnehin auf „Mein Tag“ sieht: eigener Bereich, Ziel, eigener Vortrag, neue Nachrichten an sie, eigene Maßnahmen, eigene nächste Abwesenheit. Nie Daten anderer Personen, nie Gesprächstermine, nie Krankmeldungen. Sie läuft nicht an Station und Bereichs-Tablets und ist je Person abschaltbar.
+  Die Teamleitung kann je Person eine Anrede und einen Vornamen hinterlegen und eine Begrüßungsnachricht für einen bestimmten Tag schicken (sichtbar nur für die Person, wie jede persönliche Nachricht). Nach einer Abwesenheit heißt es „Willkommen zurück“, ohne den Grund zu nennen. Geburtstage werden nicht gespeichert.
 
 ## 4. Rechte und Schutz
 
