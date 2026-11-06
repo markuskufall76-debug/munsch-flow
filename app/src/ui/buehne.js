@@ -33,8 +33,27 @@ var ar=window.afterRender;window.afterRender=function(p){if(ar)ar(p);if(p!=='run
 /* ---------- 4 Momente: das Licht leuchtet auf, wenn etwas geschafft ist ----------
    Milkrun-Runde beendet, Störung behoben; alle zehn Runden: stärker. Auch wenn es an einem anderen Gerät passiert. */
 var SC=null;function score(){try{var mk=mkDay(todayIso()),m=Object.keys(mk).filter(function(k){return mk[k].e}).length,R=REG.qs,q=(S.reg.qs||[]).filter(function(e){return R.done.indexOf(e.st)>=0}).length;return {m:m,q:q,d:todayIso()}}catch(e){return null}}
-function moment(){var s=score();if(!s)return;if(SC&&SC.d===s.d&&window.kino&&kino.flash){if(s.m>SC.m)kino.flash(s.m===10);else if(s.q>SC.q)kino.flash(false)}SC=s}
+function moment(){var s=score();if(!s)return;if(SC&&SC.d===s.d){var big=s.m>SC.m&&s.m===10,hit=s.m>SC.m||s.q>SC.q;if(hit){if(window.kino&&kino.flash)kino.flash(big);else if(window.logoSpin)logoSpin(big)}}SC=s}
 var ar4=window.afterRender;window.afterRender=function(p){if(ar4)ar4(p);moment()};setInterval(moment,4000);
+
+/* ---------- 5 Laufrad im Hintergrund ----------
+   Das Munsch-Zeichen groß und kaum sichtbar am rechten Rand, das Laufrad dreht wie eine Pumpe im Betrieb:
+   langsam außerhalb der Schicht, gleichmäßig während der Schicht, kurz schneller bei Erfolgen (Runde fertig, Störung behoben).
+   Aus im ruhigen Modus und an der Station; bei reduzierter Bewegung stehend. */
+var MK=null,SP=null,rate=1,goal=1,boost=0;
+function markSvg(){var d=function(a){return 'M'+a.map(function(p){return p[0]+','+p[1]}).join('L')+'Z'},t='',w='';
+ PARTS.forEach(function(p){if(p.g!=='t'&&p.g!=='w')return;var x='<path d="'+d(p.s[0])+'"/>';if(p.g==='t')t+=x;else w+=x});
+ return '<svg viewBox="0 0 131 131" aria-hidden="true"><circle class="mk-r" cx="65.3" cy="65.3" r="62.3"/><circle class="mk-r2" cx="65.3" cy="65.3" r="54"/><g class="mk-t">'+t+'</g><g class="mk-w">'+w+'</g></svg>'}
+function markOn(){return !document.documentElement.classList.contains('lite')&&!(window.isStation&&isStation())&&!$('#stn')&&(window.MF_LOGO!==0)}
+function markBase(){try{var s=shiftInfo(new Date()).state;return s==='lauf'?1:.35}catch(e){return .5}}
+function markInit(){if(MK||!window.PARTS)return;MK=document.createElement('div');MK.id='mark';MK.setAttribute('aria-hidden','true');MK.innerHTML=markSvg();
+ var v=$('#vignette');document.body.insertBefore(MK,v||document.body.firstChild);
+ var g=MK.querySelector('.mk-w');if(g.animate&&!RM){SP=g.animate([{transform:'rotate(0deg)'},{transform:'rotate(360deg)'}],{duration:48000,iterations:Infinity});
+  (function tick(){if(!SP)return;goal=markBase()+boost;boost*=.985;rate+=(goal-rate)*.04;SP.playbackRate=Math.max(.05,rate);setTimeout(tick,120)})()}}
+function markApply(){if(markOn()){markInit();if(MK)MK.hidden=false}else if(MK)MK.hidden=true}
+window.logoSpin=function(big){boost=big?14:7;if(MK&&!RM){MK.classList.remove('flare');void MK.offsetWidth;MK.classList.add('flare')}};
+setInterval(markApply,3000);markApply();
+var fl0=window.kino&&kino.flash;if(fl0)kino.flash=function(big){fl0(big);logoSpin(big)};
 
 /* ---------- 3 Ruhemodus ---------- */
 var AL=['steuer','lager','prod','halle','pumpe','pers','sys'],ai=0,at=0;
