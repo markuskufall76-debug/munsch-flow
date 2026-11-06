@@ -8,6 +8,7 @@ import { login, session, logout, setPin, usersWithPin, audit } from './auth.js';
 import { pull, push } from './sync.js';
 import { handleAsk } from './ask.js';
 import { backupDownload, nightly } from './backup.js';
+import { feedback } from './feedback.js';
 import { badgeLogin, badgeWho, badgeIssue, badgeRevoke, badgeList } from './badge.js';
 
 const SCHEMA = [
@@ -98,6 +99,7 @@ export default {
         case '/api/badge/who': if (m !== 'POST') break; return out(await badgeWho(db, who, (await body(request)).code, ip));
         case '/api/badges': return out(await badgeList(db, who));
         case '/api/backup': return out(await backupDownload(db, who, BUILD));
+        case '/api/feedback': if (m !== 'POST') break; return out(await feedback(db, who, await body(request)));
       }
       return json({ error: 'Nicht gefunden' }, 404);
     } catch (e) {

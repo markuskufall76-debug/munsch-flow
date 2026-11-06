@@ -9,7 +9,7 @@
  var base=syFlat;
  syFlat=function(){
   var o=base();
-  ['dev','chk','chkdef','home','cfg','use'].forEach(function(s){var r=o[s]={};Object.keys(S[s]||{}).forEach(function(k){r[k]=JSON.stringify(S[s][k])})});
+  ['dev','chk','chkdef','home','cfg','use','fb'].forEach(function(s){var r=o[s]={};Object.keys(S[s]||{}).forEach(function(k){r[k]=JSON.stringify(S[s][k])})});
   Object.keys(SY.last||{}).forEach(function(s){
    if(o[s])return;
    var t=syTarget(s),r=o[s]={};

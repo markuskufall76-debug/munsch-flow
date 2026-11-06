@@ -12,6 +12,7 @@ export const pmKey = (name) => '@' + String(name).replace(/[^A-Za-z0-9]/g, '');
 export function canRead(who, s) {
   if (who.role === 'lead') return true;
   if (s === 'reg.gespr') return false;
+  if (s === 'fb') return false; // anonyme Rückmeldungen liest nur die Teamleitung
   if (s.startsWith('funk.@')) return s === 'funk.' + pmKey(who.name);
   return true;
 }
@@ -37,6 +38,7 @@ export function rule(who, op, current) {
   if (op.v != null) { try { JSON.parse(op.v); } catch { return 'Wert ist kein JSON'; } }
   if (who.role === 'lead') return null;
   if (LEAD_ONLY.has(op.s)) return 'nur Teamleitung';
+  if (op.s === 'fb') return 'Rückmeldungen nur über /api/feedback';
   if (op.s.startsWith('funk.@') && op.s !== 'funk.' + pmKey(who.name)) return 'persönliche Nachricht an andere nur durch die Teamleitung';
   if (APPEND_ONLY.has(op.s) && op.v == null) return 'Protokoll kann nicht gelöscht werden';
   if (op.s === 'vacs') {
@@ -79,7 +81,7 @@ export async function push(db, who, body) {
     for (const op of ok) {
       st.push(db.prepare("UPDATE meta SET v = v + 1 WHERE k = 'seq'"));
       st.push(db.prepare("INSERT INTO rows (s, k, v, seq, ts, by) VALUES (?, ?, ?, (SELECT v FROM meta WHERE k = 'seq'), ?, ?) ON CONFLICT (s, k) DO UPDATE SET v = excluded.v, seq = excluded.seq, ts = excluded.ts, by = excluded.by")
-        .bind(op.s, op.k, op.v ?? null, now, who.name));
+        .bind(op.s, op.k, op.v ?? null, op.s === 'fb' ? Date.parse(new Date(now).toISOString().slice(0, 10)) : now, op.s === 'fb' ? null : who.name));
     }
     await db.batch(st); // eine Transaktion: alles oder nichts, Nummern lückenlos
   }

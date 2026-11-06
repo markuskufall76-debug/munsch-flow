@@ -638,3 +638,27 @@ test('Vorsorge: Ausfallrisiko der Qualifikationen, Warnung vor dem Genehmigen, N
   assert.ok(await tab.evaluate(() => document.documentElement.classList.contains('lite')), 'Bereichs-Tablet ist ruhig');
   assert.deepEqual(lead.errors, []); assert.deepEqual(tab.errors, []);
 });
+
+test('Pilot: Team gibt anonym Rückmeldung, die Teamleitung sieht sie in der Auswertung und hakt sie ab', async () => {
+  const lead = await open();
+  await signIn(lead, 'M. Thiel', 'notfall-123456');
+  await lead.waitForFunction(() => window.SY && SY.ok);
+  const tok = await lead.evaluate(() => SY.tok);
+  await api('/api/pin', tok, { name: 'K. Braun', pin: 'braun-123456' });
+  const team = await open();
+  await signIn(team, 'K. Braun', 'braun-123456');
+  await team.waitForFunction(() => window.SY && SY.ok && S.ui.page === 'mein', null, { timeout: 10000 });
+  await team.click('.fbcard [data-act="fbopen"][data-c="fehlt"]');
+  await team.fill('#fbt', 'Mir fehlt eine Übersicht der Gabelstapler-Prüfungen.');
+  await team.click('[data-act="fbsend"]');
+  await team.waitForFunction(() => /Danke/.test(document.querySelector('.toast')?.textContent || ''));
+  await lead.evaluate(() => new Promise((ok) => syPull(ok)));
+  await lead.evaluate(() => { S.ui.aw = 'm'; S.ui.awo = 0; go('ausw'); });
+  await lead.waitForSelector('.fbi');
+  assert.match(await lead.textContent('.fbi'), /Gabelstapler-Prüfungen/);
+  assert.doesNotMatch(await lead.textContent('.fbi'), /Braun/);
+  assert.ok(await lead.evaluate(() => alerts(new Date()).some((a) => /Rückmeldung.*offen/.test(a.t))));
+  await lead.click('.fbi [data-act="fbdone"]');
+  await lead.waitForFunction(() => !document.querySelector('.fbi'));
+  assert.deepEqual(lead.errors, []); assert.deepEqual(team.errors, []);
+});

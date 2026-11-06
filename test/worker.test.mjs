@@ -239,3 +239,23 @@ test('Datenschutz: Krankmeldungen anderer sieht das Team nur als „Abwesend“,
   assert.equal(back.body.n, 0); assert.equal(back.body.rej.length, 1, 'Team kann den Eintrag nicht überschreiben');
   assert.equal(JSON.parse(back.body.rej[0].v).type, 'Abwesend', 'auch die Ablehnung verrät nichts');
 });
+
+test('Rückmeldung: anonym gespeichert (kein Name, nur Datum), lesen nur Teamleitung, Team kann nicht über Sync schreiben, 10 je Tag', async () => {
+  const { lead, team } = await withPins();
+  const r = await call('/api/feedback', { token: team, body: { t: 'Der Rückgängig-Knopf ist zu klein.', cat: 'stoert' } });
+  assert.equal(r.status, 200);
+  const row = await env.DB.prepare("SELECT k, v, by, ts FROM rows WHERE s = 'fb'").first();
+  assert.equal(row.by, null, 'kein Name in der Datenbank');
+  assert.equal(new Date(row.ts).toISOString().slice(11), '00:00:00.000Z', 'nur das Datum');
+  assert.doesNotMatch(row.v, new RegExp(TEAMER.replace('.', '\\.')));
+  assert.equal((await call('/api/sync?since=0', { token: team })).body.rows.filter((x) => x.s === 'fb').length, 0, 'Team liest keine Rückmeldungen');
+  const fl = (await call('/api/sync?since=0', { token: lead })).body.rows.filter((x) => x.s === 'fb');
+  assert.equal(fl.length, 1); assert.equal(JSON.parse(fl[0].v).t, 'Der Rückgängig-Knopf ist zu klein.');
+  assert.equal((await call('/api/push', { token: team, body: { ops: [{ s: 'fb', k: 'x', v: JSON.stringify({ t: 'x' }) }] } })).body.rej.length, 1);
+  const done = JSON.stringify({ ...JSON.parse(fl[0].v), done: 1 });
+  assert.equal((await call('/api/push', { token: lead, body: { ops: [{ s: 'fb', k: fl[0].k, v: done }] } })).body.n, 1);
+  assert.equal((await env.DB.prepare("SELECT by FROM rows WHERE s = 'fb'").first()).by, null, 'auch nach Bearbeitung kein Name');
+  assert.equal((await call('/api/feedback', { token: team, body: { t: 'x', cat: 'quatsch' } })).status, 400);
+  for (let i = 0; i < 9; i++) await call('/api/feedback', { token: team, body: { t: 'Nr ' + i, cat: 'fehlt' } });
+  assert.equal((await call('/api/feedback', { token: team, body: { t: 'zu viel', cat: 'gut' } })).status, 429);
+});

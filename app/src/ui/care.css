@@ -35,3 +35,11 @@ html.lite .sweep,html.lite .livebg,html.lite #vignette{display:none!important}
 html.lite::view-transition-old(root),html.lite::view-transition-new(root){animation:none!important}
 html.lite .tile:hover,html.lite .fquick button:hover{transform:none}
 html.lite #stage > *{animation:none!important}
+
+/* ---------- Pilot-Rückmeldung ---------- */
+.fbq{display:flex;gap:10px;flex-wrap:wrap}
+.fbi{display:grid;grid-template-columns:150px minmax(0,1fr) auto;gap:14px;align-items:start;padding:12px 0;border-top:1px solid var(--line)}
+.fbi.done{opacity:.55}
+.fbm{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.fbi p{margin:2px 0 0;font-size:14.5px;line-height:1.45;white-space:pre-wrap}
+@media (max-width:700px){.fbi{grid-template-columns:1fr}}

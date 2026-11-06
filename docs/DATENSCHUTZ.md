@@ -28,6 +28,7 @@ Ziel ist die Steuerung des **Bereichs**, nicht die Bewertung einzelner Personen.
 | Shopfloor-Protokoll | Vortragende Person, Maßnahmen mit Verantwortlichen | alle | Shopfloor-Management |
 | Anmeldeprotokoll (Server) | Zeit, Name, Ereignis, IP-Adresse | nur Betrieb (Cloudflare-Konto) | Sicherheit, Missbrauchserkennung |
 | Nutzungszählung | Seitenaufrufe je Gerät und Tag, **ohne Name** (zufällige Geräte-Kennung) | Teamleitung | Pilot auswerten, Unnötiges entfernen |
+| Pilot-Rückmeldung | freier Text und Art (stört, fehlt, gut), **ohne Name, nur Datum** | Teamleitung | Pilot auswerten |
 
 Nicht gespeichert werden: Standort, Kamera, Mikrofon, Arbeitszeiten (Kommen/Gehen), Leistungskennzahlen je Person.
 

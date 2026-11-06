@@ -48,8 +48,8 @@ Maßgeblich sind die Originaldaten aus dem Excel-Import (`app/src/legacy/mfdata.
 
 | Befehl | Prüft |
 |---|---|
-| `npm test` | Logik-Kern inkl. Originaldaten und Sync-Sicherheitsnetz (14 Tests) und API inkl. Sicherheit (19 Tests, inkl. Anmeldekarten, Sicherung, Datenschutz) gegen SQLite |
-| `npm run test:e2e` | echter Worker lokal + Seite in zwei Browsern: Erstbefüllung, PIN, Live-Abgleich, Rechte, Umzug, falsche PIN, Shopfloor-Runde, Station mit Rückgängig, Excel-Import mit echter .xlsx, Schichtaufgaben/5S/Schichtplan, Danke/Sonderbetrieb, Probelauf ohne Schreibzugriff, persönliche Nachricht bei Ablehnung, Etikett, Geräte, Etikettengröße, Offline-Start, Alarm-Banner und Monitor-Alarm im Vollbild, Monatsrückblick als Film, Handy-Fernbedienung mit folgendem Monitor, Mein Tag, Hallenplan mit Suche und Zoom, Prognose, Morgenauftakt und Ruhemodus, Rekord auf zwei Geräten, Materialfluss mit Stau, Kamerafahrt, Bauchbinde, Videobild, Bereichsansicht mit Karten-Anmeldung und Station-Scan, Ausfallrisiko, Nutzung, Schnellanmeldung (22 Tests) |
+| `npm test` | Logik-Kern inkl. Originaldaten und Sync-Sicherheitsnetz (14 Tests) und API inkl. Sicherheit (20 Tests, inkl. Anmeldekarten, Sicherung, Datenschutz, anonyme Rückmeldung) gegen SQLite |
+| `npm run test:e2e` | echter Worker lokal + Seite in zwei Browsern: Erstbefüllung, PIN, Live-Abgleich, Rechte, Umzug, falsche PIN, Shopfloor-Runde, Station mit Rückgängig, Excel-Import mit echter .xlsx, Schichtaufgaben/5S/Schichtplan, Danke/Sonderbetrieb, Probelauf ohne Schreibzugriff, persönliche Nachricht bei Ablehnung, Etikett, Geräte, Etikettengröße, Offline-Start, Alarm-Banner und Monitor-Alarm im Vollbild, Monatsrückblick als Film, Handy-Fernbedienung mit folgendem Monitor, Mein Tag, Hallenplan mit Suche und Zoom, Prognose, Morgenauftakt und Ruhemodus, Rekord auf zwei Geräten, Materialfluss mit Stau, Kamerafahrt, Bauchbinde, Videobild, Bereichsansicht mit Karten-Anmeldung und Station-Scan, Ausfallrisiko, Nutzung, Schnellanmeldung, Pilot-Rückmeldung (23 Tests) |
 | `npm run dev` | lokaler Server unter http://localhost:8787 |
 
 CI (`.github/workflows/ci.yml`) führt alles bei jedem Push aus und stellt die Worker-Datei als Download bereit.
@@ -96,3 +96,7 @@ am Dateianfang und lässt sich dort anpassen. Störmeldungen erscheinen am Berei
 `worker/src/backup.js`: Cron-Trigger nachts: Sicherung nach R2 (Bindung `BACKUP`, 30 Tage), Protokoll 180 Tage, alte Sitzungen und Fehlversuche löschen.
 
 Datenschutz im Server (`sync.js`, `mask`): Krankmeldungen anderer erreichen Team-Geräte nur als „Abwesend“, auch in Ablehnungen. Siehe docs/DATENSCHUTZ.md.
+
+## Anonyme Rückmeldung
+
+`pilot.js` und `worker/src/feedback.js`: `POST /api/feedback {t, cat}` legt eine Zeile im Abschnitt `fb` an, **ohne Namen** (`by = NULL`) und mit Zeitstempel nur auf den Tag genau. Team-Geräte lesen `fb` nicht und können es nicht über den Sync schreiben; die Teamleitung liest und hakt ab (auch dabei wird kein Name gespeichert). Höchstens 10 Rückmeldungen je Person und Tag (Zähler in `attempts`, ohne Bezug zum Inhalt).
