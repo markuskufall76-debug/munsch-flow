@@ -49,6 +49,11 @@ Danach Schritt 5 wiederholen. Die Daten bleiben erhalten. Die Version steht in d
 - Tablets im Bereich: Einstellungen → „Dieses Gerät“ → Bereich wählen und „Gemeinsames Gerät: ja“ (Abmeldung nach 10 Minuten ohne Bedienung).
 - Die Tabelle `badges` legt der Worker beim ersten Aufruf selbst an.
 
+## Hallenmonitor und Fehlerberichte
+
+- **Monitor-Konto:** In der Anmeldung gibt es „Monitor“ (Rolle `monitor`, nur lesen; der Server lehnt jede Änderung ab). PIN wie für alle unter *Zugang und PINs* setzen. Nach der Anmeldung startet der Werkstattmonitor von selbst, Eingabeformulare sind ausgeblendet, die Schrift ist groß.
+- **Fehlerberichte:** Stürzt auf einem Gerät eine Ansicht ab, meldet die Seite das ohne Personendaten an die Zentrale (Seite, Gerätetyp, Version, Fehlertext; Tabelle `errs`, die letzten 300, höchstens 60 je Gerät und Tag). Einsehen und leeren: *Einstellungen* → „Fehlerberichte“ (nur Teamleitung).
+
 ## Datensicherung
 
 - Einstellungen → „Datensicherung und Aufbewahrung“: Sicherung als Datei herunterladen (die Warnlage erinnert nach 7 Tagen), Sicherung einspielen, alte Krankmeldungen löschen.

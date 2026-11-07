@@ -38,6 +38,7 @@ Nicht gespeichert werden: Standort, Kamera, Mikrofon, Arbeitszeiten (Kommen/Gehe
 - Die Station im Bereich bucht mit Namen, damit Rückfragen zu einem Fach oder einer Runde möglich sind. Eine Auswertung „wer hat wie viel gebucht“ gibt es nicht.
 - Die Nutzungszählung kennt keine Person.
 - Krankheitsgründe werden nicht erfasst.
+- **Fehlerberichte** der Geräte enthalten keine Personendaten: nur Seite, Gerätetyp (z. B. „Tablet · Chrome“), Version und Fehlertext. Gleiche Fehler am selben Tag werden gezählt. Lesen nur die Teamleitung, es bleiben die letzten 300.
 - **Unterweisungen und Berechtigungen** (Modul, optional): Gültigkeitsdaten von Staplerschein, Sicherheitsunterweisung, Kranschein, Gefahrgut und Ersthelfer. Pflegt nur die Teamleitung; jede Person sieht nur ihre eigenen Nachweise.
 - Die **persönliche Begrüßung** (kurzer Film bei der ersten Anmeldung des Tages) zeigt nur der angemeldeten Person, was sie ohnehin auf „Mein Tag“ sieht: eigener Bereich, Ziel, eigener Vortrag, neue Nachrichten an sie, eigene Maßnahmen, eigene nächste Abwesenheit. Nie Daten anderer Personen, nie Gesprächstermine, nie Krankmeldungen. Sie läuft nicht an Station und Bereichs-Tablets und ist je Person abschaltbar.
   Die Teamleitung kann je Person eine Anrede und einen Vornamen hinterlegen und eine Begrüßungsnachricht für einen bestimmten Tag schicken (sichtbar nur für die Person, wie jede persönliche Nachricht). Nach einer Abwesenheit heißt es „Willkommen zurück“, ohne den Grund zu nennen. Geburtstage werden nicht gespeichert.

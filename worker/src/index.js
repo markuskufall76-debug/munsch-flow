@@ -12,6 +12,7 @@ import { pull, push } from './sync.js';
 import { handleAsk } from './ask.js';
 import { backupDownload, nightly } from './backup.js';
 import { feedback } from './feedback.js';
+import { ERR_SCHEMA, errReport, errList, errClear } from './errors.js';
 import { badgeLogin, badgeWho, badgeIssue, badgeRevoke, badgeList } from './badge.js';
 
 const SCHEMA = [
@@ -26,6 +27,8 @@ const SCHEMA = [
   'CREATE TABLE IF NOT EXISTS audit (id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER NOT NULL, name TEXT, ev TEXT NOT NULL, detail TEXT)',
   // Anmeldekarten: nur der Hash des Codes, je Person höchstens eine gültige Karte
   'CREATE TABLE IF NOT EXISTS badges (th TEXT PRIMARY KEY, name TEXT NOT NULL UNIQUE, created INTEGER NOT NULL, by TEXT, last INTEGER NOT NULL DEFAULT 0)',
+  // Fehlerberichte der Geräte, ohne Personendaten
+  ERR_SCHEMA,
 ];
 const ready = new WeakMap(); // Schema einmal je Datenbank und Isolate anlegen
 const ensure = (db) => {
@@ -104,6 +107,8 @@ export default {
         case '/api/badges': return out(await badgeList(db, who));
         case '/api/backup': return out(await backupDownload(db, who, BUILD));
         case '/api/feedback': if (m !== 'POST') break; return out(await feedback(db, who, await body(request)));
+        case '/api/err': if (m !== 'POST') break; return out(await errReport(db, who, await body(request), ip));
+        case '/api/errs': return out(m === 'POST' ? await errClear(db, who) : await errList(db, who));
       }
       return json({ error: 'Nicht gefunden' }, 404);
     } catch (e) {

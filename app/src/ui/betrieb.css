@@ -1,0 +1,10 @@
+/* Betrieb (betrieb.js): nur lesen, Hilfe */
+html.ro .frm,html.ro [data-act="radd"],html.ro .card:has(> .frm),html.ro .fquick,html.ro .pick{display:none!important}
+html.ro .tile,html.ro button{cursor:default}
+.hq{display:inline-grid;place-items:center;width:22px;height:22px;margin-left:10px;border-radius:50%;border:1px solid var(--line2);color:var(--ink2);font:700 12px var(--body);flex:none;transition:border-color .16s,color .16s,transform .16s var(--ease-out,ease)}
+.hq:active{transform:scale(.92)}
+@media (hover:hover) and (pointer:fine){.hq:hover{border-color:var(--signal);color:var(--signal)}}
+#hqpop{position:fixed;z-index:200;padding:12px 14px;border-radius:12px;background:rgba(14,16,19,.96);border:1px solid var(--line2);box-shadow:0 20px 50px -20px #000;color:var(--ink);font:400 14px/1.45 var(--body);animation:hqIn .16s cubic-bezier(.23,1,.32,1)}
+@keyframes hqIn{from{opacity:0;transform:translateY(-4px)}}
+html.is-light #hqpop{background:#fff;box-shadow:0 20px 50px -24px rgba(40,24,10,.4)}
+.sf-when .hq{margin-left:2px;width:20px;height:20px}

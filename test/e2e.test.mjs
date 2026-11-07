@@ -341,7 +341,8 @@ test('Offline-Start: nach dem ersten Laden startet die App ohne Netz; Alarm-Bann
   await page.waitForSelector('#albar', { timeout: 5000 });
   assert.match(await page.textContent('#albar'), /Milkrun/);
   // Hallenmonitor im Vollbild: Alarmszene muss im Monitor liegen, sonst ist sie im Vollbild unsichtbar
-  await page.evaluate(() => { const x = document.getElementById('albar'); if (x) x.remove(); delete mkDay(todayIso())[3]; render(); openMon(); });
+  // alle übrigen Runden erledigt, damit der Alarm unabhängig von der Uhrzeit neu ist
+  await page.evaluate(() => { const x = document.getElementById('albar'); if (x) x.remove(); const d = mkDay(todayIso()); for (let i = 0; i < 10; i++) d[i] = { s: Date.now() - 6e4, e: Date.now() }; render(); openMon(); });
   await page.evaluate(() => { mkDay(todayIso())[2] = { s: Date.now() - 30 * 6e4 }; afterRender('lage'); });
   await page.waitForSelector('#mon #alarm', { timeout: 3000 });
   assert.match(await page.textContent('#mon #alarm'), /Milkrun/);
@@ -661,4 +662,117 @@ test('Pilot: Team gibt anonym Rückmeldung, die Teamleitung sieht sie in der Aus
   await lead.click('.fbi [data-act="fbdone"]');
   await lead.waitForFunction(() => !document.querySelector('.fbi'));
   assert.deepEqual(lead.errors, []); assert.deepEqual(team.errors, []);
+});
+
+test('Module: einschalten, Materialabruf im Milkrun mitnehmen, ausschalten blendet aus', async () => {
+  const lead = await open();
+  await signIn(lead, 'M. Thiel', 'notfall-123456');
+  await lead.waitForFunction(() => window.SY && SY.ok);
+  assert.equal(await lead.evaluate(() => MF.navOk('abruf')), false, 'Materialabruf ist anfangs aus');
+  await lead.evaluate(() => go('adm'));
+  await lead.click('[data-act="modset"][data-id="abruf"][data-v="1"]');
+  assert.equal(await lead.evaluate(() => MF.navOk('abruf')), true);
+  await lead.evaluate(() => go('abruf'));
+  await lead.fill('#rf_abruf_ref', 'Dichtungssatz 4711');
+  await lead.selectOption('#rf_abruf_ziel', 'Lack');
+  await lead.click('[data-act="radd"]');
+  await lead.evaluate(() => go('milk'));
+  await lead.waitForSelector('.ab-card .ab-r');
+  assert.match(await lead.textContent('.ab-card'), /Dichtungssatz 4711 → Lack/);
+  await lead.click('.ab-card [data-act="rst"]');
+  assert.equal(await lead.evaluate(() => S.reg.abruf[0].st), 1);
+  assert.ok(await lead.evaluate(() => S.reg.abruf[0].t1 > 0), 'Zeitpunkt des Statuswechsels gemerkt');
+  await lead.evaluate(() => go('adm'));
+  await lead.click('[data-act="modset"][data-id="abruf"][data-v="0"]');
+  assert.equal(await lead.evaluate(() => MF.navOk('abruf')), false);
+  assert.equal(await lead.evaluate(() => S.reg.abruf.length), 1, 'Daten bleiben beim Ausschalten erhalten');
+  assert.deepEqual(lead.errors, []);
+});
+
+test('Wareneingang: Kategorie per Antippen, Lieferanten-Auswertung fasst Lieferscheine zusammen', async () => {
+  const lead = await open();
+  await signIn(lead, 'M. Thiel', 'notfall-123456');
+  await lead.waitForFunction(() => window.SY && SY.ok);
+  await lead.evaluate(() => go('we'));
+  for (const [ref, n] of [['Edelstahl Meyer', '12'], ['Edelstahl Meyer LS 4471', '8']]) {
+    await lead.fill('#rf_we_ref', ref); await lead.fill('#rf_we_pak', n);
+    await lead.click('[data-act="rpick"][data-v="Metall"]'); await lead.click('[data-act="radd"]');
+  }
+  assert.deepEqual(await lead.evaluate(() => S.reg.we.map((e) => e.kat)), ['Metall', 'Metall']);
+  assert.equal(await lead.inputValue('#rf_we_kat'), 'Metall', 'letzte Wahl bleibt');
+  await lead.evaluate(() => go('lief'));
+  const row = await lead.textContent('.card .t tbody tr');
+  assert.match(row, /Edelstahl Meyer\s*2\s*20/);
+  assert.deepEqual(lead.errors, []);
+});
+
+test('Shopfloor: Herkunft der Zahlen und HP/VP gemeinsam', async () => {
+  const lead = await open();
+  await signIn(lead, 'M. Thiel', 'notfall-123456');
+  await lead.waitForFunction(() => window.SY && SY.ok);
+  await lead.evaluate(() => { S.ui.rp = 5; go('runde'); });
+  await lead.waitForSelector('.sf-when');
+  assert.ok(await lead.$('.sf-t.k-now'), 'Rückstand als aktueller Stand');
+  assert.ok(await lead.$('.sf-t.k-day'), 'Tageszahl des letzten Tages');
+  await lead.evaluate(() => { const t = todayIso(), d = tzLatest(isWork(t) ? prevWork(t) : t); Object.assign(S.tz[d], { lack_hp: 3, lack_vp: 6 }); S.ui.rp = 8; render(); });
+  await lead.waitForFunction(() => /Pumpen \(HP und VP\)/.test(document.querySelector('.sf-stage')?.textContent || ''));
+  assert.match(await lead.textContent('.sf-stage'), /Pumpen \(HP und VP\)9[\s\S]*HP 3 · VP 6/);
+  await lead.click('.sf-when .hq');
+  assert.match(await lead.textContent('#hqpop'), /letzten erfassten Tages/);
+  assert.deepEqual(lead.errors, []);
+});
+
+test('Unterweisungen: Ablauf in der Warnlage, Team sieht nur die eigenen', async () => {
+  const lead = await open();
+  await signIn(lead, 'M. Thiel', 'notfall-123456');
+  await lead.waitForFunction(() => window.SY && SY.ok);
+  const tok = await lead.evaluate(() => SY.tok);
+  await api('/api/pin', tok, { name: 'K. Braun', pin: 'braun-123456' });
+  await lead.evaluate(() => go('unt'));
+  const i = await lead.evaluate(() => CREW.findIndex((c) => c.n === 'K. Braun'));
+  await lead.fill(`#ut_${i}_stap`, '2020-01-01');
+  await lead.click('[data-act="utsave"]');
+  assert.ok(await lead.evaluate(() => alerts(new Date()).some((a) => /Nachweis abgelaufen/.test(a.t))));
+  await lead.evaluate(() => new Promise((ok) => { syPush(); setTimeout(ok, 1200); }));
+  const team = await open();
+  await signIn(team, 'K. Braun', 'braun-123456');
+  await team.waitForFunction(() => window.SY && SY.ok && S.cfg && S.cfg.unt, null, { timeout: 10000 });
+  await team.evaluate(() => go('unt'));
+  assert.equal(await team.$$eval('.card .t tbody tr', (r) => r.length), 1);
+  assert.match(await team.textContent('.card .t tbody'), /K\. Braun.*abgelaufen/s);
+  assert.deepEqual(lead.errors, []); assert.deepEqual(team.errors, []);
+});
+
+test('Monitor-Konto startet im Werkstattmonitor, nur lesen; Fehlerbericht erreicht die Teamleitung', async () => {
+  const lead = await open();
+  await signIn(lead, 'M. Thiel', 'notfall-123456');
+  await lead.waitForFunction(() => window.SY && SY.ok);
+  const tok = await lead.evaluate(() => SY.tok);
+  await api('/api/pin', tok, { name: 'Monitor', pin: 'monitor-123' });
+  const mon = await open();
+  await signIn(mon, 'Monitor', 'monitor-123');
+  await mon.waitForSelector('#mon', { timeout: 10000 });
+  assert.ok(await mon.evaluate(() => document.documentElement.classList.contains('ro')));
+  await mon.evaluate(() => mfReport('Testfehler im Monitor', 'at x'));
+  await lead.waitForFunction(async () => { const r = await syApi('/api/errs'); return (r.errs || []).some((e) => /Testfehler im Monitor/.test(e.msg) && /Monitor/.test(e.dev)); }, null, { timeout: 8000, polling: 500 });
+  assert.deepEqual(lead.errors, []);
+});
+
+test('Darstellung und persönliche Begrüßung', async () => {
+  const lead = await open();
+  await signIn(lead, 'M. Thiel', 'notfall-123456');
+  await lead.waitForFunction(() => window.SY && SY.ok);
+  await lead.evaluate(() => go('adm'));
+  await lead.click('[data-act="fxset"][data-v="ruhig"]');
+  assert.ok(await lead.evaluate(() => document.documentElement.classList.contains('lite')));
+  await lead.click('[data-act="fxset"][data-v="voll"]');
+  assert.ok(await lead.evaluate(() => !document.documentElement.classList.contains('lite')));
+  await lead.click('[data-act="bigset"][data-v="1"]');
+  assert.ok(await lead.evaluate(() => document.documentElement.classList.contains('big')));
+  await lead.evaluate(() => { window.__pf = 1; playPersonal(); });
+  await lead.waitForSelector('#pf');
+  assert.match(await lead.textContent('#pf'), /Markus/);
+  await lead.mouse.click(400, 300);
+  await lead.waitForFunction(() => !document.getElementById('pf'));
+  assert.deepEqual(lead.errors, []);
 });

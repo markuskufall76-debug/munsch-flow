@@ -14,12 +14,13 @@ function mood(){try{var a=alerts(new Date());return a.some(function(x){return x.
 function layer(n,cls){return '<div class="'+(cls||'bn-l')+'" data-img="'+n+'" aria-hidden="true"><div class="bn-p" style="--kb:-'+(Date.now()/1000%60).toFixed(1)+'s"></div></div>'}
 
 /* ---------- 1 Werkstattmonitor ---------- */
-var MK={Schicht:'steuer',Milkrun:'halle',Lager:'lager',Lage:'sys',Meldung:'komm'};
+var MONK={Schicht:'steuer',Milkrun:'halle',Lager:'lager',Lage:'sys',Meldung:'komm'};
 var om=window.openMon,mt=0;
 window.openMon=function(){var r=om.apply(this,arguments);var m=$('#mon');if(!m)return r;
- if(!m.querySelector('.bn-bg')){var b=document.createElement('div');b.className='bn-bg';b.setAttribute('aria-hidden','true');
-  b.innerHTML=Object.keys(MK).map(function(k){var n=MK[k]==='halle'?hall():MK[k];return '<div class="bn-l" data-k="'+k+'" data-img="'+n+'"><div class="bn-p"></div></div>'}).join('');m.insertBefore(b,m.firstChild)}
- clearInterval(mt);var sync=function(){var m2=$('#mon');if(!m2){clearInterval(mt);return}var on=m2.querySelector('.sl.on .kk'),k=on?on.textContent:'Schicht';
+ /* Hintergrund anlegen; monDraw baut den Monitor je Durchlauf neu auf, daher bei jedem Abgleich prüfen */
+ var bg=function(m2){if(m2.querySelector('.bn-bg'))return;var b=document.createElement('div');b.className='bn-bg';b.setAttribute('aria-hidden','true');
+  b.innerHTML=Object.keys(MONK).map(function(k){var n=MONK[k]==='halle'?hall():MONK[k];return '<div class="bn-l" data-k="'+k+'" data-img="'+n+'"><div class="bn-p"></div></div>'}).join('');m2.insertBefore(b,m2.firstChild)};
+ clearInterval(mt);var sync=function(){var m2=$('#mon');if(!m2){clearInterval(mt);return}bg(m2);var on=m2.querySelector('.sl.on .kk'),k=on?on.textContent:'Schicht';
   m2.querySelectorAll('.bn-l').forEach(function(l){var a=l.dataset.k===k;if(a!==l.classList.contains('on')){l.classList.toggle('on',a);if(a&&!RM){var p=l.firstChild;p.style.animation='none';void p.offsetWidth;p.style.animation=''}}});m2.dataset.mood=mood()};
  sync();mt=setInterval(sync,400);return r};
 

@@ -31,3 +31,21 @@ function isLight(){var r=document.documentElement,g=getComputedStyle(r).getPrope
 isLight();new MutationObserver(isLight).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});try{matchMedia('(prefers-color-scheme: light)').addEventListener('change',isLight)}catch(e){}
 var t=0;window.addEventListener('resize',function(){clearTimeout(t);t=setTimeout(function(){sync();fit()},120)});
 })();
+/* ===== Einstellungen ordnen =====
+   Die Karten kommen aus vielen Dateien. Nach dem Aufbau werden sie in feste Gruppen sortiert,
+   unbekannte Karten landen unter „Weitere“. */
+(function(){
+'use strict';
+var G=[['dev','Auf diesem Gerät',['Darstellung auf diesem Gerät','Farbschema und Auftakt','Kino-Hintergrund','Seitengestaltung','Lagebild','Ruhemodus','Rückmeldung und Einarbeitung','Dieses Gerät']],
+ ['me','Für dich',['Persönliche Begrüßung','Konto']],
+ ['team','Team',['Zugang und PINs','Begrüßung im Team','Module','Bereiche','Bereiche und Anmeldekarten','Anmeldekarten','Geräte']],
+ ['ops','Betrieb',['Datensicherung und Aufbewahrung','Fehlerberichte','Nutzung','Umzug aus Flow 5']]];
+function title(el){var h=el.querySelector('.ch h2');return h?h.textContent.replace(/\?$/,'').trim():''}
+function order(){var sc=document.querySelector('#stage .scene');if(!sc||sc.dataset.ordered)return;var items=[].slice.call(sc.children).filter(function(e){return !e.classList.contains('ph')&&!e.classList.contains('adm-g')});
+ var bucket={},rest=[];G.forEach(function(g){bucket[g[0]]=[]});
+ items.forEach(function(e){var t=title(e),hit=null;G.forEach(function(g){if(!hit&&g[2].indexOf(t)>=0)hit=g});if(hit)bucket[hit[0]].push([hit[2].indexOf(t),e]);else rest.push(e)});
+ G.forEach(function(g){var L=bucket[g[0]].sort(function(a,b){return a[0]-b[0]});if(!L.length)return;var h=document.createElement('div');h.className='adm-g';h.innerHTML='<span>'+g[1]+'</span>';sc.appendChild(h);L.forEach(function(x){sc.appendChild(x[1])})});
+ if(rest.length){var h=document.createElement('div');h.className='adm-g';h.innerHTML='<span>Weitere</span>';sc.appendChild(h);rest.forEach(function(e){sc.appendChild(e)})}
+ sc.dataset.ordered='1'}
+var ar=window.afterRender;window.afterRender=function(p){if(ar)ar(p);if(p==='adm')order()};
+})();

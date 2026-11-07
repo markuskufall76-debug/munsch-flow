@@ -259,3 +259,30 @@ test('Rückmeldung: anonym gespeichert (kein Name, nur Datum), lesen nur Teamlei
   for (let i = 0; i < 9; i++) await call('/api/feedback', { token: team, body: { t: 'Nr ' + i, cat: 'fehlt' } });
   assert.equal((await call('/api/feedback', { token: team, body: { t: 'zu viel', cat: 'gut' } })).status, 429);
 });
+
+test('Monitor-Konto: nur lesen, Fehlerberichte senden geht', async () => {
+  const MON = TEAM.find((m) => m.monitor).n;
+  const lead = await loginAs(LEAD, 'notfall-123456');
+  assert.equal((await call('/api/pin', { token: lead, body: { name: MON, pin: 'monitor-1' } })).status, 200);
+  const mon = await loginAs(MON, 'monitor-1');
+  assert.equal((await call('/api/me', { token: mon })).body.role, 'monitor');
+  assert.equal((await call('/api/sync?since=0', { token: mon })).status, 200);
+  const p = await call('/api/push', { token: mon, body: { ops: [{ s: 'fach', k: 'S1', v: '{"id":"S1"}' }] } });
+  assert.equal(p.body.n || 0, 0, 'Monitor darf nichts schreiben');
+  assert.equal((await call('/api/err', { token: mon, body: { msg: 'x is not defined', page: 'lage', ver: '7-test', dev: 'PC · Chrome · Monitor' } })).status, 200);
+});
+
+test('Fehlerberichte: ohne Personendaten, gleiche Fehler gezählt, lesen und leeren nur Teamleitung', async () => {
+  const { lead, team } = await withPins();
+  for (let i = 0; i < 3; i++) await call('/api/err', { token: team, body: { msg: 'Kaputt', page: 'fach', ver: '7-x', dev: 'Tablet · Chrome' } });
+  await call('/api/err', { token: team, body: { msg: 'Anderer Fehler', page: 'tz', ver: '7-x', dev: 'Handy · Safari' } });
+  assert.equal((await call('/api/err', { token: team, body: { msg: '' } })).status, 400);
+  assert.equal((await call('/api/errs', { token: team })).status, 403);
+  const r = (await call('/api/errs', { token: lead })).body.errs;
+  assert.equal(r.length, 2);
+  assert.equal(r.find((e) => e.msg === 'Kaputt').n, 3);
+  assert.ok(!JSON.stringify(r).includes(TEAMER), 'kein Name im Bericht');
+  assert.equal((await call('/api/errs', { token: team, body: { clear: 1 } })).status, 403);
+  await call('/api/errs', { token: lead, body: { clear: 1 } });
+  assert.equal((await call('/api/errs', { token: lead })).body.errs.length, 0);
+});

@@ -119,3 +119,8 @@ html.lite .rind,html.lite .tind{transition:none}
  .sf-path > *{flex:0 0 58px;scroll-snap-align:start}
  .sf-path .sf-line{display:none}
 }
+
+/* Einstellungen: Gruppenüberschriften */
+.adm-g{display:flex;align-items:center;gap:16px;margin:18px 0 -6px;font:700 clamp(26px,2.6vw,36px)/1 var(--display);text-transform:uppercase;letter-spacing:.01em;color:var(--ink)}
+.adm-g::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line2),transparent)}
+.adm-g:first-of-type{margin-top:4px}

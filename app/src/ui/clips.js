@@ -141,7 +141,7 @@ function gruss(u){var c=S.cfg&&S.cfg.gruss;return (c&&c[u])||{}}
 var MOTIVE=[['','automatisch (dein Bereich)'],['halle','Halle'],['lager','Regalgang'],['prod','Säge'],['pumpe','Pumpe'],['steuer','Besprechungsecke'],['sys','Leitstand'],['pers','Helme und Westen'],['komm','Funkgerät']];
 function pKey(){return 'mflow.pf.'+String(S.user||'').replace(/[^A-Za-z0-9]/g,'')}
 function pOn(){return (M.ls(pKey()+'.on')||'1')==='1'}
-function pDue(){var t=todayIso();return !!S.user&&pOn()&&!RM&&!document.documentElement.classList.contains('lite')&&!M.ls('mflow.area')&&!(window.isStation&&isStation())&&!(window.me&&me()&&me().station)&&M.ls(pKey())!==t&&(!navigator.webdriver||window.__pf)}
+function pDue(){var t=todayIso();return !!S.user&&pOn()&&!RM&&!document.documentElement.classList.contains('lite')&&!M.ls('mflow.area')&&!(window.isStation&&isStation())&&!(window.me&&me()&&me().station)&&!(window.me&&me()&&me().monitor)&&M.ls(pKey())!==t&&(!navigator.webdriver||window.__pf)}
 function persData(){var t=todayIso(),u=S.user,h=new Date().getHours(),w=isWork(t),plan0=(S.plan[t]||{})[u],plan=plan0||(window.myArea?myArea():null),ab=absentOn(t).filter(function(v){return v.emp===u})[0];
  var G=gruss(u),back=!ab&&w&&absentOn(prevWork(t)).some(function(v){return v.emp===u}),own=M.ls(pKey()+'.img');
  var hi=(back?'Willkommen zurück':G.a||(h<11?'Guten Morgen':h<17?'Hallo':'Guten Abend'))+',',img=ab?'pers':own||PIMG[plan]||'steuer',big='',small='';
