@@ -292,19 +292,27 @@ svg.chart .bar:hover{fill:var(--signal2)}
 /* ---------- Lagerfachmonitor ---------- */
 #lfm{position:fixed;inset:0;z-index:170;background:var(--ground);overflow:auto}
 #lfm .mh{display:flex;align-items:center;gap:22px;padding:26px max(40px,env(safe-area-inset-right,0px)) 10px max(40px,env(safe-area-inset-left,0px))}
-#lfm .mh .t{flex:1;font:700 30px var(--display);text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:14px}
+#lfm .mh .t{flex:1;font:700 clamp(30px,1.6vw,60px) var(--display);text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:14px}
 #lfm .mh .t i{width:12px;height:12px;border-radius:50%;background:var(--ok);animation:beat 2.4s infinite}
-#lfm .mh .clk{font:700 60px/.9 var(--display);font-variant-numeric:tabular-nums}
+#lfm .mh .clk{font:700 clamp(60px,3.2vw,120px)/.9 var(--display);font-variant-numeric:tabular-nums}
 #lfm .lb{padding:10px max(40px,env(safe-area-inset-right,0px)) calc(30px + env(safe-area-inset-bottom,0px)) max(40px,env(safe-area-inset-left,0px))}
 #lfm .lk{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:12px;margin-bottom:14px}
-#lfm .lk div{padding:16px 18px;border-radius:18px;background:var(--panel);border:1px solid var(--line)}
-#lfm .lk span{font:600 11px var(--mono);letter-spacing:.14em;color:var(--ink3);text-transform:uppercase}
-#lfm .lk b{display:block;font:800 clamp(40px,4.6vw,72px)/1 var(--display);font-variant-numeric:tabular-nums}
+#lfm .lk div{padding:clamp(16px,.9vw,34px) clamp(18px,1vw,38px);border-radius:clamp(18px,1vw,32px);background:var(--panel);border:1px solid var(--line)}
+#lfm .lk span{font:600 clamp(11px,.6vw,24px) var(--mono);letter-spacing:.14em;color:var(--ink3);text-transform:uppercase}
+#lfm .lk b{display:block;font:800 clamp(40px,min(4.6vw,8vh),120px)/1 var(--display);font-variant-numeric:tabular-nums}
 #lfm .lk small{font-size:.45em;color:var(--ink3)}
 #lfm .lbar{height:8px;border-radius:8px;background:var(--line2);margin:6px 0 18px;overflow:hidden}
 #lfm .lbar i{display:block;height:100%;background:linear-gradient(90deg,var(--signal2),var(--signal))}
 #lfm .map.lm{grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:6px}
 #lfm .cell{font-size:11px}
+#lfm .map.lm.fit .cell{aspect-ratio:auto;height:100%;font-size:var(--fz,11px);border-radius:clamp(8px,calc(var(--fz,11px)*.5),16px)}
+#lfm .map.lm.fit .cell:hover{transform:none}
+#lfm .lb .sf-lbl{font-size:clamp(11px,.62vw,24px)}
+#lfm .mh .t span{font-size:clamp(13px,.6vw,24px)!important}
+#lfm .legend{font-size:clamp(12px,.7vw,26px);gap:clamp(14px,1vw,36px)}
+#lfm .legend i{width:clamp(10px,.6vw,22px);height:clamp(10px,.6vw,22px)}
+#lfm .mh > span svg{width:clamp(46px,2.4vw,92px);height:auto}
+#lfm .mh .btn{font-size:clamp(13px,.7vw,24px);padding:.6em 1.2em}
 @media (max-width:980px){#lfm .lk{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media (max-width:560px){#lfm .lk{grid-template-columns:repeat(2,minmax(0,1fr))}.hbar div{grid-template-columns:1fr 2fr 34px}}
 

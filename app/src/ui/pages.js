@@ -171,8 +171,19 @@ function lfmHTML(){var fs=fachStat(),g=function(t){var a=S.fach.filter(function(
   +'<div class="sf-lbl">Standardfächer · '+s[0]+' von '+s[1]+'</div><div class="map lm">'+S.fach.filter(function(f){return f.typ==='S'}).map(cell).join('')+'</div>'
   +'<div class="sf-lbl">Pufferfächer · '+p[0]+' von '+p[1]+'</div><div class="map lm">'+S.fach.filter(function(f){return f.typ==='P'}).map(cell).join('')+'</div>'
   +'<div class="legend" style="margin-top:14px"><span><i style="background:color-mix(in srgb,var(--signal) 55%,var(--stage))"></i>belegt</span><span><i style="background:var(--crit)"></i>Langlieger über 10 Tage</span><span><i style="background:color-mix(in srgb,var(--ink3) 30%,var(--stage))"></i>Altbestand</span><span><i style="background:var(--stage)"></i>frei</span><span class="dim">Stand '+fmtT(Date.now())+' Uhr · aktualisiert alle 15 Sekunden</span></div>'}
+/* Fächer füllen den Bildschirm: Spaltenzahl und Zellgröße so wählen, dass beide Felder die freie Höhe ausnutzen
+   (große Monitore: große Zellen und Ziffern statt halber Leere). Gleiche Spaltenzahl für beide Felder, damit sie fluchten. */
+function lfmFit(){var m=$('#lfm'),L=m&&m.querySelectorAll('.map.lm');if(!L||L.length<2)return;var g=innerWidth>1600?8:6;
+ L.forEach(function(x){x.style.height='';x.style.gridTemplateColumns='';x.style.gridAutoRows='';x.classList.remove('fit')});
+ var lg=m.querySelector('.legend');if(!lg)return;var top=m.getBoundingClientRect().top,used=lg.getBoundingClientRect().bottom-top+m.scrollTop+parseFloat(getComputedStyle(m.querySelector('.lb')).paddingBottom||0);
+ var mh=0;L.forEach(function(x){mh+=x.getBoundingClientRect().height});var H=m.clientHeight-(used-mh)-8,W=L[0].clientWidth;if(H<120||W<300)return;
+ var n=[].map.call(L,function(x){return x.children.length}),best=null;
+ for(var c=8;c<=60;c++){var w=(W-(c-1)*g)/c,r=Math.ceil(n[0]/c)+Math.ceil(n[1]/c),h=(H-(r-2)*g)/r;if(w<30||h<26)continue;var hh=Math.min(h,w*1.15),s=Math.min(w,hh);if(!best||s>best.s+.5)best={c:c,w:w,h:hh,s:s}}
+ if(!best||best.s<40)return;
+ L.forEach(function(x){x.classList.add('fit');x.style.gridTemplateColumns='repeat('+best.c+',minmax(0,1fr))';x.style.gridAutoRows=Math.floor(best.h)+'px';x.style.gap=g+'px';x.style.setProperty('--fz',Math.round(Math.min(best.w*.34,best.h*.42))+'px')})}
+window.addEventListener('resize',function(){clearTimeout(lfmFit.t);lfmFit.t=setTimeout(lfmFit,150)});
 window.openLfm=function(){if($('#lfm'))return;var m=document.createElement('div');m.id='lfm';m.innerHTML='<div class="mh"><span>'+logoCore(46)+'</span><div class="t"><i></i>Lagerfachmonitor<span class="dim mono" style="font-size:13px;letter-spacing:.2em">NUR ANZEIGE</span></div><div class="clk" id="lck"></div><button class="btn" data-act="lfmx">Beenden</button></div><div class="lb" id="lbody"></div>';document.body.appendChild(m);
- var draw=function(){var b=$('#lbody');if(b){var h=lfmHTML();if(b.dataset.h!==h){b.dataset.h=h;b.innerHTML=h}}var c=$('#lck');if(c)c.textContent=fmtT(Date.now())};draw();var n=0;LT=setInterval(function(){n++;if(n%15===0)draw();else{var c=$('#lck');if(c)c.textContent=fmtT(Date.now())}},1000);
+ var draw=function(){var b=$('#lbody');if(b){var h=lfmHTML();if(b.dataset.h!==h){b.dataset.h=h;b.innerHTML=h;lfmFit()}}var c=$('#lck');if(c)c.textContent=fmtT(Date.now())};draw();var n=0;LT=setInterval(function(){n++;if(n%15===0)draw();else{var c=$('#lck');if(c)c.textContent=fmtT(Date.now())}},1000);
  try{if(navigator.wakeLock)navigator.wakeLock.request('screen').catch(function(){})}catch(e){}try{if(m.requestFullscreen&&M.FINE)m.requestFullscreen().catch(function(){})}catch(e){}};
 ACT.lfmx=function(){clearInterval(LT);var m=$('#lfm');if(m)m.remove();try{if(document.fullscreenElement)document.exitFullscreen()}catch(e){}};
 
