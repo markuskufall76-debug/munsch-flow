@@ -363,7 +363,7 @@ test('Shopfloor: Metall- und Kunststoffsäge mit eigenen Zuständigen, Vorschlag
   await signIn(lead, 'M. Thiel', 'notfall-123456');
   await lead.waitForFunction(() => window.SY && SY.ok);
   const tok = await lead.evaluate(() => SY.tok);
-  await lead.evaluate(() => { const t = todayIso(); S.plan[t] = S.plan[t] || {}; S.plan[t]['M. Bode'] = 'Säge Kunststoff'; S.zust = {}; go('runde'); });
+  await lead.evaluate(() => { window.isWork = () => true; /* auch am Wochenende: heute als Arbeitstag */ const t = todayIso(); S.plan[t] = S.plan[t] || {}; S.plan[t]['M. Bode'] = 'Säge Kunststoff'; S.zust = {}; go('runde'); });
   const slide = async (title) => { await lead.evaluate((x) => { const i = [...document.querySelectorAll('.sf-n span')].findIndex((e) => e.textContent === x); S.ui.rp = i; render(); }, title); await lead.waitForTimeout(150); };
   await slide('Kunststoffsäge');
   assert.match(await lead.textContent('.sf-th h2'), /Säge Kunststoff/);

@@ -124,3 +124,15 @@ html.lite .rind,html.lite .tind{transition:none}
 .adm-g{display:flex;align-items:center;gap:16px;margin:18px 0 -6px;font:700 clamp(26px,2.6vw,36px)/1 var(--display);text-transform:uppercase;letter-spacing:.01em;color:var(--ink)}
 .adm-g::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line2),transparent)}
 .adm-g:first-of-type{margin-top:4px}
+
+/* ===== PC: volle Breite, Tageszahlen kompakt =====
+   Inhalt nutzt die ganze Breite statt bei 1480 px aufzuhören (rechter Rand blieb sonst leer).
+   Tageszahlen: Gruppen als ausgeglichene Spalten (keine Lücken unter kurzen Gruppen), kleinerer Seitenkopf, dichtere Zeilen. */
+.scene{max-width:none}
+@media (min-width:1200px){
+ #stage[data-page="tz"] .ph{min-height:clamp(170px,24vh,260px)}
+ .tzg{display:block;columns:5 270px;column-gap:28px}
+ .tzg > .card{break-inside:avoid;margin:0 0 22px;display:block;width:100%}
+ .tzf{padding:5px 0}
+ .tzf .step button{height:32px}.tzf .step input{height:32px;font-size:18px}
+}

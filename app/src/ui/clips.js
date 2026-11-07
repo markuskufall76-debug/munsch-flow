@@ -92,10 +92,12 @@ function play(make,rec,o){o=o||{};closeClip();var c=document.createElement('div'
  c.innerHTML='<canvas width="'+W+'" height="'+K.H+'"></canvas><div class="cl-ctl">'+(rec?'<button class="btn sm ghost" data-act="clrec">Als Video speichern</button>':'')+'<button class="btn sm" data-act="clx">'+(o.skip?'Überspringen':'Schließen')+'</button></div>';
  if(o.skip)c.addEventListener('pointerdown',function(e){if(!e.target.closest('button'))closeClip()});
  document.body.appendChild(c);var x=c.querySelector('canvas').getContext('2d');
+ /* echtes Vollbild am PC: ohne Browserleiste und Taskleiste, beim Schließen zurück */
+ try{if(!o.noFs&&!document.fullscreenElement&&c.requestFullscreen&&matchMedia('(pointer:fine)').matches)c.requestFullscreen().then(function(){c._fs=1}).catch(function(){})}catch(e){}
  Promise.all([K.fonts(),K.loadLogo(),K.imgs()]).then(function(r){if(!$('#clip'))return;var SC=make(r[1]),tot=SC.reduce(function(a,s){return a+s[0]},0),t0=performance.now();PL={rec:rec,raf:0,end:0};
   (function f(){if(!PL||!$('#clip'))return;var T=(performance.now()-t0)/1000;K.paint(x,SC,Math.min(T,tot-.36));if(T>=tot){PL.end=setTimeout(closeClip,o.end!=null?o.end:1500);return}PL.raf=requestAnimationFrame(f)})()});
  c.addEventListener('pointermove',function(){c.classList.add('ui');clearTimeout(c._t);c._t=setTimeout(function(){c.classList.remove('ui')},2200)})}
-function closeClip(){if(PL){cancelAnimationFrame(PL.raf);clearTimeout(PL.end)}PL=null;var c=$('#clip');if(c){c.classList.add('out');setTimeout(function(){c.remove()},300)}}
+function closeClip(){if(PL){cancelAnimationFrame(PL.raf);clearTimeout(PL.end)}PL=null;var c=$('#clip');if(c){try{if(c._fs&&document.fullscreenElement===c)document.exitFullscreen().catch(function(){})}catch(e){}c.classList.add('out');setTimeout(function(){c.remove()},300)}}
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&$('#clip')){e.stopPropagation();closeClip()}},true);
 ACT.clx=closeClip;ACT.clrec=function(){var r=PL&&PL.rec;closeClip();if(r)setTimeout(r,320)};
 
