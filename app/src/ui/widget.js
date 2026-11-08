@@ -62,9 +62,11 @@ function draw(force){var el=$('#zwin');if(!el)return;var h='<div class="zw-wt"><
  el.dataset.lay=lay();if(force||h!==last){last=h;el.innerHTML=h}
  var z=$('#zbar');if(z)zbDraw(force)}
 ACT.zwapp=function(){var e=$('#zwin');if(e)e.remove();clearInterval(T);root.classList.remove('zw-on');if(location.pathname.indexOf('/w/')===0)location.href='/'};
-function openWin(){if(!WID||$('#zwin')||!S.user||!$('#stage'))return;var e=document.createElement('div');e.id='zwin';e.setAttribute('aria-label','Zahlen '+WD[WID].n);document.body.appendChild(e);root.classList.add('zw-on');
+function openWin(){if(!WID||$('#zwin')||!S||!S.user||!($('#stage')||$('#stn')))return;var e=document.createElement('div');e.id='zwin';e.setAttribute('aria-label','Zahlen '+WD[WID].n);document.body.appendChild(e);root.classList.add('zw-on');
  try{document.title='MUNSCH Zahlen · '+WD[WID].n}catch(x){}last='';draw(true);clearInterval(T);T=setInterval(function(){draw()},2000);addEventListener('resize',function(){draw(true)})}
 var ar=window.afterRender;window.afterRender=function(p){if(ar)ar(p);if(WID)setTimeout(openWin,0);else zbDraw()};
+/* auch für das Station-Konto (eigene Oberfläche ohne afterRender) */
+setInterval(function(){if(WID)openWin()},1000);
 
 /* ---------- 2 Zahlen-Leiste in der App ---------- */
 var AUTO={'Säge Metall':'ms','Säge Kunststoff':'ks','Wareneingang':'we'};
