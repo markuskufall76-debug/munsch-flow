@@ -36,7 +36,7 @@ REG.abruf={t:'Materialabruf',k:'Bedarf aus der Produktion, der Milkrun nimmt ihn
 REG.fehl={t:'Fehlteile',k:'Fehlende Teile je Auftrag',st:['gemeldet','beim Einkauf','bestellt','eingetroffen','erledigt'],done:[4],f:[['ref','Auftragsnummer (7 Ziffern)','a'],['teil','Teil oder Material','t'],['wer','Kümmert sich','s',NAMES]],cols:['ref','teil','wer']};
 REG.leer={t:'Leergut und Ladungsträger',k:'Behälter im Tausch mit Lieferanten und Speditionen',st:['erhalten','zur Rückgabe bereit','zurückgegeben'],done:[2],f:[['ref','Partner (Lieferant oder Spedition)','t'],['art','Ladungsträger','s',['Europalette','Gitterbox','KLT','Spezialbehälter','sonstige']],['anz','Anzahl','n']],cols:['ref','art','anz']};
 REG.vers={t:'Versand und Abholungen',k:'Was rausgeht, mit Spedition und Abholtermin',st:['geplant','bereitgestellt','verladen','abgeholt'],done:[3],f:[['ref','Auftrag oder Sendung','t'],['sped','Spedition','t'],['datum','Abholung','d']],cols:['ref','sped','datum']};
-REG.kvp={t:'Verbesserungsvorschläge',k:'Ideen aus dem Team',st:['eingereicht','in Prüfung','umgesetzt','abgelehnt'],done:[2,3],f:[['ref','Idee','t'],['ber','Bereich','s',['Wareneingang','WEP','Lager','Säge','Milkrun','Werk 1','Werk 2','Versand','Sonstiges']]],cols:['ref','ber']};
+REG.kvp={t:'Verbesserungsvorschläge',k:'Ideen aus dem Team',st:['eingereicht','in Prüfung','umgesetzt','abgelehnt'],done:[2,3],f:[['ref','Idee','t'],['ber','Bereich','s',['Wareneingang','WEP','Lager','Säge','Milkrun','Werk 1','Werk 2','Werksverkehr','Versand','Sonstiges']]],cols:['ref','ber']};
 ['abruf','fehl','leer','vers','kvp'].forEach(function(k){VIEW[k]=function(){ensure(k);return regView(k)}});
 /* Zeitpunkt je Statuswechsel festhalten (für Durchlaufzeiten) */
 var rst0=ACT.rst;ACT.rst=function(d){var r=rst0.apply(this,arguments);if(REG[d.k]&&['abruf','fehl','vers'].indexOf(d.k)>=0){var e=S.reg[d.k].filter(function(x){return x.id===d.id})[0];if(e&&!e['t'+e.st]){e['t'+e.st]=Date.now();save()}}return r};
@@ -67,7 +67,7 @@ VIEW.lief=function(){var days=+(S.ui.lfd||90),from=Date.now()-days*864e5,A={};
 ACT.lfd=function(d){S.ui.lfd=+d.v;save();render()};
 
 /* ---------- Arbeitsanweisungen ---------- */
-var AB=['Wareneingang','WEP','Lager','Säge Metall','Säge Kunststoff','Milkrun','Vorkommissionierung','Werk 1','Werk 2','Versand','Allgemein'];
+var AB=['Wareneingang','WEP','Lager','Säge Metall','Säge Kunststoff','Milkrun','Vorkommissionierung','Werk 1','Werk 2','Werksverkehr','Versand','Allgemein'];
 VIEW.aa=function(){var lead=isLead(),A=(cfg().aa||[]).slice(),by={};A.forEach(function(a){(by[a.b]=by[a.b]||[]).push(a)});
  var list=Object.keys(by).length?AB.filter(function(b){return by[b]}).map(function(b){return card(esc(b),by[b].map(function(a){var st=String(a.x||'').split(/\n+/).filter(Boolean);return '<div class="aa"><h3>'+esc(a.t)+'</h3><ol>'+st.map(function(s){return '<li>'+esc(s.replace(/^\d+[.)]\s*/,''))+'</li>'}).join('')+'</ol>'+(lead?'<button class="btn sm ghost" data-act="aadel" data-id="'+a.id+'">Entfernen</button>':'')+'</div>'}).join(''))}).join('')
   :empty('Noch keine Anleitungen',lead?'Die erste Anleitung kommt über das Formular.':'Die Teamleitung legt Anleitungen an.');

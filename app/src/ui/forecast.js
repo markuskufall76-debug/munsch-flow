@@ -9,7 +9,8 @@ var M=window.MF,cp=M.cp,card=M.card;
 var ITEMS=[
  {id:'ms',k:'Säge Metall',f:'ms_ist',plan:'ms_plan',rueck:'ms_rueck',u:'Teile',u1:'Teil'},
  {id:'ks',k:'Säge Kunststoff',f:'ks_ist',plan:'ks_plan',rueck:'ks_rueck',u:'Teile',u1:'Teil'},
- {id:'we',k:'Wareneingang',f:'we_pak',u:'Pakete',u1:'Paket'}];
+ {id:'we',k:'Wareneingang',f:'we_pak',u:'Pakete',u1:'Paket'},
+ {id:'w2',k:'Kommissionierung Werk 2',f:'w2_auf',u:'Aufträge',u1:'Auftrag'}];
 function hist(f,t){var v=[],d=t;for(var i=0;i<60&&v.length<20;i++){d=prevWork(d);var o=S.tz[d];if(o&&o[f]!=null)v.push(+o[f]||0)}return v}
 function stat(v){if(!v.length)return {mu:0,sd:0,n:0};var mu=v.reduce(function(a,b){return a+b},0)/v.length,sd=Math.sqrt(v.reduce(function(a,b){return a+(b-mu)*(b-mu)},0)/v.length);return {mu:mu,sd:sd,n:v.length}}
 /* f: Feld, now: Date (optional, für Tests). Liefert ist, lo, mid, hi, Ziel und Basis. */

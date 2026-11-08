@@ -32,7 +32,7 @@ var TZ=[
  {g:'Kommissionierung Werk 2',f:[['w2_auf','Aufträge kommissioniert'],['w2_pos','Positionen kommissioniert'],['w2_rueck','Rückstand heute']]},
  {g:'Werksverkehr',f:[['wv_21','Fahrten Werk 2 nach Werk 1'],['wv_12','Fahrten Werk 1 nach Werk 2'],['wv_rueck','Rückstand heute']]},
  {g:'Tägliche Aufgaben',f:[['kisten','Kisten füllen'],['milkrun','Milkrun-Runden'],['tbkiste','TB-Kiste leeren']]},
- {g:'Störungen und Abweichungen',f:[['st_w1allg','Werk 1 allgemein'],['st_w1komm','Werk 1 Kommissionierung'],['st_w2','Werk 2'],['st_saege','Säge'],['st_we','Wareneingang'],['st_sonst','sonstige'],['st_neu','Neuanlagen'],['st_nach','Nacharbeit'],['st_fehl','Fehlteile'],['st_zeit','Störzeiten in Minuten']]}];
+ {g:'Störungen und Abweichungen',f:[['st_w1allg','Werk 1 allgemein'],['st_w1komm','Werk 1 Kommissionierung'],['st_w2','Werk 2'],['st_wv','Werksverkehr'],['st_saege','Säge'],['st_we','Wareneingang'],['st_sonst','sonstige'],['st_neu','Neuanlagen'],['st_nach','Nacharbeit'],['st_fehl','Fehlteile'],['st_zeit','Störzeiten in Minuten']]}];
 var TZFIELDS={};TZ.forEach(function(g){g.f.forEach(function(f){TZFIELDS[f[0]]=g.g+' · '+f[1]})});
 var NAV=[
  ['Steuerung',[['lage','Lagebild'],['runde','Shopfloor 06:45'],['chk','Schichtaufgaben'],['fluss','Materialfluss']]],
@@ -110,7 +110,7 @@ function tzLatest(before){var ks=Object.keys(S.tz).filter(function(k){return k<=
 function tzSet(i,k,v){S.tz[i]=S.tz[i]||{};if(v===''||v==null)delete S.tz[i][k];else S.tz[i][k]=Math.max(0,Math.round(num(v)));save()}
 function tzSum(o,keys){return keys.reduce(function(a,k){return a+(o[k]||0)},0)}
 function tzSeries(key,n,end){var out=[],ks=Object.keys(S.tz).filter(function(k){return k<=end&&S.tz[k][key]!=null}).sort().slice(-n);ks.forEach(function(k){out.push([k,S.tz[k][key]])});return out}
-function tzFn(o){return {pakete:o.we_pak||0,gesaegt:(o.ms_ist||0)+(o.ks_ist||0),lack:(o.lack_hp||0)+(o.lack_vp||0),mont:(o.mont_hp||0)+(o.mont_vp||0),stoer:tzSum(o,['st_w1allg','st_w1komm','st_w2','st_saege','st_we','st_sonst','st_neu','st_nach']),milk:o.milkrun||0,gb:o.we_gbpal||0}}
+function tzFn(o){return {pakete:o.we_pak||0,gesaegt:(o.ms_ist||0)+(o.ks_ist||0),lack:(o.lack_hp||0)+(o.lack_vp||0),mont:(o.mont_hp||0)+(o.mont_vp||0),stoer:tzSum(o,['st_w1allg','st_w1komm','st_w2','st_wv','st_saege','st_we','st_sonst','st_neu','st_nach']),milk:o.milkrun||0,gb:o.we_gbpal||0}}
 
 /* ===== Urlaub, Anwesenheit ===== */
 function vcover(v,d){return v.d0<=d&&v.d1>=d}

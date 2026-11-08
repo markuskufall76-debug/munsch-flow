@@ -17,7 +17,7 @@ var AREAP={
  'Säge Kunststoff':['tz','mas','auf','s5'],
  'Vorkommissionierung':['vork','fach','auf','milk'],
  'Materialwagen':['mw','tb','wv','we'],
- 'Werksverkehr':['wv','tb','mw'],
+ 'Werksverkehr':['wv','tb','mw','tz'],
  'Werk 1':['fach','milk','vork','auf','tz','mas'],
  'Werk 2':['we','wep','mw','tz']};
 var AREAS=Object.keys(AREAP);

@@ -22,15 +22,17 @@ var WD={
  wep:{n:'WE-Prüfung',g:'WE-Prüfung',img:'lager',hl:['wep_si','wep_sonst'],hlL:'heute geprüft',key:['wep_si','wep_sonst','wep_si_mom','wep_so_mom']},
  w1:{n:'Werk 1',parts:['wep','mw']},
  vork:{n:'Vorkommissionierung',parts:['lack','mont','gp']},
- w2:{n:'Werk 2',g:'Kommissionierung Werk 2',img:'komm',hl:['w2_auf'],hlL:'Aufträge kommissioniert',key:['w2_auf','w2_pos','w2_rueck']},
- wv:{n:'Werksverkehr',g:'Werksverkehr',img:'halle',hl:['wv_21','wv_12'],hlL:'Fahrten heute',key:['wv_21','wv_12','wv_rueck']}
+ w2:{n:'Werk 2',g:'Kommissionierung Werk 2',img:'komm',hl:['w2_auf'],hlL:'Aufträge kommissioniert',key:['w2_auf','w2_pos','w2_rueck','st_w2'],xf:['st_w2']},
+ wv:{n:'Werksverkehr',g:'Werksverkehr',img:'halle',hl:['wv_21','wv_12'],hlL:'Fahrten heute',key:['wv_21','wv_12','wv_rueck','st_wv'],xf:['st_wv']}
 };
 var ORDER=['we','w1','wep','mw','ms','ks','saege','vork','lack','mont','gp','w2','wv'];
 window.WIDGETS={WD:WD,ORDER:ORDER};
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function parts(id){var w=WD[id];return w?(w.parts||[id]):[]}
-function fields(id){var w=WD[id],g=TZ.filter(function(x){return x.g===w.g})[0];return g?g.f:[]}
-function lab(k){var l=TZFIELDS[k]||k;return l.split(' · ')[1]||l}
+function fields(id){var w=WD[id],g=TZ.filter(function(x){return x.g===w.g})[0];return (g?g.f:[]).concat((w.xf||[]).map(function(k){return [k,lab(k)]}))}
+/* Störungsfelder aus der Gruppe „Störungen und Abweichungen“ heißen im Widget einfach „Störungen“ */
+var XL={st_w2:'Störungen',st_wv:'Störungen'};
+function lab(k){if(XL[k])return XL[k];var l=TZFIELDS[k]||k;return l.split(' · ')[1]||l}
 function val(k){var o=S.tz[todayIso()]||{};return o[k]==null||o[k]===''?null:+o[k]}
 function hlv(w){return w.hl.reduce(function(a,k){return a+(val(k)||0)},0)}
 function goal(w){if(w.plan){var p=val(w.plan);return p==null?null:p+(rueckVortag(w.rueck)||0)}if(w.goalK)return val(w.goalK);return null}

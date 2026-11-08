@@ -17,9 +17,9 @@ var AREA={
  'Säge Kunststoff':function(){return saw('ks')},
  'Vorkommissionierung':function(){return [{k:'Aufträge offen',v:String(regOpen('vork')),go:'vork'}]},
  'Materialwagen':function(){return [{k:'Wagen offen',v:String(regOpen('mw')),go:'mw'},{k:'Rückstand Vortag',v:String(o('mw_rueck')||0),go:'tz'}]},
- 'Werksverkehr':function(){return [{k:'Fahrten offen',v:String(regOpen('wv')),go:'wv'},{k:'TB-Wagen offen',v:String(regOpen('tb')),go:'tb'}]},
+ 'Werksverkehr':function(){return [{k:'Fahrten offen',v:String(regOpen('wv')),go:'wv'},{k:'TB-Wagen offen',v:String(regOpen('tb')),go:'tb'},{k:'Fahrten Vortag',v:String((o('wv_21')||0)+(o('wv_12')||0)),go:'tz'},{k:'Rückstand Vortag',v:String(o('wv_rueck')||0),go:'tz'},{k:'Störungen Vortag',v:String(o('st_wv')||0),go:'tz'}]},
  'Werk 1':function(){return [{k:'Vor Lack (HP+VP)',v:String((o('lack_hp')||0)+(o('lack_vp')||0)),go:'tz'},{k:'Vor Montage',v:String((o('mont_hp')||0)+(o('mont_vp')||0)),go:'tz'}]},
- 'Werk 2':function(){return [{k:'Störungen Werk 2',v:String(o('st_w2')||0),go:'tz'}]},
+ 'Werk 2':function(){return [{k:'Kommissioniert Vortag',v:String(o('w2_auf')||0),sp:sp('w2_auf'),go:'tz'},{k:'Rückstand Vortag',v:String(o('w2_rueck')||0),go:'tz'},{k:'Störungen Vortag',v:String(o('st_w2')||0),go:'tz'}]},
  'Teamleitung':function(){var a=alerts(new Date());return [{k:'Warnungen',v:String(a.length),act:'bell',tone:a.length?'warn':'ok'}]}};
 VIEW.mein=function(){var t=todayIso(),me_=S.user,w=isWork(t),plan0=(S.plan[t]||{})[me_],plan=plan0||(window.myArea?myArea():null),ab=absentOn(t).filter(function(v){return v.emp===me_})[0],h=new Date().getHours();
  var vt=(window._presToday?_presToday(t):[]).filter(function(x){return x.n===me_});
