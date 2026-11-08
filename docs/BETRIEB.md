@@ -73,7 +73,7 @@ In der App selbst gibt es dieselben Zahlen als Leiste unten auf jeder Seite (Ein
 
 ## Datensicherung
 
-- Einstellungen → „Datensicherung und Aufbewahrung“: Sicherung als Datei herunterladen (die Warnlage erinnert nach 7 Tagen), Sicherung einspielen, alte Krankmeldungen löschen.
+- Einstellungen → „Datensicherung und Aufbewahrung“: Sicherung als Datei herunterladen (die Warnlage erinnert nach 7 Tagen), **Sicherung prüfen** (liest die Datei, prüft Format, Vollständigkeit und Inhalt und vergleicht mit dem heutigen Stand, ohne etwas zu verändern), Sicherung einspielen, alte Krankmeldungen löschen. Vor dem Pilot einmal herunterladen und prüfen.
 - Nächtlicher Lauf: In `wrangler.toml` ist der Cron-Trigger eingetragen. Wer den Worker im Dashboard einfügt: Worker → Einstellungen → Trigger → Cron „17 3 * * *“ anlegen.
 - Optional R2: Bucket `munsch-sicherung` anlegen und als Bindung `BACKUP` an den Worker hängen; dann liegen dort die letzten 30 Tage.
 - Zusätzlich kann D1 per Time Travel auf einen früheren Stand zurück: `npx wrangler d1 time-travel restore munsch-zentrale --timestamp=…`.

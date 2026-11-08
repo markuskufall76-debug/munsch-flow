@@ -1,0 +1,9 @@
+/* ===== Vor dem Pilot (vorpilot.js) ===== */
+.bk-r{display:flex;flex-direction:column;gap:8px}
+.bk-r > div{display:flex;gap:10px;align-items:flex-start;font-size:14.5px;line-height:1.4}
+.bk-r i{flex:none;width:10px;height:10px;border-radius:50%;margin-top:6px;background:var(--ink3)}
+.bk-r .ok i{background:var(--ok)}.bk-r .no i{background:var(--crit)}
+.bk-r .no span{color:var(--crit);font-weight:600}
+table.pil td,table.pil th{white-space:nowrap}
+table.pil td.dim{white-space:normal;min-width:160px}
+.vo-over{margin-right:6px}

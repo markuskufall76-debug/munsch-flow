@@ -76,6 +76,9 @@ test('Teamleitung startet die leere Zentrale, Team sieht Einlagerung live', asyn
   await team.evaluate(() => go('urlaub'));
   await team.click('[data-act="vq"][data-e="M. Bode"]');
   await team.click('[data-act="vadd"]');
+  // M. Bode hat laut Urlaubsliste schon mehr verplant als Anspruch: Rückfrage bestätigen
+  await team.waitForSelector('[data-act="mconf"]'); assert.match(await team.textContent('#modal'), /mehr Urlaub als Anspruch/);
+  await team.click('[data-act="mconf"]');
   await team.waitForTimeout(1200);
   await lead.evaluate(() => new Promise((ok) => syPull(ok)));
   assert.ok(await lead.evaluate(() => S.vacs.some((v) => v.emp === 'M. Bode' && v.st === 'beantragt')));
@@ -616,6 +619,9 @@ test('Vorsorge: Ausfallrisiko der Qualifikationen, Warnung vor dem Genehmigen, N
   await lead.evaluate(() => go('urlaub'));
   await lead.evaluate(() => ACT.vok({ id: 'qv2' }));
   await lead.waitForSelector('#modal');
+  assert.match(await lead.textContent('#modal'), /Resturlaub/, 'zuerst: über dem Anspruch');
+  await lead.click('[data-act="mconf"]');
+  await lead.waitForFunction(() => /niemand sicher/.test((document.querySelector('#modal') || {}).textContent || ''));
   assert.match(await lead.textContent('#modal'), /niemand sicher da für: Säge Kunststoff am/);
   await lead.evaluate(() => closeModal());
   assert.equal(await lead.evaluate(() => S.vacs.find((v) => v.id === 'qv2').st), 'beantragt', 'ohne Bestätigung nicht genehmigt');
@@ -826,4 +832,29 @@ test('Zwei Geräte buchen gleichzeitig Tageszahlen: nichts geht verloren', async
     assert.equal(o.ms_schn, 77, 'Säge'); assert.equal(o.we_gbpal, 5, 'Wareneingang');
   }
   assert.deepEqual(a.errors, []); assert.deepEqual(b.errors, []);
+});
+
+test('Vor dem Pilot: fehlende Tageszahlen, Urlaub über Anspruch, Sicherung prüfen, Pilot-Auswertung', async () => {
+  const lead = await open();
+  await signIn(lead, 'M. Thiel', 'notfall-123456');
+  await lead.waitForFunction(() => window.SY && SY.ok);
+  // fehlende Tageszahlen nach Schichtplan
+  const miss = await lead.evaluate(() => { const d = '2031-03-03'; S.plan[d] = { 'K. Braun': 'Werk 2', 'M. Bode': 'Säge Metall' }; S.tz[d] = { ms_ist: 4 }; return tzMissing(d); });
+  assert.deepEqual(miss, ['Kommissionierung Werk 2']);
+  // Urlaub über Anspruch (4 Wochen am Stück): Rückfrage, dann eingetragen
+  await lead.evaluate(() => { S.vacs = S.vacs.filter((v) => !(v.emp === 'M. Thiel' && v.d1 >= '2026-11-23' && v.d0 <= '2026-12-18')); go('urlaub'); ACT.vq({ e: 'M. Thiel', d: '2026-11-23' }); });
+  await lead.waitForSelector('#v0');
+  await lead.evaluate(() => { $('#v0').value = '2026-11-23'; $('#v1').value = '2026-12-18'; ACT.vadd(); });
+  assert.match(await lead.textContent('#modal'), /mehr Urlaub als Anspruch/);
+  await lead.click('[data-act="mconf"]');
+  await lead.waitForFunction(() => S.vacs.some((v) => v.emp === 'M. Thiel' && v.d0 === '2026-11-23'));
+  // Sicherung prüfen: echte Sicherung der Zentrale ist in Ordnung, fremde Datei nicht
+  const bak = await lead.evaluate(() => syApi('/api/backup'));
+  assert.equal(await lead.evaluate((b) => bakCheck(b, 'x').ok, bak), true);
+  assert.equal(await lead.evaluate(() => bakCheck({ rows: 'kaputt' }, 'x').ok), false);
+  // Pilot-Auswertung unter dem Kopfbild der Auswertung
+  await lead.evaluate(() => go('ausw'));
+  await lead.waitForSelector('table.pil');
+  assert.match(await lead.textContent('table.pil'), /Milkrun im Flow erfasst[\s\S]*Shopfloor 06:45 mit Flow[\s\S]*Tageszahlen vollständig/);
+  assert.deepEqual(lead.errors, []);
 });
