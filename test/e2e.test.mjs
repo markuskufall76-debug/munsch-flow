@@ -806,3 +806,18 @@ test('Zahlen-Widget: Adresse /w/saege zeigt nur beide Sägen, + bucht in die Tag
   assert.deepEqual(lead.errors, []);
 });
 
+
+test('Zwei Geräte buchen gleichzeitig Tageszahlen: nichts geht verloren', async () => {
+  const a = await open(), b = await open();
+  await signIn(a, 'M. Thiel', 'notfall-123456'); await signIn(b, 'M. Thiel', 'notfall-123456');
+  await a.waitForFunction(() => window.SY && SY.ok); await b.waitForFunction(() => window.SY && SY.ok);
+  await a.evaluate(() => { tzSet(todayIso(), 'ms_schn', 77); syPush(); });
+  await b.evaluate(() => { tzSet(todayIso(), 'we_gbpal', 5); syPush(); });
+  await a.waitForTimeout(1500);
+  await a.evaluate(() => new Promise((ok) => syPull(ok))); await b.evaluate(() => new Promise((ok) => syPull(ok)));
+  for (const p of [a, b]) {
+    const o = await p.evaluate(() => S.tz[todayIso()]);
+    assert.equal(o.ms_schn, 77, 'Säge'); assert.equal(o.we_gbpal, 5, 'Wareneingang');
+  }
+  assert.deepEqual(a.errors, []); assert.deepEqual(b.errors, []);
+});

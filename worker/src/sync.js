@@ -49,6 +49,25 @@ export function rule(who, op, current) {
   return null;
 }
 
+/**
+ * Gleichzeitiges Bearbeiten: Die App schickt mit, auf welchem Stand (b) ihre Änderung beruht.
+ * Hat sich die Zeile inzwischen auf einem anderen Gerät geändert, werden nur die Felder übernommen,
+ * die diese App wirklich geändert hat; Änderungen der anderen bleiben erhalten (z. B. Tageszahlen von zwei Widgets).
+ */
+const isObj = (x) => x && typeof x === 'object' && !Array.isArray(x);
+export function merge(cur, base, next) {
+  try {
+    const c = JSON.parse(cur), b = JSON.parse(base), n = JSON.parse(next);
+    if (!isObj(c) || !isObj(b) || !isObj(n)) return next;
+    const r = { ...c };
+    for (const k of new Set([...Object.keys(b), ...Object.keys(n)])) {
+      if (JSON.stringify(n[k]) === JSON.stringify(b[k])) continue;
+      if (n[k] === undefined) delete r[k]; else r[k] = n[k];
+    }
+    return JSON.stringify(r);
+  } catch { return next; }
+}
+
 export async function pull(db, since, who) {
   since = Math.max(0, parseInt(since, 10) || 0);
   const [r, cur, cnt] = await db.batch([
@@ -68,14 +87,16 @@ export async function push(db, who, body) {
   if (!ops) return { status: 400, body: { error: 'ops fehlt' } };
   if (ops.length > MAX_OPS) return { status: 413, body: { error: `Höchstens ${MAX_OPS} Änderungen je Aufruf` } };
   const ok = [], rej = [];
-  for (const op of ops) {
+  for (let op of ops) {
     const cur = await db.prepare('SELECT v FROM rows WHERE s = ? AND k = ?').bind(String(op?.s), String(op?.k)).first();
+    if (op && typeof op.v === 'string' && typeof op.b === 'string' && cur && cur.v != null && cur.v !== op.b && cur.v !== op.v) op = { s: op.s, k: op.k, v: merge(cur.v, op.b, op.v), merged: 1 };
     const why = rule(who, op || {}, cur ? cur.v : null);
     // Abgelehnt: gültigen Wert nur zurückgeben, wenn die Person ihn lesen darf
     if (why) { rej.push({ s: op?.s, k: op?.k, v: cur && canRead(who, String(op?.s)) ? mask(who, String(op?.s), cur.v) : null, why }); continue; }
     if ((cur ? cur.v : null) === (op.v ?? null)) continue;
     ok.push(op);
   }
+  const mer = ok.filter((o) => o.merged).map(({ s, k, v }) => ({ s, k, v }));
   if (ok.length) {
     const now = Date.now(), st = [];
     for (const op of ok) {
@@ -87,5 +108,5 @@ export async function push(db, who, body) {
   }
   if (rej.length) await audit(db, who.name, 'abgelehnt', rej.map((r) => `${r.s}/${r.k}: ${r.why}`).join('; '));
   const seq = (await db.prepare("SELECT v FROM meta WHERE k = 'seq'").first()).v;
-  return { status: 200, body: { ok: 1, seq, n: ok.length, rej: rej.map(({ s, k, v }) => ({ s, k, v })) } };
+  return { status: 200, body: { ok: 1, seq, n: ok.length, rej: rej.map(({ s, k, v }) => ({ s, k, v })), mer } };
 }

@@ -155,6 +155,21 @@ test('Installierbar: Manifest, Logo und Service Worker werden ausgeliefert', asy
   assert.match((await call('/')).headers.get('content-security-policy'), /worker-src 'self'/);
 });
 
+test('Gleichzeitig: zwei Geräte buchen verschiedene Tageszahlen desselben Tages, beide bleiben erhalten', async () => {
+  const t = await loginAs(LEAD, 'notfall-123456');
+  const base = JSON.stringify({ we_pak: 3, ms_ist: 10 });
+  await call('/api/push', { token: t, body: { ops: [{ s: 'tz', k: '2031-01-02', v: base }] } });
+  // Gerät A (Säge) und Gerät B (Wareneingang) kennen beide den Stand base
+  const a = await call('/api/push', { token: t, body: { ops: [{ s: 'tz', k: '2031-01-02', v: JSON.stringify({ we_pak: 3, ms_ist: 11 }), b: base }] } });
+  assert.equal(a.body.mer.length, 0, 'erste Änderung ohne Zusammenführen');
+  const b = await call('/api/push', { token: t, body: { ops: [{ s: 'tz', k: '2031-01-02', v: JSON.stringify({ we_pak: 4, ms_ist: 10 }), b: base }] } });
+  assert.equal(b.body.mer.length, 1);
+  assert.deepEqual(JSON.parse(b.body.mer[0].v), { we_pak: 4, ms_ist: 11 }, 'Säge-Buchung bleibt, Wareneingang kommt dazu');
+  // Löschen eines Feldes auf Basis eines älteren Stands entfernt nur dieses Feld
+  const c = await call('/api/push', { token: t, body: { ops: [{ s: 'tz', k: '2031-01-02', v: JSON.stringify({ ms_ist: 10 }), b: base }] } });
+  assert.deepEqual(JSON.parse(c.body.mer[0].v), { ms_ist: 11 });
+});
+
 test('Zahlen-Widgets: eigene Adresse und eigenes Manifest je Abteilung, unbekannte Adresse 404', async () => {
   const h = await call('/w/saege');
   assert.equal(h.status, 200); assert.match(h.headers.get('content-type'), /text\/html/);
