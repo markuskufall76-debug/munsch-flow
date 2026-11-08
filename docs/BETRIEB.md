@@ -54,6 +54,10 @@ Danach Schritt 5 wiederholen. Die Daten bleiben erhalten. Die Version steht in d
 - **Monitor-Konto:** In der Anmeldung gibt es „Monitor“ (Rolle `monitor`, nur lesen; der Server lehnt jede Änderung ab). PIN wie für alle unter *Zugang und PINs* setzen. Nach der Anmeldung startet der Werkstattmonitor von selbst, Eingabeformulare sind ausgeblendet, die Schrift ist groß.
 - **Fehlerberichte:** Stürzt auf einem Gerät eine Ansicht ab, meldet die Seite das ohne Personendaten an die Zentrale (Seite, Gerätetyp, Version, Fehlertext; Tabelle `errs`, die letzten 300, höchstens 60 je Gerät und Tag). Einsehen und leeren: *Einstellungen* → „Fehlerberichte“ (nur Teamleitung).
 
+## Lesbarkeit in der Halle
+
+Der Hallenmodus macht Schrift größer und kräftiger und Nebentext heller. Er ist automatisch an für das Station-Tablet, das Monitor-Konto, die Zahlen-Widgets und den Shopfloor auf dem großen Monitor (dort wächst die ganze Ansicht mit der Bildschirmbreite). Werkstattmonitor, Lagerfachmonitor und Ruhemodus sind immer im Hallenmodus. Je Gerät umstellbar unter Einstellungen → *Hallenmodus* (automatisch, an, aus).
+
 ## Zahlen-Widgets an den Arbeitsplätzen
 
 Jede Abteilung hat eine eigene Adresse, die nach der Anmeldung nur ihre Tageszahlen zeigt: `/w/we` Wareneingang, `/w/ms` Säge Metall, `/w/ks` Säge Kunststoff, `/w/saege` beide Sägen, `/w/gp` Grundplatten, `/w/lack` Pumpen vor Lack, `/w/mont` Pumpen vor Montage, `/w/mw` Materialwagen. Die Liste mit „Kopieren“ steht unter Einstellungen → *Zahlen-Widgets*.

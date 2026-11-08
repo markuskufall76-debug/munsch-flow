@@ -1,0 +1,47 @@
+/* ===== Hallenmodus (lesehalle.js) =====
+   Gilt in html.halle für die ganze Oberfläche und immer in Werkstattmonitor, Lagerfachmonitor, Ruhemodus und Widget-Fenster.
+   1 Kontrast: Neben- und Beschriftungstext deutlich heller (dunkel) bzw. dunkler (hell)
+   2 Beschriftungen: mindestens 14 px, kräftiger, weniger Sperrung
+   3 Einzelne Flächen: Monitor, Ruhemodus, Lagerfachmonitor, Shopfloor, Station, Widget */
+
+/* 1 Kontrast */
+html.halle,#mon,#amb,#lfm,#zwin{--ink2:#DCD5CD;--ink3:#BCB4AB}
+html.halle[data-theme="light"],html.halle.is-light{--ink2:#352F29;--ink3:#4A433C}
+html.halle[data-theme="light"] #mon,html.halle[data-theme="light"] #amb,html.is-light #mon,html.is-light #amb{--ink2:#DCD5CD;--ink3:#BCB4AB}
+#mon .dim,#amb .dim,#lfm .dim,html.halle .dim{opacity:1}
+
+/* 2 Beschriftungen */
+html.halle .tile .k,html.halle .sf-lbl,html.halle .fl,html.halle .card .ch h2,html.halle .sf-when,html.halle .mk,html.halle .ev,html.halle .lb-k,html.halle .lb-eb,html.halle .chip{font-size:14px!important;letter-spacing:.07em!important;font-weight:600}
+html.halle .sf-tag{font-size:12.5px!important;letter-spacing:.06em}
+html.halle .sf-t span,html.halle .tile .s,html.halle .dim,html.halle table.t td,html.halle table.t th{font-size:max(15.5px,1em)}
+html.halle .sf-t em{font-size:14px}
+html.halle .sf-n span{font-size:13.5px}
+html.halle .sf-meta{font-size:15px!important}
+
+/* 3a Werkstattmonitor */
+#mon .mh .t span.dim{font-size:clamp(16px,1vw,22px)!important;letter-spacing:.14em!important}
+#mon .sl .kk{font-size:clamp(20px,1.25vw,30px)!important;letter-spacing:.16em;font-weight:700}
+#mon .sl span:not(.kk),#mon .sl .s{font-size:max(1em,clamp(18px,1.1vw,28px))}
+#mon .btn{font-size:clamp(14px,.8vw,20px)}
+
+/* 3b Ruhemodus */
+#amb .am-st{font-size:clamp(16px,1vw,24px)!important;letter-spacing:.14em}
+#amb .am-s{font-size:clamp(20px,1.2vw,30px)!important}
+#amb .am-band span,#amb .am-bot span{font-size:clamp(15px,.9vw,22px)!important}
+#amb .am-hint{font-size:clamp(14px,.8vw,20px)!important;opacity:.85!important}
+
+/* 3c Lagerfachmonitor */
+#lfm .lk span{font-size:clamp(14px,.75vw,24px)!important;letter-spacing:.1em}
+#lfm .lb .sf-lbl{font-size:clamp(15px,.8vw,26px)!important;letter-spacing:.1em}
+#lfm .legend{font-size:clamp(15px,.85vw,26px)!important}
+#lfm .mh .t span{font-size:clamp(15px,.75vw,24px)!important}
+
+/* 3d Station */
+html.halle #stn em,html.halle #stn .live{font-size:15px!important}
+html.halle #stn span{font-size:max(1em,16px)}
+
+/* 3e Widget-Fenster und Leiste */
+#zwin .zw-t span,html.halle #zbar .zw-t span{font-size:13px;letter-spacing:.05em}
+#zwin .zw-t em,html.halle #zbar .zw-t em{font-size:13px;font-weight:600}
+#zwin .zw-d,#zwin .zw-x,#zwin .zw-s{font-size:13px}
+#zwin .zw-hk,#zwin .zw-hs{font-size:12px;letter-spacing:.1em}
