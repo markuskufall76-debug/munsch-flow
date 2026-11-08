@@ -21,14 +21,14 @@ var CREW=TEAM.filter(function(m){return !m.nonop}),MIN_STAFF=7,JAHRESURLAUB=30;
 var DEPTS=['Wareneingang','WEP','Werk 1','Werk 2','Säge Metall','Säge Kunststoff','Vorkommissionierung','Materialwagen','Werksverkehr','Teamleitung'];
 var HOL=new Set(['2026-01-01','2026-04-03','2026-04-06','2026-05-01','2026-05-14','2026-05-25','2026-06-04','2026-10-03','2026-11-01','2026-12-25','2026-12-26','2027-01-01','2027-03-26','2027-03-29','2027-05-01','2027-05-06','2027-05-17','2027-05-27','2027-10-03','2027-11-01','2027-12-25','2027-12-26','2028-01-01','2028-04-14','2028-04-17','2028-05-01','2028-05-25','2028-06-05','2028-06-15','2028-10-03','2028-11-01','2028-12-25','2028-12-26']);
 var TZ=[
- {g:'Wareneingang',f:[['we_pak','Pakete gebucht'],['we_gbpal','GB / Pal'],['we_metall','Lieferung Metall'],['we_kunst','Lieferung Kunststoff'],['we_sonst','sonstige WE'],['we_rueck','Rückstand'],['we_ges','WE gesamt']]},
+ {g:'Wareneingang',f:[['we_pak','Pakete gebucht'],['we_gbpal','GB / Pal'],['we_metall','Lieferung Metall'],['we_kunst','Lieferung Kunststoff'],['we_sonst','sonstige WE'],['we_rueck','Rückstand heute'],['we_ges','WE gesamt']]},
  {g:'WE-Prüfung',f:[['wep_si','Silizium geprüft'],['wep_si_mom','Silizium momentan zu prüfen'],['wep_si_lief','Silizium heute geliefert'],['wep_si_ges','Silizium gesamt zu prüfen'],['wep_si_min','Silizium Prüfaufwand in Minuten'],['wep_sonst','Sonstiges geprüft'],['wep_so_mom','Sonstiges momentan zu prüfen'],['wep_so_lief','Sonstiges heute geliefert'],['wep_so_ges','Sonstiges gesamt zu prüfen'],['wep_so_min','Sonstiges Prüfaufwand in Minuten']]},
- {g:'Materialwagen',f:[['mw_rueck','Rückstand'],['mw_gel','geliefert'],['mw_ver','verräumt']]},
- {g:'Säge Metall',f:[['ms_rueck','Rückstand'],['ms_plan','heute geplant'],['ms_ist','heute gesägt'],['ms_schn','Schnitte heute']]},
- {g:'Säge Kunststoff',f:[['ks_rueck','Rückstand'],['ks_plan','heute geplant'],['ks_ist','heute gesägt'],['ks_schn','Schnitte heute']]},
- {g:'Grundplatten',f:[['gp_rueck','Rückstand'],['gp_gebohrt','heute gebohrt'],['gp_erdung','Erdungslasche']]},
- {g:'Pumpen vor Lack',f:[['lack_rueck','Rückstand'],['lack_hp','HP'],['lack_vp','VP'],['lack_most','MOST'],['lack_ges','Gesamt'],['lack_gpl','Grundplatten'],['lack_ers','Ersatzteile'],['lack_sonst','Sonstiges'],['lack_mf','Motorflansch flexen']]},
- {g:'Pumpen vor Montage',f:[['mont_rueck','Rückstand'],['mont_hp','HP'],['mont_vp','VP'],['mont_most','MOST'],['mont_ges','Gesamt']]},
+ {g:'Materialwagen',f:[['mw_rueck','Rückstand heute'],['mw_gel','geliefert'],['mw_ver','verräumt']]},
+ {g:'Säge Metall',f:[['ms_rueck','Rückstand heute'],['ms_plan','heute geplant'],['ms_ist','heute gesägt'],['ms_schn','Schnitte heute']]},
+ {g:'Säge Kunststoff',f:[['ks_rueck','Rückstand heute'],['ks_plan','heute geplant'],['ks_ist','heute gesägt'],['ks_schn','Schnitte heute']]},
+ {g:'Grundplatten',f:[['gp_rueck','Rückstand heute'],['gp_gebohrt','heute gebohrt'],['gp_erdung','Erdungslasche']]},
+ {g:'Pumpen vor Lack',f:[['lack_rueck','Rückstand heute'],['lack_hp','HP'],['lack_vp','VP'],['lack_most','MOST'],['lack_ges','Gesamt'],['lack_gpl','Grundplatten'],['lack_ers','Ersatzteile'],['lack_sonst','Sonstiges'],['lack_mf','Motorflansch flexen']]},
+ {g:'Pumpen vor Montage',f:[['mont_rueck','Rückstand heute'],['mont_hp','HP'],['mont_vp','VP'],['mont_most','MOST'],['mont_ges','Gesamt']]},
  {g:'Tägliche Aufgaben',f:[['kisten','Kisten füllen'],['milkrun','Milkrun-Runden'],['tbkiste','TB-Kiste leeren']]},
  {g:'Störungen und Abweichungen',f:[['st_w1allg','Werk 1 allgemein'],['st_w1komm','Werk 1 Kommissionierung'],['st_w2','Werk 2'],['st_saege','Säge'],['st_we','Wareneingang'],['st_sonst','sonstige'],['st_neu','Neuanlagen'],['st_nach','Nacharbeit'],['st_fehl','Fehlteile'],['st_zeit','Störzeiten in Minuten']]}];
 var TZFIELDS={};TZ.forEach(function(g){g.f.forEach(function(f){TZFIELDS[f[0]]=g.g+' · '+f[1]})});
@@ -102,6 +102,8 @@ function logA(t){S.log.unshift({ts:Date.now(),u:S.user,t:t});if(S.log.length>400
 
 /* ===== Tageszahlen ===== */
 function tzOf(i){return S.tz[i]||{}}
+/* Rückstand: „Rückstand heute“ ist, was heute nicht abgearbeitet wurde. Am nächsten Arbeitstag ist derselbe Wert der „Rückstand Vortag“. */
+function rueckVortag(k,t){var l=tzLatest(prevWork(t||todayIso())),o=l&&S.tz[l]||{};return o[k]==null||o[k]===''?null:+o[k]}
 function tzLatest(before){var ks=Object.keys(S.tz).filter(function(k){return k<=before&&Object.keys(S.tz[k]).length}).sort();return ks.length?ks[ks.length-1]:null}
 function tzSet(i,k,v){S.tz[i]=S.tz[i]||{};if(v===''||v==null)delete S.tz[i][k];else S.tz[i][k]=Math.max(0,Math.round(num(v)));save()}
 function tzSum(o,keys){return keys.reduce(function(a,k){return a+(o[k]||0)},0)}

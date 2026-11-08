@@ -23,7 +23,7 @@ function crew(area){var p=S.plan[todayIso()]||{};return area?Object.keys(p).filt
 function info(z){var id=z[0],t=todayIso(),o=S.tz[t]||{};
  if(id==='we')return [regOpen('we'),'Lieferungen offen',lv('we_pak')+' Pakete am letzten Tag'];
  if(id==='wep')return [regOpen('wep'),'Prüfungen offen',lv('wep_si')+' Silizium am letzten Tag'];
- if(id==='mw')return [regOpen('mw'),'Wagen offen',lv('mw_rueck')+' Rückstand am letzten Tag'];
+ if(id==='mw')return [regOpen('mw'),'Wagen offen',lv('mw_rueck')+' Rückstand Vortag'];
  if(id==='ms'||id==='ks'){var f=window.fcast&&isWork(t)?fcast(id):null;return [+o[id+'_ist']||0,'heute gesägt',f&&f.run!=='ende'?'Prognose '+f.mid+(f.tg!=null?' von '+f.tg:''):lv(id+'_ist')+' am letzten Tag']}
  if(id==='vork')return [regOpen('vork'),'Aufträge offen',''];
  if(id==='lack')return [lv('lack_hp')+lv('lack_vp'),'Pumpen','HP und VP'];

@@ -50,7 +50,7 @@ var HELP={
 function helps(){$$('#stage .card > .ch h2').forEach(function(h){var t=h.textContent.trim(),x=HELP[t];if(!x||h.parentNode.querySelector('.hq'))return;var b=document.createElement('button');b.className='hq';b.type='button';b.setAttribute('aria-label','Hilfe: '+t);b.dataset.act='hq';b.dataset.t=t;b.textContent='?';h.insertAdjacentElement('afterend',b)});
  /* Shopfloor: Herkunft der Zahlen */
  var w=$('#stage .sf-when');if(w&&!w.querySelector('.hq'))w.insertAdjacentHTML('beforeend','<button class="hq" type="button" data-act="hq" data-t="sfwhen" aria-label="Hilfe">?</button>')}
-HELP.sfwhen='Die Kacheln zeigen die Zahlen des letzten erfassten Tages. Rückstand ist der aktuelle Stand, das Tagesziel gilt für heute, „jetzt“ sind Live-Werte aus den Registern.';
+HELP.sfwhen='Die Kacheln zeigen die Zahlen des letzten erfassten Tages. Rückstand Vortag ist, was am letzten Arbeitstag nicht abgearbeitet wurde und heute noch offen ist. Das Tagesziel (Plan plus Rückstand Vortag) gilt für heute, „jetzt“ sind Live-Werte aus den Registern.';
 ACT.hq=function(d,el){var o=$('#hqpop');if(o){var same=o.dataset.t===d.t;o.remove();if(same)return}var p=document.createElement('div');p.id='hqpop';p.dataset.t=d.t;p.setAttribute('role','tooltip');p.textContent=HELP[d.t]||'';document.body.appendChild(p);
  var r=el.getBoundingClientRect(),w=Math.min(340,innerWidth-24),x=Math.max(12,Math.min(r.left-12,innerWidth-w-12));p.style.cssText='left:'+x+'px;top:'+(r.bottom+8)+'px;width:'+w+'px'};
 document.addEventListener('pointerdown',function(e){var o=$('#hqpop');if(o&&!e.target.closest('#hqpop,.hq'))o.remove()},true);

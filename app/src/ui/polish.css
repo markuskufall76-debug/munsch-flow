@@ -141,3 +141,8 @@ html.lite .rind,html.lite .tind{transition:none}
 #mon,#amb{color-scheme:dark;--ground:#0A0B0D;--stage:#0F1114;--panel:#14171B;--panel2:#1A1E23;--glass:rgba(20,23,27,.72);
  --line:rgba(255,236,220,.075);--line2:rgba(255,236,220,.15);--ink:#F3EFEA;--ink2:#B8B1A9;--ink3:#7B756E;
  --ok:#4FD1A1;--warn:#F5B14A;--crit:#FF5A64;--info:#7CC4FF;--signal-soft:rgba(255,118,27,.13);--shadow:0 30px 70px -30px rgba(0,0,0,.85);color:var(--ink)}
+
+/* Tageszahlen: Rückstand heute mit dem übernommenen Rückstand vom Vortag darunter */
+.tzf .tz-vt{display:block;margin-top:2px;font:500 10.5px var(--mono);font-style:normal;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3)}
+.tzf .tz-vt b{color:var(--warn);font-weight:700}
+.tzf.rk label{color:var(--ink)}

@@ -738,6 +738,7 @@ test('Unterweisungen: Ablauf in der Warnlage, Team sieht nur die eigenen', async
   await signIn(team, 'K. Braun', 'braun-123456');
   await team.waitForFunction(() => window.SY && SY.ok && S.cfg && S.cfg.unt, null, { timeout: 10000 });
   await team.evaluate(() => go('unt'));
+  await team.waitForSelector('.card .t tbody tr');
   assert.equal(await team.$$eval('.card .t tbody tr', (r) => r.length), 1);
   assert.match(await team.textContent('.card .t tbody'), /K\. Braun.*abgelaufen/s);
   assert.deepEqual(lead.errors, []); assert.deepEqual(team.errors, []);

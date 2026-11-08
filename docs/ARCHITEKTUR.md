@@ -59,7 +59,7 @@ CI (`.github/workflows/ci.yml`) führt alles bei jedem Push aus und stellt die W
 `forecast.js` rechnet je Bereich (Säge Metall, Säge Kunststoff, Wareneingang) bis 15:00 hoch:
 Mitte = gebucht + Restschicht × (Anteil Schicht × Tempo heute + Rest × Ø der letzten 20 Arbeitstage).
 Der Bereich ist ± Streuung der 20 Tage, anteilig zur Restschicht, und liegt nie unter dem bereits Gebuchten.
-Ohne Buchung heute zählt nur der Erfahrungswert. Ziel der Sägen = Plan heute + Rückstand des letzten erfassten Tages.
+Ohne Buchung heute zählt nur der Erfahrungswert. Ziel der Sägen = Plan heute + Rückstand Vortag. „Rückstand heute“ ist, was heute nicht abgearbeitet wurde; am nächsten Arbeitstag wird derselbe Wert als „Rückstand Vortag“ geführt (`rueckVortag` in core.js).
 
 ## Hallenplan
 
