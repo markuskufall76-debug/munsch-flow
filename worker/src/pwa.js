@@ -8,7 +8,7 @@ export function serviceWorker(build, extra = []) {
     "self.addEventListener('fetch', (e) => {",
     "  const u = new URL(e.request.url);",
     "  if (e.request.method !== 'GET' || u.origin !== location.origin || u.pathname.startsWith('/api/')) return;",
-    "  if (u.pathname === '/' || u.pathname === '/index.html' || /^\\/w\\/[a-z]+$/.test(u.pathname)) {",
+    "  if (u.pathname === '/' || u.pathname === '/index.html' || /^\\/w\\/[a-z0-9]+$/.test(u.pathname)) {",
     "    const key = u.pathname === '/index.html' ? '/' : u.pathname;",
     "    e.respondWith(fetch(e.request).then((r) => { if (r.ok) { const cp = r.clone(); caches.open(C).then((c) => c.put(key, cp)); } return r; }).catch(() => caches.match(key).then((m) => m || caches.match('/'))));",
     "    return;",
@@ -19,7 +19,7 @@ export function serviceWorker(build, extra = []) {
 }
 
 // Zahlen-Widgets: jede Abteilung eine eigene installierbare App (eigene id, eigenes Fenster)
-export const WIDGETS = { we: 'Wareneingang', ms: 'Säge Metall', ks: 'Säge Kunststoff', saege: 'Beide Sägen', gp: 'Grundplatten', lack: 'Pumpen vor Lack', mont: 'Pumpen vor Montage', mw: 'Materialwagen' };
+export const WIDGETS = { we: 'Wareneingang', w1: 'Werk 1', wep: 'WE-Prüfung', mw: 'Materialwagen', ms: 'Säge Metall', ks: 'Säge Kunststoff', saege: 'Beide Sägen', vork: 'Vorkommissionierung', lack: 'Pumpen vor Lack', mont: 'Pumpen vor Montage', gp: 'Grundplatten', w2: 'Werk 2', wv: 'Werksverkehr' };
 export function widgetManifest(id) {
   return JSON.stringify({
     id: '/w/' + id, name: 'MUNSCH Zahlen · ' + WIDGETS[id], short_name: WIDGETS[id], description: 'Tageszahlen ' + WIDGETS[id] + ' erfassen',

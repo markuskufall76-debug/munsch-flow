@@ -20,7 +20,7 @@ html.zw-on body{overflow:hidden}
 
 /* Kopf mit Foto */
 .zw-h{position:relative;flex:0 0 auto;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;padding:14px 14px 12px;isolation:isolate;color:#F6F1EB;background:#0c0d0f center/cover no-repeat}
-.zw-h[data-img="lager"]{background-image:var(--img-lager)}.zw-h[data-img="prod"]{background-image:var(--img-prod)}.zw-h[data-img="pumpe"]{background-image:var(--img-pumpe)}.zw-h[data-img="halle"]{background-image:var(--img-halle)}
+.zw-h[data-img="lager"]{background-image:var(--img-lager)}.zw-h[data-img="prod"]{background-image:var(--img-prod)}.zw-h[data-img="pumpe"]{background-image:var(--img-pumpe)}.zw-h[data-img="halle"]{background-image:var(--img-halle)}.zw-h[data-img="komm"]{background-image:var(--img-komm)}
 .zw-h::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(8,9,11,.92),rgba(8,9,11,.55)),linear-gradient(0deg,rgba(8,9,11,.6),transparent 70%)}
 .zw-hk{display:flex;align-items:center;gap:8px;font:600 9.5px var(--mono);letter-spacing:.2em;text-transform:uppercase;color:#FFA25E}
 .zw-hk i{width:6px;height:6px;border-radius:50%;background:#4FD1A1;box-shadow:0 0 8px #4FD1A1}
@@ -96,3 +96,4 @@ html.zb-on .toast{bottom:calc(var(--zbh,110px) + 20px)}
 #zbar .zw-hn{font-size:20px}
 #zbar .zw-b{min-height:76px}
 #zbar .zw-c{padding:8px 14px}
+#zwin[data-lay="col"] .zw-t span{white-space:normal;overflow:visible;line-height:1.25}

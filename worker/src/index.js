@@ -68,7 +68,7 @@ export default {
         return new Response(m === 'HEAD' ? null : HTML, { headers: { ...SEC, 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-cache', 'content-security-policy': CSP, 'x-build': BUILD } });
       }
       // Zahlen-Widgets: dieselbe Seite mit eigenem Manifest, damit jedes Widget als eigene App installierbar ist
-      const wm = p.match(/^\/w\/([a-z]+)(\.webmanifest)?$/);
+      const wm = p.match(/^\/w\/([a-z0-9]+)(\.webmanifest)?$/);
       if (wm && WIDGETS[wm[1]]) {
         if (wm[2]) return new Response(widgetManifest(wm[1]), { headers: { ...SEC, 'content-type': 'application/manifest+json; charset=utf-8', 'cache-control': 'no-cache' } });
         if (m !== 'GET' && m !== 'HEAD') return json({ error: 'Methode nicht erlaubt' }, 405);

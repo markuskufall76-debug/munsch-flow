@@ -18,9 +18,14 @@ var WD={
  gp:{n:'Grundplatten',g:'Grundplatten',img:'prod',hl:['gp_gebohrt'],hlL:'heute gebohrt',key:['gp_gebohrt','gp_erdung','gp_rueck']},
  lack:{n:'Pumpen vor Lack',g:'Pumpen vor Lack',img:'pumpe',hl:['lack_hp','lack_vp'],hlL:'HP und VP gemeinsam',key:['lack_hp','lack_vp','lack_rueck']},
  mont:{n:'Pumpen vor Montage',g:'Pumpen vor Montage',img:'pumpe',hl:['mont_hp','mont_vp'],hlL:'HP und VP gemeinsam',key:['mont_hp','mont_vp','mont_rueck']},
- mw:{n:'Materialwagen',g:'Materialwagen',img:'halle',hl:['mw_ver'],goalK:'mw_gel',hlL:'verräumt von geliefert',key:['mw_ver','mw_gel','mw_rueck']}
+ mw:{n:'Materialwagen',g:'Materialwagen',img:'halle',hl:['mw_ver'],goalK:'mw_gel',hlL:'verräumt von geliefert',key:['mw_ver','mw_gel','mw_rueck']},
+ wep:{n:'WE-Prüfung',g:'WE-Prüfung',img:'lager',hl:['wep_si','wep_sonst'],hlL:'heute geprüft',key:['wep_si','wep_sonst','wep_si_mom','wep_so_mom']},
+ w1:{n:'Werk 1',parts:['wep','mw']},
+ vork:{n:'Vorkommissionierung',parts:['lack','mont','gp']},
+ w2:{n:'Werk 2',g:'Kommissionierung Werk 2',img:'komm',hl:['w2_auf'],hlL:'Aufträge kommissioniert',key:['w2_auf','w2_pos','w2_rueck']},
+ wv:{n:'Werksverkehr',g:'Werksverkehr',img:'halle',hl:['wv_21','wv_12'],hlL:'Fahrten heute',key:['wv_21','wv_12','wv_rueck']}
 };
-var ORDER=['we','ms','ks','saege','gp','lack','mont','mw'];
+var ORDER=['we','w1','wep','mw','ms','ks','saege','vork','lack','mont','gp','w2','wv'];
 window.WIDGETS={WD:WD,ORDER:ORDER};
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function parts(id){var w=WD[id];return w?(w.parts||[id]):[]}
@@ -54,7 +59,7 @@ ACT.zwkey=function(d){var x=d.v;if(x==='ok'){var k=PK;kpClose();if(k)put(k,+PV||
 document.addEventListener('keydown',function(e){if(!$('#zwkp'))return;e.stopPropagation();if(e.key==='Escape')kpClose();else if(e.key==='Enter')ACT.zwkey({v:'ok'});else if(e.key==='Backspace')ACT.zwkey({v:'del'});else if(/^[0-9]$/.test(e.key))ACT.zwkey({v:e.key})},true);
 
 /* ---------- 1 Eigenes Fenster ---------- */
-function wid(){var m=location.pathname.match(/^\/w\/([a-z]+)\/?$/)||location.hash.match(/^#w-([a-z]+)$/);return m&&WD[m[1]]?m[1]:null}
+function wid(){var m=location.pathname.match(/^\/w\/([a-z0-9]+)\/?$/)||location.hash.match(/^#w-([a-z0-9]+)$/);return m&&WD[m[1]]?m[1]:null}
 window.widgetId=wid;
 var WID=wid(),T=0,last='';
 function lay(){var w=innerWidth,h=innerHeight;return w>h*1.6?'row':'col'}
@@ -69,7 +74,8 @@ var ar=window.afterRender;window.afterRender=function(p){if(ar)ar(p);if(WID)setT
 setInterval(function(){if(WID)openWin()},1000);
 
 /* ---------- 2 Zahlen-Leiste in der App ---------- */
-var AUTO={'Säge Metall':'ms','Säge Kunststoff':'ks','Wareneingang':'we'};
+/* Bereich im Schichtplan → Widget (Festlegung der Teamleitung, 8.11.) */
+var AUTO={'Wareneingang':'we','Säge Metall':'ms','Säge Kunststoff':'ks','Werk 1':'w1','WEP':'wep','Materialwagen':'mw','Vorkommissionierung':'vork','Werk 2':'w2','Werksverkehr':'wv'};
 function zbSel(){return ls('mflow.zbar')||'auto'}
 function zbId(){var s=zbSel();if(s==='off')return null;if(s!=='auto')return WD[s]?s:null;if(!S.user||isLead()||ro())return null;var a=(S.plan[todayIso()]||{})[S.user];return AUTO[a]||null}
 function zbLook(){return ls('mflow.zblook')||'glass'}

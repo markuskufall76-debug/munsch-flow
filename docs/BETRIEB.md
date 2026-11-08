@@ -60,7 +60,9 @@ Der Hallenmodus macht Schrift größer und kräftiger und Nebentext heller. Er i
 
 ## Zahlen-Widgets an den Arbeitsplätzen
 
-Jede Abteilung hat eine eigene Adresse, die nach der Anmeldung nur ihre Tageszahlen zeigt: `/w/we` Wareneingang, `/w/ms` Säge Metall, `/w/ks` Säge Kunststoff, `/w/saege` beide Sägen, `/w/gp` Grundplatten, `/w/lack` Pumpen vor Lack, `/w/mont` Pumpen vor Montage, `/w/mw` Materialwagen. Die Liste mit „Kopieren“ steht unter Einstellungen → *Zahlen-Widgets*.
+Jede Abteilung hat eine eigene Adresse, die nach der Anmeldung nur ihre Tageszahlen zeigt: `/w/we` Wareneingang, `/w/w1` Werk 1 (WE-Prüfung und Materialwagen), `/w/wep` WE-Prüfung, `/w/mw` Materialwagen, `/w/ms` Säge Metall, `/w/ks` Säge Kunststoff, `/w/saege` beide Sägen, `/w/vork` Vorkommissionierung (Pumpen vor Lack, Pumpen vor Montage, Grundplatten), `/w/lack`, `/w/mont`, `/w/gp` einzeln, `/w/w2` Werk 2 (Kommissionierung), `/w/wv` Werksverkehr.
+
+Die Zahlen-Leiste auf „Automatisch“ zeigt den Bereich laut Schichtplan: Wareneingang → Wareneingang, Werk 1 → WE-Prüfung und Materialwagen, WEP → WE-Prüfung, Materialwagen → Materialwagen, Säge Metall / Kunststoff → die jeweilige Säge, Vorkommissionierung → Pumpen vor Lack, vor Montage und Grundplatten, Werk 2 → Kommissionierung Werk 2, Werksverkehr → Werksverkehr. Die Liste mit „Kopieren“ steht unter Einstellungen → *Zahlen-Widgets*.
 
 1. Am PC die Adresse in **Microsoft Edge** öffnen und anmelden (die Anmeldung hält 30 Tage ohne Nutzung).
 2. Oben rechts „…“ → Apps → „Als App installieren“. Das Widget bekommt ein eigenes Fenster und ein Symbol in Taskleiste und Startmenü.

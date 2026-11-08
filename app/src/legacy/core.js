@@ -29,6 +29,8 @@ var TZ=[
  {g:'Grundplatten',f:[['gp_rueck','Rückstand heute'],['gp_gebohrt','heute gebohrt'],['gp_erdung','Erdungslasche']]},
  {g:'Pumpen vor Lack',f:[['lack_rueck','Rückstand heute'],['lack_hp','HP'],['lack_vp','VP'],['lack_most','MOST'],['lack_ges','Gesamt'],['lack_gpl','Grundplatten'],['lack_ers','Ersatzteile'],['lack_sonst','Sonstiges'],['lack_mf','Motorflansch flexen']]},
  {g:'Pumpen vor Montage',f:[['mont_rueck','Rückstand heute'],['mont_hp','HP'],['mont_vp','VP'],['mont_most','MOST'],['mont_ges','Gesamt']]},
+ {g:'Kommissionierung Werk 2',f:[['w2_auf','Aufträge kommissioniert'],['w2_pos','Positionen kommissioniert'],['w2_rueck','Rückstand heute']]},
+ {g:'Werksverkehr',f:[['wv_21','Fahrten Werk 2 nach Werk 1'],['wv_12','Fahrten Werk 1 nach Werk 2'],['wv_rueck','Rückstand heute']]},
  {g:'Tägliche Aufgaben',f:[['kisten','Kisten füllen'],['milkrun','Milkrun-Runden'],['tbkiste','TB-Kiste leeren']]},
  {g:'Störungen und Abweichungen',f:[['st_w1allg','Werk 1 allgemein'],['st_w1komm','Werk 1 Kommissionierung'],['st_w2','Werk 2'],['st_saege','Säge'],['st_we','Wareneingang'],['st_sonst','sonstige'],['st_neu','Neuanlagen'],['st_nach','Nacharbeit'],['st_fehl','Fehlteile'],['st_zeit','Störzeiten in Minuten']]}];
 var TZFIELDS={};TZ.forEach(function(g){g.f.forEach(function(f){TZFIELDS[f[0]]=g.g+' · '+f[1]})});

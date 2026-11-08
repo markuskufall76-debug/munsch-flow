@@ -803,6 +803,12 @@ test('Zahlen-Widget: Adresse /w/saege zeigt nur beide Sägen, + bucht in die Tag
   await lead.evaluate(() => { localStorage.setItem('mflow.zbar', 'we'); go('lage'); });
   await lead.waitForSelector('#zbar .zw-b', { timeout: 6000 });
   assert.match(await lead.textContent('#zbar'), /Wareneingang/);
+  await lead.evaluate(() => { localStorage.setItem('mflow.zbar', 'vork'); go('lage'); });
+  await lead.waitForFunction(() => document.querySelectorAll('#zbar .zw-b').length === 3, null, { timeout: 6000 });
+  assert.match(await lead.textContent('#zbar'), /Pumpen vor Lack[\s\S]*Pumpen vor Montage[\s\S]*Grundplatten/);
+  await lead.goto(srv.url + '/w/w2');
+  await lead.waitForSelector('#zwin .zw-b', { timeout: 15000 });
+  assert.match(await lead.textContent('#zwin'), /Aufträge kommissioniert[\s\S]*Rückstand heute/);
   assert.deepEqual(lead.errors, []);
 });
 
