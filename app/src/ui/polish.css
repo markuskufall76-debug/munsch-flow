@@ -146,3 +146,19 @@ html.lite .rind,html.lite .tind{transition:none}
 .tzf .tz-vt{display:block;margin-top:2px;font:500 10.5px var(--mono);font-style:normal;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3)}
 .tzf .tz-vt b{color:var(--warn);font-weight:700}
 .tzf.rk label{color:var(--ink)}
+
+/* Handy: flachere Kopfbilder, damit die Inhalte früher sichtbar sind; Datumswahl bricht um statt an den Rand zu stoßen */
+@media (max-width:820px){
+ .ph{min-height:160px}
+ .ph-in{padding:40px 16px 16px}
+ html.open .hero.ph-own{padding:48px 16px 18px;min-height:0}
+ .ph-t{font-size:clamp(40px,12vw,56px);margin-top:8px}
+ .ph-s{font-size:16px;margin-top:8px}
+ .lb-hero{min-height:min(560px,72vh)}
+}
+@media (max-width:560px){
+ .dsw{flex-wrap:wrap;row-gap:10px}
+ .dsw b{min-width:0;flex:1 1 auto;font-size:20px}
+}
+/* Handy: Begrüßungskopf ohne Leerraum (die PC-Breitenangabe wirkte untereinander als Höhe) */
+@media (max-width:560px){.hero .hl > div:first-child{flex:0 0 auto}}
