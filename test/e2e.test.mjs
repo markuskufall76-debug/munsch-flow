@@ -777,3 +777,32 @@ test('Darstellung und persönliche Begrüßung', async () => {
   await lead.waitForFunction(() => !document.getElementById('pf'));
   assert.deepEqual(lead.errors, []);
 });
+
+test('Zahlen-Widget: Adresse /w/saege zeigt nur beide Sägen, + bucht in die Tageszahlen, Leiste in der App', async () => {
+  const lead = await open();
+  await signIn(lead, 'M. Thiel', 'notfall-123456');
+  await lead.waitForFunction(() => window.SY && SY.ok);
+  const tok = await lead.evaluate(() => SY.tok);
+  await lead.goto(srv.url + '/w/saege');
+  await lead.waitForSelector('#zwin .zw-b', { timeout: 15000 });
+  assert.equal(await lead.$$eval('#zwin .zw-b', (b) => b.length), 2, 'Metall und Kunststoff');
+  assert.match(await lead.textContent('#zwin'), /Säge Metall[\s\S]*Säge Kunststoff/);
+  const before = await lead.evaluate(() => (S.tz[todayIso()] || {}).ks_ist || 0);
+  await lead.click('#zwin [data-act="zwstep"][data-k="ks_ist"][data-n="1"]');
+  await lead.click('#zwin [data-act="zwstep"][data-k="ks_ist"][data-n="1"]');
+  assert.equal(await lead.evaluate(() => S.tz[todayIso()].ks_ist), before + 2);
+  await lead.click('#zwin .zw-v[data-k="ms_schn"]');
+  await lead.click('#zwkp [data-v="4"]'); await lead.click('#zwkp [data-v="2"]'); await lead.click('#zwkp [data-v="ok"]');
+  assert.equal(await lead.evaluate(() => S.tz[todayIso()].ms_schn), 42);
+  await lead.waitForTimeout(1500);
+  const rows = (await api('/api/sync?since=0', tok)).rows, day = await lead.evaluate(() => todayIso());
+  const tz = JSON.parse(rows.find((r) => r.s === 'tz' && r.k === day).v);
+  assert.equal(tz.ms_schn, 42, 'in der Zentrale');
+  await lead.goto(srv.url + '/');
+  await lead.waitForSelector('#stage');
+  await lead.evaluate(() => { localStorage.setItem('mflow.zbar', 'we'); go('lage'); });
+  await lead.waitForSelector('#zbar .zw-b', { timeout: 6000 });
+  assert.match(await lead.textContent('#zbar'), /Wareneingang/);
+  assert.deepEqual(lead.errors, []);
+});
+

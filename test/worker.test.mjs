@@ -155,6 +155,17 @@ test('Installierbar: Manifest, Logo und Service Worker werden ausgeliefert', asy
   assert.match((await call('/')).headers.get('content-security-policy'), /worker-src 'self'/);
 });
 
+test('Zahlen-Widgets: eigene Adresse und eigenes Manifest je Abteilung, unbekannte Adresse 404', async () => {
+  const h = await call('/w/saege');
+  assert.equal(h.status, 200); assert.match(h.headers.get('content-type'), /text\/html/);
+  assert.match(h.body, /<link rel="manifest" href="\/w\/saege\.webmanifest">/);
+  assert.doesNotMatch(h.body, /href="\/manifest\.webmanifest"/);
+  const m = await call('/w/saege.webmanifest');
+  assert.equal(m.status, 200); assert.equal(m.body.id, '/w/saege'); assert.equal(m.body.start_url, '/w/saege'); assert.match(m.body.name, /Beide Sägen/);
+  assert.equal((await call('/w/gibtsnicht')).status, 404);
+  assert.match((await call('/sw.js')).body, /\\\/w\\\//, 'Widget-Seiten offline startfähig');
+});
+
 test('Perplexity: ohne Schlüssel sauber abgeschaltet', async () => {
   const t = await loginAs(LEAD, 'notfall-123456');
   const r = await call('/api/ask', { token: t, body: { messages: [{ role: 'user', content: 'Test' }] } });

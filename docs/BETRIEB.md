@@ -54,6 +54,17 @@ Danach Schritt 5 wiederholen. Die Daten bleiben erhalten. Die Version steht in d
 - **Monitor-Konto:** In der Anmeldung gibt es „Monitor“ (Rolle `monitor`, nur lesen; der Server lehnt jede Änderung ab). PIN wie für alle unter *Zugang und PINs* setzen. Nach der Anmeldung startet der Werkstattmonitor von selbst, Eingabeformulare sind ausgeblendet, die Schrift ist groß.
 - **Fehlerberichte:** Stürzt auf einem Gerät eine Ansicht ab, meldet die Seite das ohne Personendaten an die Zentrale (Seite, Gerätetyp, Version, Fehlertext; Tabelle `errs`, die letzten 300, höchstens 60 je Gerät und Tag). Einsehen und leeren: *Einstellungen* → „Fehlerberichte“ (nur Teamleitung).
 
+## Zahlen-Widgets an den Arbeitsplätzen
+
+Jede Abteilung hat eine eigene Adresse, die nach der Anmeldung nur ihre Tageszahlen zeigt: `/w/we` Wareneingang, `/w/ms` Säge Metall, `/w/ks` Säge Kunststoff, `/w/saege` beide Sägen, `/w/gp` Grundplatten, `/w/lack` Pumpen vor Lack, `/w/mont` Pumpen vor Montage, `/w/mw` Materialwagen. Die Liste mit „Kopieren“ steht unter Einstellungen → *Zahlen-Widgets*.
+
+1. Am PC die Adresse in **Microsoft Edge** öffnen und anmelden (die Anmeldung hält 30 Tage ohne Nutzung).
+2. Oben rechts „…“ → Apps → „Als App installieren“. Das Widget bekommt ein eigenes Fenster und ein Symbol in Taskleiste und Startmenü.
+3. Fenster schmal an den rechten Rand ziehen (Spalten) oder flach an den unteren Rand (Zeilen); Windows merkt sich Größe und Position.
+4. Autostart: `edge://apps` öffnen und beim Widget den Start bei der Anmeldung einschalten. Falls die Option fehlt: Verknüpfung in den Ordner `shell:startup` legen (Windows-Taste + R).
+
+In der App selbst gibt es dieselben Zahlen als Leiste unten auf jeder Seite (Einstellungen → *Zahlen-Leiste*, je Gerät; automatisch nach Schichtplan, deckend oder durchsichtig). Gebucht wird in die Tageszahlen von heute; „Rückstand heute“ steht mit dem Vortag darunter.
+
 ## Datensicherung
 
 - Einstellungen → „Datensicherung und Aufbewahrung“: Sicherung als Datei herunterladen (die Warnlage erinnert nach 7 Tagen), Sicherung einspielen, alte Krankmeldungen löschen.

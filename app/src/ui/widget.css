@@ -1,0 +1,98 @@
+/* ===== Zahlen-Widgets (widget.js) =====
+   #zwin: eigenes Fenster über allem; Spalten (schmal, hoch) oder Zeilen (breit, flach).
+   #zbar: Leiste unten in der App, deckend oder durchsichtig (--wa = Deckkraft). */
+
+#zwin{position:fixed;inset:0;z-index:175;display:flex;flex-direction:column;background:var(--ground);color:var(--ink);overflow:hidden;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+html.zw-on body{overflow:hidden}
+.zw-wt{flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--line)}
+.zw-wt .zw-logo{display:grid;place-items:center;width:22px;height:22px}
+.zw-wt .zw-logo svg{width:22px;height:22px}
+.zw-wt b{flex:1;min-width:0;font:700 17px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.zw-wt .zw-d{font:500 10.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);white-space:nowrap}
+.zw-x{padding:4px 10px;border-radius:8px;border:1px solid var(--line2);font:600 11px var(--body);color:var(--ink2)}
+.zw-body{flex:1;display:flex;min-height:0;min-width:0}
+#zwin[data-lay="col"] .zw-body{flex-direction:row}
+#zwin[data-lay="row"] .zw-body,#zbar .zw-body{flex-direction:column}
+.zw-b{position:relative;display:flex;min-width:0;min-height:0;flex:1 1 0}
+.zw-b + .zw-b{border-left:1px solid var(--line2)}
+#zwin[data-lay="row"] .zw-b + .zw-b,#zbar .zw-b + .zw-b{border-left:0;border-top:1px solid var(--line2)}
+#zwin[data-lay="col"] .zw-b{flex-direction:column}
+
+/* Kopf mit Foto */
+.zw-h{position:relative;flex:0 0 auto;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;padding:14px 14px 12px;isolation:isolate;color:#F6F1EB;background:#0c0d0f center/cover no-repeat}
+.zw-h[data-img="lager"]{background-image:var(--img-lager)}.zw-h[data-img="prod"]{background-image:var(--img-prod)}.zw-h[data-img="pumpe"]{background-image:var(--img-pumpe)}.zw-h[data-img="halle"]{background-image:var(--img-halle)}
+.zw-h::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(8,9,11,.92),rgba(8,9,11,.55)),linear-gradient(0deg,rgba(8,9,11,.6),transparent 70%)}
+.zw-hk{display:flex;align-items:center;gap:8px;font:600 9.5px var(--mono);letter-spacing:.2em;text-transform:uppercase;color:#FFA25E}
+.zw-hk i{width:6px;height:6px;border-radius:50%;background:#4FD1A1;box-shadow:0 0 8px #4FD1A1}
+.zw-hn{font:800 clamp(17px,2.2vw,26px)/.95 var(--display);text-transform:uppercase;letter-spacing:.01em}
+.zw-hl{display:flex;align-items:baseline;gap:6px;font-variant-numeric:tabular-nums;margin-top:2px}
+.zw-hl b{font:800 clamp(30px,4vw,44px)/.9 var(--display)}
+.zw-hl small{font:700 17px var(--display);color:rgba(246,241,235,.6)}
+.zw-hs{font:500 9.5px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:rgba(246,241,235,.7)}
+.zw-bar{height:4px;border-radius:4px;background:rgba(255,236,220,.18);margin-top:8px;overflow:hidden}
+.zw-bar i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,#FF761B,#FFA25E);transition:width .5s var(--ease-out,ease)}
+.zw-bar.done i{background:#4FD1A1}
+
+/* Zahlen */
+.zw-f{flex:1;display:flex;min-width:0;min-height:0}
+#zwin[data-lay="col"] .zw-f{flex-direction:column;overflow-y:auto;scrollbar-width:none}
+#zwin[data-lay="row"] .zw-f,#zbar .zw-f{flex-direction:row;overflow-x:auto;scrollbar-width:none}
+.zw-f::-webkit-scrollbar{display:none}
+.zw-c{display:flex;gap:10px;padding:10px 14px;min-width:0}
+#zwin[data-lay="col"] .zw-c{flex:1 0 auto;flex-direction:column;justify-content:center;gap:6px;border-top:1px solid var(--line)}
+#zwin[data-lay="row"] .zw-c,#zbar .zw-c{flex:1 0 150px;align-items:center;border-left:1px solid var(--line)}
+.zw-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.zw-t span{font:500 10px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.zw-v{align-self:flex-start;margin-left:-4px;padding:0 4px;border-radius:8px;font:800 clamp(28px,3.4vw,40px)/1.02 var(--display);font-variant-numeric:tabular-nums;color:var(--ink);transition:background-color .14s}
+#zbar .zw-v{font-size:30px}
+.zw-v:hover:not([disabled]){background:var(--signal-soft)}
+.zw-v.bump{animation:zwBump .42s var(--ease-out,ease)}
+@keyframes zwBump{30%{transform:scale(1.14);color:var(--signal)}}
+.zw-t em{font:500 10px var(--mono);font-style:normal;color:var(--warn);letter-spacing:.04em}
+.zw-pm{display:flex;flex-direction:column;gap:4px}
+#zwin[data-lay="col"] .zw-pm{flex-direction:row}
+.zw-pm button{min-width:38px;height:32px;border-radius:10px;border:1px solid var(--line2);background:var(--panel2);font:600 18px/1 var(--body);display:grid;place-items:center;color:var(--ink);transition:transform .12s var(--ease-out,ease)}
+#zwin[data-lay="col"] .zw-pm button{flex:1;height:clamp(34px,4.5vh,46px);font-size:20px}
+.zw-pm button.p{background:var(--signal-soft);border-color:color-mix(in srgb,var(--signal) 40%,transparent);color:var(--signal)}
+.zw-pm button:active{transform:scale(.92)}
+.zw-s{flex:0 0 auto;display:flex;align-items:center;justify-content:center;gap:8px;padding:9px 12px;border-top:1px solid var(--line);font:600 10.5px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ok)}
+.zw-s::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.zw-s.off{color:var(--warn)}
+#zwin[data-lay="row"] .zw-b{flex-direction:row}
+#zwin[data-lay="row"] .zw-h{min-width:200px;justify-content:center}
+
+/* Ziffernblock */
+#zwkp{position:fixed;inset:0;z-index:190;display:grid;place-items:center;padding:16px;background:rgba(5,5,6,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.zw-kc{width:100%;max-width:340px;padding:18px;border-radius:24px;background:var(--panel);border:1px solid var(--line2);box-shadow:var(--shadow);animation:pDlg .28s var(--ease-out,ease) both}
+.zw-kl{font:600 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink3)}
+.zw-kv{margin:12px 0;height:72px;border-radius:14px;background:var(--stage);border:1px solid var(--line2);display:flex;align-items:center;justify-content:flex-end;padding:0 18px;font:800 54px/1 var(--display);font-variant-numeric:tabular-nums}
+.zw-kg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.zw-kg button{height:56px;border-radius:14px;background:var(--panel2);border:1px solid var(--line);font:700 26px var(--display);color:var(--ink)}
+.zw-kg button:active{transform:scale(.94)}
+.zw-kg .ok{background:var(--signal);border-color:var(--signal);color:var(--signal-ink);font:700 16px var(--body)}
+
+/* Leiste in der App */
+#zbar{position:fixed;left:84px;right:0;bottom:0;z-index:60;display:flex;max-height:46vh;background:var(--panel);border-top:1px solid var(--line2);box-shadow:0 -20px 50px -30px rgba(0,0,0,.6);padding:0 env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) 0;--wa:1}
+#zbar.glass{background:color-mix(in srgb,var(--panel) calc(var(--wa)*100%),transparent);-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);border-top-color:color-mix(in srgb,var(--ink) 14%,transparent)}
+#zbar.glass .zw-pm button:not(.p){background:color-mix(in srgb,var(--panel2) calc(var(--wa)*100%),transparent)}
+#zbar.glass .zw-h::after{opacity:calc(.35 + var(--wa)*.65)}
+#zbar .zw-b{flex-direction:row;min-height:84px}
+#zbar .zw-h{min-width:190px;justify-content:center;padding:10px 16px}
+#zbar .zw-hl b{font-size:30px}
+html.zb-on #stage{padding-bottom:calc(var(--zbh,110px) + 24px)}
+html.zb-on .toast{bottom:calc(var(--zbh,110px) + 20px)}
+.zw-links{display:flex;flex-direction:column}
+.zw-links > div{display:grid;grid-template-columns:minmax(120px,170px) minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.zw-links > div:last-child{border-bottom:0}
+.zw-links .mono{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:820px){.zw-links > div{grid-template-columns:minmax(0,1fr) auto auto}.zw-links .mono{display:none}}
+@media (prefers-reduced-motion:reduce){.zw-v.bump{animation:none}}
+
+/* Feinschliff: Spalte kompakt (Zahl und Tasten beieinander), Köpfe in Zeilen gleich breit, Leiste mit schlankem Kopf */
+#zwin[data-lay="col"] .zw-t{flex:0 0 auto}
+#zwin[data-lay="col"] .zw-c{justify-content:center;gap:10px}
+#zwin[data-lay="row"] .zw-h,#zbar .zw-h{flex:0 0 210px;width:210px;min-width:0}
+#zbar .zw-hk,#zbar .zw-hs{display:none}
+#zbar .zw-hn{font-size:20px}
+#zbar .zw-b{min-height:76px}
+#zbar .zw-c{padding:8px 14px}

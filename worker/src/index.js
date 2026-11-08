@@ -2,8 +2,9 @@
 // Liefert die Seite aus und stellt die API bereit. Bindungen: DB (D1). Secrets: PIN_LEAD, PPLX_KEY (optional),
 // PIN_TEAM + ALLOW_SHARED=1 (optional, Gruppen-PIN). Optional: R2-Bindung BACKUP für nächtliche Sicherungen. Details: docs/BETRIEB.md
 import { HTML, CSP, BUILD, MFDATA, XLSX_JS, ICON, IMGS } from './generated/page.js';
-import { serviceWorker, MANIFEST } from './pwa.js';
+import { serviceWorker, MANIFEST, WIDGETS, widgetManifest } from './pwa.js';
 const SW = serviceWorker(BUILD, Object.keys(IMGS));
+const WHTML = (id) => HTML.replace('<link rel="manifest" href="/manifest.webmanifest">', '<link rel="manifest" href="/w/' + id + '.webmanifest">');
 // Bilder der Bildwelt: Pfad enthält den Inhalts-Hash, daher unveränderlich zwischenspeicherbar
 const IMGB = {};
 function img(p) { if (!IMGS[p]) return null; if (!IMGB[p]) { const s = atob(IMGS[p]), u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); IMGB[p] = u; } return IMGB[p]; }
@@ -65,6 +66,13 @@ export default {
       if (p === '/' || p === '/index.html') {
         if (m !== 'GET' && m !== 'HEAD') return json({ error: 'Methode nicht erlaubt' }, 405);
         return new Response(m === 'HEAD' ? null : HTML, { headers: { ...SEC, 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-cache', 'content-security-policy': CSP, 'x-build': BUILD } });
+      }
+      // Zahlen-Widgets: dieselbe Seite mit eigenem Manifest, damit jedes Widget als eigene App installierbar ist
+      const wm = p.match(/^\/w\/([a-z]+)(\.webmanifest)?$/);
+      if (wm && WIDGETS[wm[1]]) {
+        if (wm[2]) return new Response(widgetManifest(wm[1]), { headers: { ...SEC, 'content-type': 'application/manifest+json; charset=utf-8', 'cache-control': 'no-cache' } });
+        if (m !== 'GET' && m !== 'HEAD') return json({ error: 'Methode nicht erlaubt' }, 405);
+        return new Response(m === 'HEAD' ? null : WHTML(wm[1]), { headers: { ...SEC, 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-cache', 'content-security-policy': CSP, 'x-build': BUILD } });
       }
       if (p === '/healthz') return json({ ok: 1, build: BUILD });
       if (p === '/sw.js') return new Response(SW, { headers: { ...SEC, 'content-type': 'application/javascript; charset=utf-8', 'cache-control': 'no-cache', 'service-worker-allowed': '/' } });
