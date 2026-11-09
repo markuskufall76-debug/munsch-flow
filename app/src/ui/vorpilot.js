@@ -2,7 +2,7 @@
    1 Sicherung prüfen: Datei einlesen und prüfen, ohne etwas zu überschreiben (Format, Vollständigkeit, Inhalt, Vergleich mit heute).
    2 Pilot-Auswertung: Erfolgskriterien aus dem Fahrplan Woche für Woche (Auswertung, nur Teamleitung).
    4 Urlaub über dem Anspruch: Hinweis beim Beantragen, Eintragen und Genehmigen.
-   5 Fehlende Tageszahlen: ab 14:30 an Arbeitstagen in der Warnlage, mit den Abteilungen, die heute eingeteilt sind. */
+   5 Fehlende Tageszahlen: ab 14:50 an Arbeitstagen in der Warnlage, mit den Abteilungen, die heute eingeteilt sind. */
 (function(){
 'use strict';
 var M=window.MF,cp=M.cp,card=M.card;
@@ -18,7 +18,7 @@ function groupsFor(d){var P=S.plan[d]||{},G={};Object.keys(P).forEach(function(n
 /* Gruppen ohne einen einzigen Wert an diesem Tag; der Rückstand allein zählt nicht als erfasst */
 window.tzMissing=function(d){var o=S.tz[d]||{};return groupsFor(d).filter(function(g){var G=TZ.filter(function(x){return x.g===g})[0];if(!G)return false;return !G.f.some(function(f){return !/_rueck$/.test(f[0])&&o[f[0]]!=null&&o[f[0]]!==''})})};
 var al=window.alerts;window.alerts=function(now){var a=al.apply(this,arguments);try{var t=todayIso(),m=now.getHours()*60+now.getMinutes();
- if(isWork(t)&&m>=14*60+30){var L=tzMissing(t);if(L.length)a.push({tone:'warn',t:'Tageszahlen fehlen: '+L.join(', '),go:'tz'})}}catch(e){}return a};
+ if(isWork(t)&&m>=14*60+50){var L=tzMissing(t);if(L.length)a.push({tone:'warn',t:'Tageszahlen fehlen: '+L.join(', '),go:'tz'})}}catch(e){}return a};
 
 /* ---------- 4 Urlaub über dem Anspruch ---------- */
 /* Resturlaub im Jahr des Beginns, wenn der Zeitraum dazukommt (halbe Tage am 24. und 31.12. wie im Konto) */
