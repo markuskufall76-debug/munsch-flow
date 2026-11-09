@@ -340,7 +340,10 @@ test('Offline-Start: nach dem ersten Laden startet die App ohne Netz; Alarm-Bann
   await page.fill('#fscan', '4811111'); await page.keyboard.press('Enter');
   await page.waitForSelector('.burst.ok');
   // Alarm-Banner bei neuer kritischer Lage (Langlieger)
-  await page.evaluate(() => { S.extra = S.extra || {}; S.extra[todayIso()] = { by: 'Test', ts: 1 }; mkDay(todayIso())[3] = { s: Date.now() - 25 * 6e4 }; render(); }); // Runde 4 seit 25 Min. offen = eskaliert
+  // erst alle Runden erledigt (sonst ist je nach Uhrzeit schon ein Milkrun-Alarm da und der neue zählt nicht als neu)
+  await page.evaluate(() => { S.extra = S.extra || {}; S.extra[todayIso()] = { by: 'Test', ts: 1 }; const d = mkDay(todayIso()); for (let i = 0; i < 10; i++) d[i] = { s: Date.now() - 6e4, e: Date.now() }; render(); });
+  await page.waitForTimeout(400);
+  await page.evaluate(() => { mkDay(todayIso())[3] = { s: Date.now() - 25 * 6e4 }; render(); }); // Runde 4 seit 25 Min. offen = eskaliert
   await page.waitForSelector('#albar', { timeout: 5000 });
   assert.match(await page.textContent('#albar'), /Milkrun/);
   // Hallenmonitor im Vollbild: Alarmszene muss im Monitor liegen, sonst ist sie im Vollbild unsichtbar
