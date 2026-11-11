@@ -861,3 +861,19 @@ test('Vor dem Pilot: fehlende Tageszahlen, Urlaub über Anspruch, Sicherung prü
   assert.match(await lead.textContent('table.pil'), /Milkrun im Flow erfasst[\s\S]*Shopfloor 06:45 mit Flow[\s\S]*Tageszahlen vollständig/);
   assert.deepEqual(lead.errors, []);
 });
+
+test('Klangbild: alle Klänge lassen sich erzeugen, ohne Übersteuerung; Lautstärke je Gerät', async () => {
+  const lead = await open();
+  await signIn(lead, 'M. Thiel', 'notfall-123456');
+  const r = await lead.evaluate(async () => {
+    const out = {};
+    for (const n of KLANG.names) { const c = new OfflineAudioContext(1, 44100 * 3, 44100); KLANG.render(n, c, 1); const d = (await c.startRendering()).getChannelData(0); let p = 0; for (let i = 0; i < d.length; i++) p = Math.max(p, Math.abs(d[i])); out[n] = p; }
+    return out;
+  });
+  for (const [n, p] of Object.entries(r)) { assert.ok(p > 0.02, n + ' hörbar'); assert.ok(p < 0.95, n + ' ohne Übersteuerung'); }
+  assert.ok(['tick', 'ok', 'done', 'err', 'warn', 'alarm', 'record'].every((n) => n in r));
+  await lead.evaluate(() => go('adm'));
+  await lead.click('[data-act="volset"][data-v="laut"]');
+  assert.equal(await lead.evaluate(() => localStorage.getItem('mflow.vol')), 'laut');
+  assert.deepEqual(lead.errors, []);
+});

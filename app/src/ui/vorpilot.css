@@ -7,3 +7,7 @@
 table.pil td,table.pil th{white-space:nowrap}
 table.pil td.dim{white-space:normal;min-width:160px}
 .vo-over{margin-right:6px}
+
+/* Klang (klang.js) */
+.kl-g{display:flex;flex-wrap:wrap;gap:8px}
+.snd-on{position:absolute;left:50%;bottom:calc(28px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:20;background:var(--signal);color:var(--signal-ink);border-color:transparent;font-size:clamp(14px,.9vw,20px);padding:.7em 1.4em;box-shadow:0 10px 30px -10px rgba(0,0,0,.6)}

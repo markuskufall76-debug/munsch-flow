@@ -36,7 +36,7 @@ var t=0;window.addEventListener('resize',function(){clearTimeout(t);t=setTimeout
    unbekannte Karten landen unter „Weitere“. */
 (function(){
 'use strict';
-var G=[['dev','Auf diesem Gerät',['Darstellung auf diesem Gerät','Farbschema und Auftakt','Kino-Hintergrund','Seitengestaltung','Hallenmodus','Zahlen-Leiste','Lagebild','Ruhemodus','Rückmeldung und Einarbeitung','Dieses Gerät']],
+var G=[['dev','Auf diesem Gerät',['Darstellung auf diesem Gerät','Farbschema und Auftakt','Kino-Hintergrund','Seitengestaltung','Hallenmodus','Zahlen-Leiste','Lagebild','Ruhemodus','Rückmeldung und Einarbeitung','Klang','Dieses Gerät']],
  ['me','Für dich',['Persönliche Begrüßung','Konto']],
  ['team','Team',['Zugang und PINs','Begrüßung im Team','Zahlen-Widgets','Module','Bereiche','Bereiche und Anmeldekarten','Anmeldekarten','Geräte']],
  ['ops','Betrieb',['Datensicherung und Aufbewahrung','Fehlerberichte','Nutzung','Umzug aus Flow 5']]];
